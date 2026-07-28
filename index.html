@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>JR Gestão</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(29, 104, 204, .22), transparent 32rem),
+        radial-gradient(circle at 82% 78%, rgba(20, 159, 105, .14), transparent 30rem),
+        #08111f;
+      color: #eef5ff;
+    }
+    .card {
+      width: min(92vw, 520px);
+      padding: 38px 32px;
+      border: 1px solid rgba(151, 182, 224, .16);
+      border-radius: 24px;
+      background: rgba(14, 27, 48, .88);
+      box-shadow: 0 30px 80px rgba(0,0,0,.42);
+      text-align: center;
+      backdrop-filter: blur(18px);
+    }
+    .logo {
+      width: 88px;
+      height: 88px;
+      object-fit: contain;
+      margin-bottom: 14px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: .04em;
+    }
+    p {
+      margin: 12px 0 24px;
+      color: #9fb3cf;
+      line-height: 1.55;
+    }
+    .loader {
+      width: 46px;
+      height: 46px;
+      margin: 0 auto 20px;
+      border: 4px solid rgba(95, 149, 221, .18);
+      border-top-color: #3e92ff;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    .status {
+      min-height: 24px;
+      font-weight: 600;
+      color: #dceaff;
+    }
+    .retry {
+      display: none;
+      width: 100%;
+      margin-top: 18px;
+      padding: 13px 18px;
+      border: 0;
+      border-radius: 12px;
+      background: #2677d9;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    small {
+      display: block;
+      margin-top: 22px;
+      color: #617996;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <img class="logo" src="logo.png" alt="JR Gestão">
+    <h1>JR GESTÃO</h1>
+    <p>Conectando ao painel administrativo seguro.</p>
+    <div class="loader" id="loader"></div>
+    <div class="status" id="status">Localizando o servidor…</div>
+    <button class="retry" id="retry" type="button">TENTAR NOVAMENTE</button>
+    <small>O computador responsável pelo sistema precisa estar ligado.</small>
+  </main>
+
+  <script>
+    const statusElement = document.getElementById('status');
+    const retryButton = document.getElementById('retry');
+    const loader = document.getElementById('loader');
+
+    async function redirectToPanel() {
+      retryButton.style.display = 'none';
+      loader.style.display = 'block';
+      statusElement.textContent = 'Localizando o servidor…';
+
+      try {
+        const response = await fetch(`target.json?v=${Date.now()}`, {
+          cache: 'no-store'
+        });
+
+        if (!response.ok) throw new Error('Configuração indisponível');
+
+        const data = await response.json();
+        const target = String(data.url || '').trim();
+
+        if (!/^https:\/\/[a-z0-9-]+\.trycloudflare\.com\/?$/i.test(target)) {
+          throw new Error('Servidor ainda não publicado');
+        }
+
+        statusElement.textContent = 'Abrindo o painel…';
+        window.location.replace(target);
+      } catch (error) {
+        loader.style.display = 'none';
+        retryButton.style.display = 'block';
+        statusElement.textContent =
+          'O painel está desligado ou ainda está iniciando.';
+      }
+    }
+
+    retryButton.addEventListener('click', redirectToPanel);
+    redirectToPanel();
+  </script>
+</body>
+</html>
