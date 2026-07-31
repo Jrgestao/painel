@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <!-- JR_GESTAO_FRONTEND_DIRETO_GITHUB_DUCKDNS -->
+  <!-- CORRECAO_REDE_DESEMPENHO_V6=20260731-162610 -->
   <!-- AJUSTES_SITE_MENU_CALENDARIOS_PLANILHAS=20260731-151052 -->
   <!-- MOBILE_SEM_LOOP=20260731-143015 -->
   <!-- CACHE_FIX_ATIVO=20260731-140035 -->
@@ -94,11 +95,14 @@
 <!-- JR_GESTAO_TELA_CARREGAMENTO_METAL_V34 -->
   <link rel="preload" href="./assets/logo-jr-gestao.png" as="image" type="image/png">
 <link rel="stylesheet" href="./src/styles-carregamento-calendario-v39.css?v=definitivo">
-<link rel="stylesheet" href="./src/calendar-service-date-v42.css?v=20260731">
-  <link rel="preload" href="./assets/logo-jr-gestao.png" as="image" type="image/png">
+<link rel="preload" href="./assets/logo-jr-gestao.png" as="image" type="image/png">
 
   <!-- JR_GESTAO_CARREGAMENTO_E_CALENDARIO_CORRIGIDOS_V39 -->
   <link rel="stylesheet" href="./src/ajustes-site-20260731-151052.css">
+  <!-- JR_SUPABASE_PRECONNECT_V6 -->
+  <link rel="dns-prefetch" href="//jrgestao-supa.duckdns.org">
+  <link rel="preconnect" href="https://jrgestao-supa.duckdns.org:18443" crossorigin>
+  <link rel="stylesheet" href="./src/ajuste-rede-desempenho-v6-20260731-162610.css?v=20260731-162610">
 </head>
 <body>
 <div id="toast" class="toast" aria-live="polite"></div>
@@ -752,10 +756,9 @@
         <button id="purge-confirm" class="danger-button" type="button"><span data-icon="trash"></span><span class="button-label">EXCLUIR DO SUPABASE</span></button>
       </div>
     </div>
-  </dialog><script src="./src/vendor/jszip-3.10.1.min.js"></script>
-  <script src="./src/vendor/exceljs-4.4.0.min.js"></script>
-  <script type="module" src="./src/main-ajustes-site-20260731-151052.js"></script>
-  <script defer src="./src/calendar-service-date-v42.js?v=20260731"></script>
-  <script defer src="./src/ajustes-site-20260731-151052.js"></script>
+  </dialog>
+  <script src="./src/vendor/supabase-js-2.57.4-local-20260731-162610.js?v=20260731-162610"></script>
+  <script type="module" src="./src/main-rede-desempenho-v6-20260731-162610.js?v=20260731-162610"></script>
+  <script defer src="./src/ajuste-rede-desempenho-v6-20260731-162610.js?v=20260731-162610"></script>
 </body>
 </html>

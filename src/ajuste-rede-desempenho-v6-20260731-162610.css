@@ -1,0 +1,276 @@
+/* JR GESTAO — AJUSTE MOBILE LEVE */
+
+.login-heading > p {
+  display: none !important;
+}
+
+/* Período de Fotos e Relatórios mais compacto e alinhado no computador. */
+@media (min-width: 901px) {
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"],
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] {
+    min-height: 62px !important;
+    height: 62px !important;
+    padding: 8px 13px !important;
+    align-items: center !important;
+    grid-template-columns: 30px minmax(0, 1fr) 18px !important;
+    gap: 10px !important;
+  }
+
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"] .period-selector-icon,
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] .period-selector-icon {
+    width: 30px !important;
+    height: 30px !important;
+    margin: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+  }
+
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"] .period-selector-icon svg,
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] .period-selector-icon svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"] .period-selector-copy,
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] .period-selector-copy {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    gap: 1px !important;
+    margin: 0 !important;
+  }
+
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"] .period-selector-copy small,
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] .period-selector-copy small,
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"] .period-selector-copy strong,
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] .period-selector-copy strong {
+    margin: 0 !important;
+    line-height: 1.15 !important;
+  }
+
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"] .period-selector-copy em,
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] .period-selector-copy em {
+    display: none !important;
+  }
+}
+
+/* Calendários e seletores alinhados exatamente ao campo. */
+body.jr-fluid-metal-v26 [data-date-picker-for],
+body.jr-fluid-metal-v26 [data-month-picker-for],
+body.jr-fluid-metal-v26 [data-select-for],
+body.jr-fluid-metal-v26 .picker-control,
+body.jr-fluid-metal-v26 .custom-select-control {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+body.jr-fluid-metal-v26 .date-picker-popover,
+body.jr-fluid-metal-v26 .custom-select-menu {
+  position: absolute !important;
+  inset: auto !important;
+  left: 0 !important;
+  right: auto !important;
+  top: calc(100% + 8px) !important;
+  bottom: auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  translate: none !important;
+  transform-origin: top center !important;
+  z-index: 26000 !important;
+  box-sizing: border-box !important;
+}
+
+body.jr-fluid-metal-v26 .date-picker-popover.jr-open-above,
+body.jr-fluid-metal-v26 .custom-select-menu.jr-open-above {
+  top: auto !important;
+  bottom: calc(100% + 8px) !important;
+}
+
+body.jr-fluid-metal-v26 .date-picker-popover.show {
+  transform: none !important;
+}
+
+body.jr-fluid-metal-v26 .custom-select-menu.show {
+  transform: none !important;
+}
+
+/* Neutraliza as regras antigas que jogavam o calendário para a direita/fixo. */
+body.jr-fluid-metal-v26 .jr-service-calendar-fixed-v40,
+body.jr-fluid-metal-v26 .jr-service-date-popover-v37,
+body.jr-fluid-metal-v26 .jr-service-date-popover-fixed-v39,
+body.jr-fluid-metal-v26 .date-picker-popover.mobile-fixed {
+  position: absolute !important;
+  inset: auto !important;
+  left: 0 !important;
+  right: auto !important;
+  top: calc(100% + 8px) !important;
+  bottom: auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  max-height: min(460px, calc(100dvh - 32px)) !important;
+  margin: 0 !important;
+  translate: none !important;
+  transform: none !important;
+}
+
+body.jr-fluid-metal-v26 .jr-service-calendar-fixed-v40.jr-open-above,
+body.jr-fluid-metal-v26 .jr-service-date-popover-v37.jr-open-above,
+body.jr-fluid-metal-v26 .jr-service-date-popover-fixed-v39.jr-open-above,
+body.jr-fluid-metal-v26 .date-picker-popover.mobile-fixed.jr-open-above {
+  top: auto !important;
+  bottom: calc(100% + 8px) !important;
+}
+
+@media (max-width: 900px) {
+  /* Texto e logo no centro real do painel lateral. */
+  body.jr-fluid-metal-v26 #sidebar,
+  body.jr-fluid-metal-v26 .sidebar {
+    align-items: center !important;
+    will-change: transform !important;
+    contain: layout paint !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar .sidebar-logo-wrap,
+  body.jr-fluid-metal-v26 .sidebar .sidebar-logo-wrap {
+    width: 100% !important;
+    display: grid !important;
+    place-items: center !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar .sidebar-logo,
+  body.jr-fluid-metal-v26 .sidebar .sidebar-logo {
+    display: block !important;
+    margin: 0 auto !important;
+    object-position: center !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar .sidebar-nav,
+  body.jr-fluid-metal-v26 .sidebar .sidebar-nav {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 0 10px !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar .nav-item,
+  body.jr-fluid-metal-v26 .sidebar .nav-item {
+    width: calc(100% - 22px) !important;
+    display: grid !important;
+    grid-template-columns: 28px minmax(112px, 132px) !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 0 12px !important;
+    margin: 0 auto !important;
+    text-align: center !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar .nav-item > span:first-child,
+  body.jr-fluid-metal-v26 .sidebar .nav-item > span:first-child {
+    width: 28px !important;
+    justify-self: center !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar .nav-item > span:last-child,
+  body.jr-fluid-metal-v26 .sidebar .nav-item > span:last-child {
+    width: 100% !important;
+    justify-self: center !important;
+    text-align: center !important;
+  }
+
+  /* Calendário com a mesma largura e o mesmo alinhamento do campo no celular. */
+  body.jr-fluid-metal-v26 .date-picker-popover,
+  body.jr-fluid-metal-v26 .custom-select-menu,
+  body.jr-fluid-metal-v26 .jr-service-calendar-fixed-v40,
+  body.jr-fluid-metal-v26 .jr-service-date-popover-v37,
+  body.jr-fluid-metal-v26 .jr-service-date-popover-fixed-v39,
+  body.jr-fluid-metal-v26 .date-picker-popover.mobile-fixed {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: min(430px, calc(100dvh - 28px)) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+  }
+
+  /* Reduz efeitos caros sem desmontar o visual. */
+  body.jr-fluid-metal-v26 .login-shell,
+  body.jr-fluid-metal-v26 .sidebar,
+  body.jr-fluid-metal-v26 .admin-topbar,
+  body.jr-fluid-metal-v26 .panel,
+  body.jr-fluid-metal-v26 .summary-card,
+  body.jr-fluid-metal-v26 .mini-card,
+  body.jr-fluid-metal-v26 dialog,
+  body.jr-fluid-metal-v26 .date-picker-popover,
+  body.jr-fluid-metal-v26 .custom-select-menu {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  body.jr-fluid-metal-v26 .panel,
+  body.jr-fluid-metal-v26 .summary-card,
+  body.jr-fluid-metal-v26 .mini-card {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .16) !important;
+  }
+}
+
+
+/* REDE EXTERNA / MOBILE V6 */
+#jr-network-notice-v6 {
+  position: fixed;
+  z-index: 2147483600;
+  left: 50%;
+  top: max(10px, env(safe-area-inset-top));
+  transform: translateX(-50%);
+  max-width: min(92vw, 560px);
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(128, 28, 28, .96);
+  color: #fff;
+  font: 700 13px/1.35 system-ui, sans-serif;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,.28);
+}
+#jr-network-notice-v6[hidden] { display: none !important; }
+
+@media (max-width: 900px) {
+  html, body { overscroll-behavior-x: none; }
+  body.jr-sidebar-swipe-v6 { touch-action: pan-y pinch-zoom; }
+  body.jr-fluid-metal-v26 .loading-state,
+  body.jr-fluid-metal-v26 #loading-state { min-height: 54px !important; }
+}
+
+
+/* DESEMPENHO GERAL V6 — PC E CELULAR */
+body.jr-fluid-metal-v26 .page-section.hidden {
+  display: none !important;
+}
+
+body.jr-fluid-metal-v26 .table-wrap,
+body.jr-fluid-metal-v26 .module-preview,
+body.jr-fluid-metal-v26 .team-folder-grid,
+body.jr-fluid-metal-v26 .records-panel,
+body.jr-fluid-metal-v26 .team-score-grid {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 560px;
+}
+
+body.jr-fluid-metal-v26 [aria-busy="true"] {
+  cursor: progress !important;
+}
+
+@media (max-width: 900px) {
+  body.jr-fluid-metal-v26 .table-wrap,
+  body.jr-fluid-metal-v26 .module-preview,
+  body.jr-fluid-metal-v26 .team-folder-grid,
+  body.jr-fluid-metal-v26 .records-panel,
+  body.jr-fluid-metal-v26 .team-score-grid {
+    contain-intrinsic-size: 1px 420px;
+  }
+}
