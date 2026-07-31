@@ -1,0 +1,3844 @@
+/* JR_GESTAO_PENDENCIAS_OLHINHO_CARD_POR_EQUIPE_V15 */
+
+.team-score-card.has-critical-issues {
+  border-color: rgba(255, 77, 94, .72);
+  box-shadow:
+    0 0 0 1px rgba(255, 77, 94, .12),
+    0 18px 42px rgba(0, 0, 0, .28);
+}
+
+.team-score-card.has-warning-issues {
+  border-color: rgba(255, 177, 66, .58);
+}
+
+.team-issue-alert {
+  width: 100%;
+  margin: 14px 0 2px;
+  border: 1px solid;
+  border-radius: 14px;
+  padding: 11px 12px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 32px;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
+}
+
+.team-issue-alert:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.07);
+}
+
+.team-issue-alert:active {
+  transform: translateY(0);
+}
+
+.team-issue-alert.danger {
+  background: linear-gradient(135deg, rgba(119, 22, 37, .94), rgba(65, 13, 25, .96));
+  border-color: rgba(255, 83, 102, .78);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 10px 24px rgba(83, 10, 24, .26);
+}
+
+.team-issue-alert.warning {
+  background: linear-gradient(135deg, rgba(102, 65, 15, .94), rgba(56, 36, 10, .96));
+  border-color: rgba(255, 185, 72, .68);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 10px 24px rgba(65, 40, 5, .22);
+}
+
+.team-issue-alert-icon,
+.team-issue-alert-eye {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,.09);
+}
+
+.team-issue-alert-icon svg,
+.team-issue-alert-eye svg {
+  width: 18px;
+  height: 18px;
+}
+
+.team-issue-alert-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.team-issue-alert-copy small {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .09em;
+}
+
+.team-issue-alert-copy strong {
+  font-size: 15px;
+  line-height: 1.15;
+}
+
+.team-issue-alert-copy em {
+  font-size: 11px;
+  line-height: 1.3;
+  font-style: normal;
+  color: rgba(255,255,255,.72);
+}
+
+.issue-row-danger td:first-child {
+  box-shadow: inset 3px 0 0 #ff5269;
+}
+
+.issue-row-warning td:first-child {
+  box-shadow: inset 3px 0 0 #ffb442;
+}
+
+.issue-eye-button {
+  color: #fff;
+  border-color: rgba(255,255,255,.18);
+}
+
+.issue-eye-button:hover {
+  border-color: rgba(255, 83, 102, .72);
+  background: rgba(255, 83, 102, .12);
+}
+
+.issue-detail-banner {
+  margin-bottom: 16px;
+  padding: 13px 14px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  border: 1px solid;
+  border-radius: 14px;
+}
+
+.issue-detail-banner.danger {
+  background: rgba(116, 19, 35, .36);
+  border-color: rgba(255, 82, 105, .58);
+}
+
+.issue-detail-banner.warning {
+  background: rgba(100, 61, 11, .34);
+  border-color: rgba(255, 182, 66, .54);
+}
+
+.issue-detail-banner > span {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: rgba(255,255,255,.08);
+}
+
+.issue-detail-banner svg {
+  width: 20px;
+  height: 20px;
+}
+
+.issue-detail-banner div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.issue-detail-banner strong {
+  font-size: 13px;
+  letter-spacing: .06em;
+}
+
+.issue-detail-banner small {
+  line-height: 1.42;
+  color: rgba(255,255,255,.76);
+}
+
+.issue-detail-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 720px) {
+  .team-issue-alert {
+    grid-template-columns: 32px minmax(0, 1fr) 30px;
+    padding: 10px;
+  }
+
+  .team-issue-alert-copy strong {
+    font-size: 14px;
+  }
+
+  .issue-detail-actions .outline-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+
+/* JR_GESTAO_CARD_PERIGO_AO_LADO_TOTAL_V16 */
+
+.team-score-header-v16 {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch !important;
+  gap: 12px;
+}
+
+.team-score-name-v16 {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.team-score-name-v16 strong {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.team-score-header-metrics-v16 {
+  display: grid;
+  grid-template-columns: minmax(76px, auto) minmax(138px, auto);
+  align-items: stretch;
+  gap: 8px;
+}
+
+.team-score-total-v16 {
+  min-height: 68px;
+  padding: 9px 13px !important;
+  border-radius: 14px !important;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+.team-score-total-v16 span {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .11em;
+}
+
+.team-score-total-v16 strong {
+  line-height: 1;
+}
+
+.team-danger-card {
+  min-height: 68px;
+  border: 1px solid;
+  border-radius: 14px;
+  padding: 8px 9px;
+  display: grid;
+  grid-template-columns: 27px minmax(0, 1fr) 25px;
+  align-items: center;
+  gap: 7px;
+  color: #fff;
+  text-align: left;
+  font: inherit;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+}
+
+button.team-danger-card {
+  cursor: pointer;
+  transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;
+}
+
+button.team-danger-card:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+button.team-danger-card:active {
+  transform: translateY(0);
+}
+
+.team-danger-card.danger {
+  background:
+    radial-gradient(circle at 92% 5%, rgba(255, 99, 119, .25), transparent 42%),
+    linear-gradient(135deg, rgba(118, 19, 37, .98), rgba(56, 10, 22, .98));
+  border-color: rgba(255, 83, 105, .82);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.09),
+    0 9px 22px rgba(101, 11, 29, .28);
+}
+
+.team-danger-card.warning {
+  background:
+    radial-gradient(circle at 92% 5%, rgba(255, 190, 77, .22), transparent 42%),
+    linear-gradient(135deg, rgba(103, 63, 11, .98), rgba(52, 32, 7, .98));
+  border-color: rgba(255, 183, 69, .75);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 9px 22px rgba(74, 43, 4, .24);
+}
+
+.team-danger-card.clear {
+  background:
+    radial-gradient(circle at 92% 5%, rgba(74, 221, 157, .18), transparent 42%),
+    linear-gradient(135deg, rgba(13, 74, 58, .84), rgba(8, 42, 36, .92));
+  border-color: rgba(70, 210, 150, .48);
+}
+
+.team-danger-card-icon,
+.team-danger-card-action {
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,.09);
+}
+
+.team-danger-card-icon svg,
+.team-danger-card-action svg {
+  width: 15px;
+  height: 15px;
+}
+
+.team-danger-card-copy {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  column-gap: 6px;
+}
+
+.team-danger-card-copy small {
+  grid-column: 1 / -1;
+  font-size: 8px;
+  line-height: 1.1;
+  font-weight: 950;
+  letter-spacing: .09em;
+  white-space: nowrap;
+}
+
+.team-danger-card-copy strong {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.team-danger-card-copy em {
+  min-width: 0;
+  font-size: 9px;
+  line-height: 1.15;
+  font-style: normal;
+  color: rgba(255,255,255,.72);
+  overflow-wrap: anywhere;
+}
+
+.team-score-card.has-no-issues {
+  border-color: rgba(70, 210, 150, .22);
+}
+
+@media (max-width: 860px) {
+  .team-score-header-v16 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .team-score-header-metrics-v16 {
+    grid-template-columns: minmax(82px, .72fr) minmax(150px, 1.28fr);
+  }
+}
+
+@media (max-width: 420px) {
+  .team-score-header-metrics-v16 {
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .team-danger-card {
+    grid-template-columns: 25px minmax(0, 1fr) 23px;
+    padding: 7px;
+  }
+
+  .team-danger-card-copy strong {
+    font-size: 20px;
+  }
+
+  .team-danger-card-copy em {
+    font-size: 8px;
+  }
+}
+
+
+/* JR_GESTAO_MENU_ORDEM_SERVICO_V17 */
+
+.orders-page-panel {
+  overflow: visible;
+}
+
+.orders-toolbar-v17 {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.35fr) minmax(220px, .85fr) minmax(220px, .75fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.orders-search-field-v17 {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.orders-search-field-v17 > span {
+  color: rgba(230, 238, 247, .72);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.orders-search-field-v17 .search-shell {
+  min-height: 48px;
+}
+
+.orders-team-control-v17 {
+  width: 100%;
+  min-width: 0;
+}
+
+.orders-refresh-button-v17 {
+  min-height: 48px;
+  align-self: end;
+}
+
+.orders-summary-grid-v17 {
+  margin: 18px 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.order-summary-card-v17 {
+  min-height: 105px;
+  border: 1px solid rgba(142, 142, 142, .24);
+  border-radius: 18px;
+  padding: 15px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  background:
+    radial-gradient(circle at 95% 2%, rgba(142, 142, 142, .14), transparent 42%),
+    linear-gradient(145deg, rgba(10, 27, 45, .98), rgba(6, 18, 32, .98));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.order-summary-card-v17 .summary-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: rgba(135, 135, 135, .12);
+  color: #a7a7a7;
+}
+
+.order-summary-card-v17 .summary-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.order-summary-card-v17 div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.order-summary-card-v17 p {
+  margin: 0;
+  color: rgba(225, 235, 246, .68);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.order-summary-card-v17 strong {
+  color: #fff;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.order-summary-card-v17 small {
+  color: rgba(225, 235, 246, .52);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.orders-list-header-v17 {
+  margin-top: 4px;
+  padding: 13px 2px 11px;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
+}
+
+.orders-list-header-v17 strong {
+  display: block;
+  font-size: 14px;
+}
+
+.orders-list-header-v17 small {
+  color: rgba(225, 235, 246, .56);
+}
+
+.orders-table-wrap-v17 {
+  border: 1px solid rgba(118, 118, 118, .22);
+  border-radius: 17px;
+  overflow: auto;
+  background: rgba(4, 14, 26, .52);
+}
+
+.orders-table-v17 {
+  min-width: 1040px;
+}
+
+.orders-table-v17 thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(7, 21, 36, .98);
+  backdrop-filter: blur(10px);
+}
+
+.orders-table-v17 tbody tr {
+  transition: background .15s ease, transform .15s ease;
+}
+
+.orders-table-v17 tbody tr:hover {
+  background: rgba(123, 123, 123, .07);
+}
+
+.order-service-number {
+  min-width: 118px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid rgba(150, 150, 150, .36);
+  border-radius: 12px;
+  background: rgba(113, 113, 113, .09);
+}
+
+.order-service-number small {
+  color: #ababab;
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .08em;
+}
+
+.order-service-number strong {
+  color: #fff;
+  overflow-wrap: anywhere;
+}
+
+.order-date-cell,
+.order-address-cell,
+.order-service-type {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.order-date-cell strong,
+.order-address-cell strong,
+.order-service-type strong {
+  color: #f2f7fc;
+}
+
+.order-date-cell small,
+.order-address-cell small,
+.order-service-type small {
+  max-width: 330px;
+  color: rgba(224, 234, 245, .55);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.order-team-badge {
+  max-width: 230px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid rgba(75, 206, 155, .32);
+  border-radius: 12px;
+  color: #dffcef;
+  background: rgba(34, 151, 108, .09);
+}
+
+.order-team-badge svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+}
+
+.order-team-badge strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.order-eye-action {
+  color: #fff;
+  border-color: rgba(155, 155, 155, .32);
+}
+
+.order-eye-action:hover {
+  background: rgba(134, 134, 134, .13);
+  border-color: rgba(155, 155, 155, .68);
+}
+
+.orders-table-footer-v17 {
+  margin-top: 13px;
+}
+
+.orders-empty-v17 {
+  margin-top: 14px;
+}
+
+@media (max-width: 1180px) {
+  .orders-toolbar-v17 {
+    grid-template-columns: minmax(280px, 1fr) minmax(210px, .8fr);
+  }
+
+  .orders-refresh-button-v17 {
+    width: 100%;
+  }
+
+  .orders-summary-grid-v17 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .orders-toolbar-v17 {
+    grid-template-columns: 1fr;
+  }
+
+  .orders-summary-grid-v17 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .order-summary-card-v17 {
+    min-height: 92px;
+    grid-template-columns: 35px minmax(0, 1fr);
+    padding: 12px;
+    gap: 9px;
+  }
+
+  .order-summary-card-v17 .summary-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .order-summary-card-v17 strong {
+    font-size: 24px;
+  }
+
+  .orders-list-header-v17 {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .orders-table-wrap-v17 {
+    margin-inline: -2px;
+  }
+}
+
+
+/* JR_GESTAO_ORDENS_MES_ATUAL_BUSCA_PADRAO_V18 */
+
+.orders-search-control-v18 {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.orders-search-control-v18 > label {
+  color: rgba(230, 238, 247, .72);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.orders-search-box-v18 {
+  position: relative;
+  min-width: 0;
+}
+
+.orders-search-box-v18 input {
+  width: 100%;
+  height: 48px;
+  margin: 0;
+  padding: 0 46px 0 15px;
+  border: 1px solid rgba(119, 119, 119, .38);
+  border-radius: 12px;
+  outline: none;
+  color: #f4f8fc;
+  background: rgba(7, 20, 34, .96);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 7px 18px rgba(0, 0, 0, .12);
+  font: inherit;
+  appearance: none;
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.orders-search-box-v18 input::placeholder {
+  color: rgba(223, 223, 223, .42);
+}
+
+.orders-search-box-v18 input:hover {
+  border-color: rgba(151, 151, 151, .55);
+  background: rgba(8, 23, 39, .98);
+}
+
+.orders-search-box-v18 input:focus {
+  border-color: rgba(153, 153, 153, .88);
+  box-shadow:
+    0 0 0 3px rgba(138, 138, 138, .13),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.orders-search-box-v18 > span {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  color: rgba(175, 175, 175, .82);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.orders-search-box-v18 > span svg {
+  width: 18px;
+  height: 18px;
+}
+
+.orders-search-box-v18 input::-webkit-search-cancel-button {
+  cursor: pointer;
+  opacity: .68;
+}
+
+.orders-current-month-note-v18 {
+  color: rgba(182, 182, 182, .82) !important;
+}
+
+@media (max-width: 680px) {
+  .orders-search-box-v18 input {
+    height: 46px;
+    border-radius: 11px;
+  }
+}
+
+
+/* JR_GESTAO_PESQUISAS_LEVES_GERAL_V19 */
+
+.light-search-field-v19 {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.light-search-field-v19 > span,
+.light-search-field-v19 > label {
+  color: rgba(230, 238, 247, .72);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.light-search-box-v19 {
+  position: relative;
+  min-width: 0;
+}
+
+.light-search-box-v19 input {
+  width: 100%;
+  height: 48px;
+  margin: 0;
+  padding: 0 46px 0 15px;
+  border: 1px solid rgba(119, 119, 119, .38);
+  border-radius: 12px;
+  outline: none;
+  color: #f4f8fc;
+  background: rgba(7, 20, 34, .96);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+  font: inherit;
+  appearance: none;
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+
+.light-search-box-v19 input::placeholder {
+  color: rgba(223, 223, 223, .42);
+}
+
+.light-search-box-v19 input:focus {
+  border-color: rgba(153, 153, 153, .88);
+  box-shadow: 0 0 0 3px rgba(138, 138, 138, .13);
+}
+
+.light-search-box-v19 input:disabled {
+  cursor: not-allowed;
+  opacity: .58;
+  background: rgba(8, 16, 27, .78);
+}
+
+.light-search-box-v19 > span {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  color: rgba(175, 175, 175, .82);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.light-search-box-v19 > span svg {
+  width: 18px;
+  height: 18px;
+}
+
+.light-search-help-v19 {
+  min-height: 15px;
+  color: rgba(224, 224, 224, .48);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.light-search-help-v19.ready {
+  color: rgba(79, 211, 157, .76);
+}
+
+.light-search-help-v19.disabled {
+  color: rgba(255, 179, 72, .74);
+}
+
+.orders-search-control-v18 .orders-search-box-v18 {
+  display: none;
+}
+
+.orders-search-control-v18 {
+  gap: 7px;
+}
+
+.sidebar-global-search-v19 {
+  margin: 14px 12px 4px;
+  padding: 12px;
+  border: 1px solid rgba(134, 134, 134, .28);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 95% 2%, rgba(135, 135, 135, .15), transparent 44%),
+    linear-gradient(145deg, rgba(9, 27, 45, .97), rgba(6, 18, 31, .98));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.sidebar-global-search-v19 .global-search-title-v19 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ecf6ff;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+.sidebar-global-search-v19 .global-search-title-v19 svg {
+  width: 16px;
+  height: 16px;
+  color: #a9a9a9;
+}
+
+.sidebar-global-search-v19 > p {
+  margin: 5px 0 10px;
+  color: rgba(224, 224, 224, .53);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.sidebar-global-search-row-v19 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  gap: 7px;
+}
+
+.sidebar-global-search-row-v19 input {
+  min-width: 0;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid rgba(120, 120, 120, .38);
+  border-radius: 10px;
+  outline: none;
+  color: #fff;
+  background: rgba(4, 15, 27, .94);
+  font: inherit;
+  font-size: 11px;
+}
+
+.sidebar-global-search-row-v19 input:focus {
+  border-color: rgba(153, 153, 153, .82);
+  box-shadow: 0 0 0 3px rgba(138, 138, 138, .11);
+}
+
+.sidebar-global-search-row-v19 button {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid rgba(155, 155, 155, .48);
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(145deg, #787878, #5c5c5c);
+  cursor: pointer;
+}
+
+.sidebar-global-search-row-v19 button:disabled {
+  cursor: wait;
+  opacity: .62;
+}
+
+.sidebar-global-search-row-v19 button svg {
+  width: 17px;
+  height: 17px;
+}
+
+#global-search-status {
+  min-height: 13px;
+  margin-top: 7px;
+  display: block;
+  color: rgba(189, 189, 189, .66);
+  font-size: 8px;
+  line-height: 1.3;
+}
+
+#global-search-status.error {
+  color: rgba(255, 111, 127, .88);
+}
+
+.global-search-result-head-v19 {
+  margin-bottom: 14px;
+  padding: 12px 13px;
+  border: 1px solid rgba(145, 145, 145, .26);
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  background: rgba(100, 100, 100, .08);
+}
+
+.global-search-result-head-v19 > span {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  color: #b0b0b0;
+  background: rgba(140, 140, 140, .12);
+}
+
+.global-search-result-head-v19 > span svg {
+  width: 19px;
+  height: 19px;
+}
+
+.global-search-result-head-v19 div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.global-search-result-head-v19 small {
+  color: rgba(224, 235, 246, .58);
+  line-height: 1.35;
+}
+
+.global-search-results-v19 {
+  display: grid;
+  gap: 8px;
+}
+
+.global-search-result-card-v19 {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid rgba(136, 136, 136, .24);
+  border-radius: 13px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  text-align: left;
+  background: rgba(7, 22, 37, .84);
+  cursor: pointer;
+  font: inherit;
+  transition: transform .14s ease, border-color .14s ease, background .14s ease;
+}
+
+.global-search-result-card-v19:hover {
+  transform: translateY(-1px);
+  border-color: rgba(157, 157, 157, .58);
+  background: rgba(10, 31, 51, .96);
+}
+
+.global-search-result-card-v19.danger {
+  border-color: rgba(255, 83, 105, .34);
+  background: rgba(89, 14, 29, .28);
+}
+
+.global-result-icon-v19,
+.global-result-arrow-v19 {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,.06);
+}
+
+.global-result-icon-v19 svg,
+.global-result-arrow-v19 svg {
+  width: 16px;
+  height: 16px;
+}
+
+.global-result-copy-v19 {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.global-result-copy-v19 strong,
+.global-result-copy-v19 small,
+.global-result-copy-v19 em {
+  overflow-wrap: anywhere;
+}
+
+.global-result-copy-v19 small {
+  color: rgba(225, 235, 246, .62);
+  font-size: 11px;
+}
+
+.global-result-copy-v19 em {
+  color: rgba(181, 181, 181, .68);
+  font-size: 9px;
+  font-style: normal;
+}
+
+.global-search-limit-v19 {
+  margin: 12px 0 0;
+  color: rgba(255, 184, 76, .74);
+  font-size: 10px;
+  text-align: center;
+}
+
+@media (max-width: 680px) {
+  .light-search-box-v19 input {
+    height: 46px;
+  }
+
+  .sidebar-global-search-v19 {
+    margin-inline: 10px;
+  }
+}
+
+
+/* JR_GESTAO_PESQUISAS_LEVES_ROBUSTO_V20 */
+
+.orders-search-control-v18 .orders-search-box-v18.light-search-box-v19,
+.orders-light-search-v19 .light-search-box-v19,
+.report-light-search-v19 .light-search-box-v19 {
+  display: block !important;
+}
+
+.orders-search-control-v18,
+.orders-light-search-v19,
+.report-light-search-v19 {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.orders-search-control-v18 > label,
+.orders-light-search-v19 > label,
+.report-light-search-v19 > span,
+.report-light-search-v19 > label {
+  color: rgba(230, 238, 247, .72);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.report-light-search-v19 .search-shell,
+.orders-light-search-v19 .search-shell,
+.report-light-search-v19 .light-search-box-v19,
+.orders-light-search-v19 .light-search-box-v19,
+.orders-search-control-v18 .light-search-box-v19 {
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.report-light-search-v19 .search-shell::before,
+.report-light-search-v19 .search-shell::after,
+.orders-light-search-v19 .search-shell::before,
+.orders-light-search-v19 .search-shell::after {
+  display: none !important;
+}
+
+#reports-observation-filter,
+#orders-search-input {
+  width: 100% !important;
+  height: 48px !important;
+  margin: 0 !important;
+  padding: 0 46px 0 15px !important;
+  border: 1px solid rgba(119, 119, 119, .38) !important;
+  border-radius: 12px !important;
+  outline: none !important;
+  color: #f4f8fc !important;
+  background: rgba(7, 20, 34, .96) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+  font: inherit !important;
+  appearance: none !important;
+}
+
+#reports-observation-filter:focus,
+#orders-search-input:focus {
+  border-color: rgba(153, 153, 153, .88) !important;
+  box-shadow: 0 0 0 3px rgba(138, 138, 138, .13) !important;
+}
+
+#reports-observation-filter:disabled {
+  cursor: not-allowed;
+  opacity: .58;
+  background: rgba(8, 16, 27, .78) !important;
+}
+
+.report-light-search-v19 .light-search-box-v19,
+.orders-light-search-v19 .light-search-box-v19,
+.orders-search-control-v18 .light-search-box-v19 {
+  position: relative;
+}
+
+.report-light-search-v19 .light-search-box-v19 > span,
+.orders-light-search-v19 .light-search-box-v19 > span,
+.orders-search-control-v18 .light-search-box-v19 > span {
+  position: absolute !important;
+  top: 50% !important;
+  right: 14px !important;
+  left: auto !important;
+  width: 20px !important;
+  height: 20px !important;
+  display: grid !important;
+  place-items: center !important;
+  color: rgba(175, 175, 175, .82) !important;
+  pointer-events: none !important;
+  transform: translateY(-50%) !important;
+}
+
+@media (max-width: 680px) {
+  #reports-observation-filter,
+  #orders-search-input {
+    height: 46px !important;
+  }
+}
+
+
+/* JR_GESTAO_MENU_PESQUISAR_ALINHAMENTO_ORDENS_V21 */
+
+/* O antigo card de pesquisa lateral não deve aparecer. */
+.sidebar-global-search-v19 {
+  display: none !important;
+}
+
+/* Página dedicada PESQUISAR */
+.search-page-panel-v21 {
+  overflow: visible;
+}
+
+.search-page-hero-v21 {
+  padding: 20px;
+  border: 1px solid rgba(141, 141, 141, .25);
+  border-radius: 20px;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  background:
+    radial-gradient(circle at 96% 2%, rgba(139, 139, 139, .17), transparent 43%),
+    linear-gradient(145deg, rgba(10, 29, 48, .98), rgba(6, 18, 32, .98));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.045);
+}
+
+.search-page-hero-icon-v21 {
+  width: 58px;
+  height: 58px;
+  border-radius: 17px;
+  display: grid;
+  place-items: center;
+  color: #b5b5b5;
+  background: rgba(135, 135, 135, .13);
+  border: 1px solid rgba(153, 153, 153, .26);
+}
+
+.search-page-hero-icon-v21 svg {
+  width: 27px;
+  height: 27px;
+}
+
+.search-page-hero-v21 h2 {
+  margin: 5px 0 4px;
+  color: #f5f9fd;
+  font-size: 23px;
+}
+
+.search-page-hero-v21 p {
+  max-width: 860px;
+  margin: 0;
+  color: rgba(223, 234, 245, .62);
+  line-height: 1.5;
+}
+
+.search-page-form-v21 {
+  margin-top: 16px;
+  padding: 17px;
+  border: 1px solid rgba(123, 123, 123, .22);
+  border-radius: 18px;
+  background: rgba(6, 19, 33, .72);
+}
+
+.search-page-form-v21 > label {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(228, 238, 248, .72);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .07em;
+}
+
+.search-page-input-row-v21 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 9px;
+}
+
+.search-page-input-v21 {
+  position: relative;
+  min-width: 0;
+}
+
+.search-page-input-v21 input {
+  width: 100%;
+  height: 50px;
+  padding: 0 48px 0 16px;
+  border: 1px solid rgba(126, 126, 126, .42);
+  border-radius: 13px;
+  outline: none;
+  color: #fff;
+  background: rgba(5, 17, 30, .98);
+  font: inherit;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.search-page-input-v21 input:focus {
+  border-color: rgba(153, 153, 153, .9);
+  box-shadow: 0 0 0 3px rgba(138, 138, 138, .13);
+}
+
+.search-page-input-v21 > span {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  color: rgba(180, 180, 180, .82);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.search-page-input-v21 > span svg {
+  width: 18px;
+  height: 18px;
+}
+
+.search-page-submit-v21,
+.search-page-clear-v21 {
+  min-height: 50px;
+  white-space: nowrap;
+}
+
+.search-page-meta-v21 {
+  margin-top: 9px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: rgba(224, 224, 224, .5);
+  font-size: 10px;
+}
+
+.search-page-meta-v21 #global-search-status.error {
+  color: rgba(255, 100, 119, .9);
+}
+
+.search-page-chips-v21 {
+  margin: 13px 0 17px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.search-page-chips-v21 span {
+  padding: 6px 9px;
+  border: 1px solid rgba(142, 142, 142, .2);
+  border-radius: 999px;
+  color: rgba(224, 224, 224, .66);
+  background: rgba(117, 117, 117, .07);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .03em;
+}
+
+.search-page-summary-v21 {
+  padding: 13px 15px;
+  border: 1px solid rgba(130, 130, 130, .2);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(7, 22, 37, .65);
+}
+
+.search-page-summary-v21 strong {
+  color: #f4f8fc;
+}
+
+.search-page-summary-v21 small {
+  color: rgba(222, 233, 244, .55);
+}
+
+.search-page-results-v21 {
+  margin-top: 12px;
+  scroll-margin-top: 90px;
+}
+
+.search-page-result-list-v21 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.search-page-empty-v21 {
+  min-height: 230px;
+  border: 1px dashed rgba(136, 136, 136, .27);
+  border-radius: 17px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-align: center;
+  color: rgba(224, 235, 246, .62);
+  background: rgba(5, 17, 29, .46);
+}
+
+.search-page-empty-v21 > span {
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  color: #acacac;
+  background: rgba(132, 132, 132, .1);
+}
+
+.search-page-empty-v21 > span svg {
+  width: 23px;
+  height: 23px;
+}
+
+.search-page-empty-v21 strong {
+  color: #eff6fc;
+}
+
+.search-page-empty-v21 p {
+  max-width: 500px;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+/* Alinhamento da barra de Ordens de Serviço */
+.orders-toolbar-v17.orders-toolbar-aligned-v21 {
+  grid-template-columns: minmax(275px, 1.05fr) minmax(300px, 1.18fr) minmax(215px, .82fr) minmax(135px, .45fr) !important;
+  align-items: stretch !important;
+  gap: 12px !important;
+}
+
+.orders-toolbar-field-v21 {
+  min-width: 0;
+  display: grid !important;
+  grid-template-rows: 16px minmax(50px, auto) 28px;
+  align-content: start;
+  gap: 7px !important;
+}
+
+.orders-toolbar-label-v21,
+.orders-toolbar-aligned-v21 .orders-search-field-v21 > label,
+.orders-toolbar-aligned-v21 .orders-search-field-v21 > span {
+  height: 16px;
+  display: flex;
+  align-items: center;
+  color: rgba(230, 238, 247, .72) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: .04em !important;
+}
+
+.orders-period-field-v21::before {
+  content: 'DATA DE EXECUÇÃO';
+  height: 16px;
+  display: flex;
+  align-items: center;
+  color: rgba(230, 238, 247, .72);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.orders-period-field-v21 .period-selector-card {
+  grid-row: 2;
+  width: 100%;
+  min-height: 50px;
+  height: 50px;
+  padding-block: 7px;
+}
+
+.orders-period-field-v21 .period-selector-copy small {
+  display: none;
+}
+
+.orders-period-field-v21 .period-selector-copy em {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.orders-period-field-v21::after {
+  content: 'Escolha um dia, intervalo ou mês inteiro.';
+  grid-row: 3;
+  color: rgba(224, 224, 224, .48);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.orders-search-field-v21 .light-search-box-v19 {
+  grid-row: 2;
+}
+
+.orders-search-field-v21 .light-search-help-v19 {
+  grid-row: 3;
+  margin: 0;
+}
+
+.orders-team-field-v21 .custom-select-trigger {
+  grid-row: 2;
+  width: 100%;
+  min-height: 50px;
+}
+
+.orders-team-field-v21 .custom-select-menu {
+  top: 73px;
+}
+
+.orders-team-field-v21 .orders-toolbar-help-v21 {
+  grid-row: 3;
+  margin: 0;
+  color: rgba(224, 224, 224, .48);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.orders-refresh-field-v21 .orders-refresh-button-v17 {
+  grid-row: 2;
+  width: 100%;
+  min-height: 50px;
+  margin: 0;
+  align-self: stretch;
+}
+
+.orders-refresh-field-v21 .orders-toolbar-help-v21 {
+  grid-row: 3;
+  margin: 0;
+  color: rgba(224, 224, 224, .48);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.orders-toolbar-label-placeholder-v21 {
+  visibility: hidden;
+}
+
+@media (max-width: 1250px) {
+  .orders-toolbar-v17.orders-toolbar-aligned-v21 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 780px) {
+  .search-page-input-row-v21 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .search-page-input-v21 {
+    grid-column: 1 / -1;
+  }
+
+  .search-page-meta-v21 {
+    flex-direction: column;
+  }
+
+  .search-page-result-list-v21 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .search-page-hero-v21 {
+    grid-template-columns: 45px minmax(0, 1fr);
+    padding: 15px;
+  }
+
+  .search-page-hero-icon-v21 {
+    width: 45px;
+    height: 45px;
+  }
+
+  .search-page-hero-v21 h2 {
+    font-size: 19px;
+  }
+
+  .search-page-input-row-v21 {
+    grid-template-columns: 1fr;
+  }
+
+  .search-page-input-v21 {
+    grid-column: auto;
+  }
+
+  .search-page-submit-v21,
+  .search-page-clear-v21 {
+    width: 100%;
+  }
+
+  .orders-toolbar-v17.orders-toolbar-aligned-v21 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* JR_GESTAO_PESQUISAR_RELATORIO_POR_EQUIPE_V22 */
+
+/* Depois que a busca é movida para a equipe, o cabeçalho geral reorganiza
+   automaticamente os controles restantes. */
+[data-range-toolbar="reports"].reports-toolbar-without-search-v22 {
+  grid-template-columns: minmax(280px, 1.15fr) minmax(210px, .72fr) auto !important;
+  align-items: end !important;
+}
+
+/* Pesquisa aparece somente dentro da equipe selecionada. */
+.reports-team-tools-v22 {
+  margin: 15px 0;
+  display: grid;
+  grid-template-columns: minmax(250px, .72fr) minmax(360px, 1.28fr);
+  align-items: stretch;
+  gap: 12px;
+}
+
+.reports-team-tools-v22.hidden {
+  display: none !important;
+}
+
+.reports-selected-team-card-v22,
+.report-team-search-card-v22 {
+  min-width: 0;
+  min-height: 92px;
+  border: 1px solid rgba(133, 133, 133, .25);
+  border-radius: 17px;
+  background:
+    radial-gradient(circle at 96% 2%, rgba(137, 137, 137, .13), transparent 43%),
+    linear-gradient(145deg, rgba(9, 27, 45, .97), rgba(6, 18, 31, .98));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.reports-selected-team-card-v22 {
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.reports-selected-team-icon-v22 {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  color: #acacac;
+  background: rgba(134, 134, 134, .12);
+}
+
+.reports-selected-team-icon-v22 svg {
+  width: 21px;
+  height: 21px;
+}
+
+.reports-selected-team-copy-v22 {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.reports-selected-team-copy-v22 small {
+  color: rgba(224, 224, 224, .56);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.reports-selected-team-copy-v22 strong {
+  color: #f4f9fd;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.reports-selected-team-copy-v22 em {
+  color: rgba(224, 224, 224, .48);
+  font-size: 10px;
+  line-height: 1.35;
+  font-style: normal;
+}
+
+.report-team-search-card-v22 {
+  padding: 13px 14px;
+  display: grid !important;
+  grid-template-rows: 16px minmax(48px, auto);
+  align-content: center;
+  gap: 8px !important;
+}
+
+.report-team-search-card-v22 > label,
+.report-team-search-card-v22 > span:not(.light-search-box-v19) {
+  height: 16px;
+  display: flex;
+  align-items: center;
+  color: rgba(230, 238, 247, .72) !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: .06em !important;
+}
+
+.report-team-search-card-v22 .light-search-box-v19,
+.report-team-search-card-v22 .search-shell {
+  min-height: 48px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.report-team-search-card-v22 #reports-observation-filter {
+  width: 100% !important;
+  height: 48px !important;
+  margin: 0 !important;
+  padding: 0 46px 0 15px !important;
+  border: 1px solid rgba(119, 119, 119, .38) !important;
+  border-radius: 12px !important;
+  color: #f4f8fc !important;
+  background: rgba(5, 17, 30, .98) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+
+.report-team-search-card-v22 #reports-observation-filter:focus {
+  border-color: rgba(153, 153, 153, .88) !important;
+  box-shadow: 0 0 0 3px rgba(138, 138, 138, .13) !important;
+}
+
+.report-team-search-card-v22 #reports-observation-filter:disabled {
+  cursor: not-allowed;
+  opacity: .58;
+}
+
+/* Remove definitivamente o texto auxiliar solicitado. */
+#reports-search-help {
+  display: none !important;
+}
+
+/* O nome do menu usa escrita normal, mantendo o padrão dos outros itens. */
+.nav-item[data-page="search"] span:last-child {
+  text-transform: none;
+}
+
+@media (max-width: 1050px) {
+  [data-range-toolbar="reports"].reports-toolbar-without-search-v22 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .reports-team-tools-v22 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  [data-range-toolbar="reports"].reports-toolbar-without-search-v22 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .reports-selected-team-card-v22,
+  .report-team-search-card-v22 {
+    min-height: 86px;
+  }
+}
+
+/* ============================================================
+   JR GESTÃO — METAL FLUIDO LEVE V26
+   Visual metálico profissional, sem animações contínuas.
+   ============================================================ */
+
+:root {
+  --jr26-bg: #07090b;
+  --jr26-bg-soft: #0c0f12;
+  --jr26-panel: #111519;
+  --jr26-panel-raised: #171c21;
+  --jr26-panel-deep: #0a0d10;
+  --jr26-input: #090c0f;
+  --jr26-line: rgba(188, 196, 202, .24);
+  --jr26-line-strong: rgba(226, 230, 233, .46);
+  --jr26-text: #f5f6f7;
+  --jr26-muted: rgba(224, 228, 231, .62);
+  --jr26-metal: #d8dde0;
+  --jr26-metal-mid: #9da6ad;
+  --jr26-metal-dark: #4e575e;
+}
+
+/* Desempenho: nada acompanhando o mouse, nada animando sem parar. */
+html {
+  scroll-behavior: auto !important;
+}
+
+body.jr-fluid-metal-v26,
+body.jr-fluid-metal-v26 * ,
+body.jr-fluid-metal-v26 *::before,
+body.jr-fluid-metal-v26 *::after {
+  animation: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  text-shadow: none !important;
+}
+
+body.jr-fluid-metal-v26 {
+  min-height: 100vh;
+  color-scheme: dark;
+  color: var(--jr26-text);
+  background:
+    radial-gradient(ellipse at 84% -18%, rgba(238, 241, 243, .105) 0, rgba(123, 132, 139, .045) 28%, transparent 52%),
+    radial-gradient(ellipse at -14% 84%, rgba(213, 218, 222, .055) 0, transparent 45%),
+    linear-gradient(180deg, #101419 0, #090c0f 42%, #06080a 100%) !important;
+}
+
+body.jr-fluid-metal-v26 .jr-liquid-metal-background-v24,
+body.jr-fluid-metal-v26 .jr-liquid-blob-v24 {
+  display: none !important;
+}
+
+/* Cabeçalho sem JR Gestão e sem Conferência automática. */
+body.jr-fluid-metal-v26 .jr-hidden-brand-copy-v26,
+body.jr-fluid-metal-v26 .admin-topbar .topbar-brand-copy,
+body.jr-fluid-metal-v26 .topbar .topbar-brand-copy {
+  display: none !important;
+}
+
+body.jr-fluid-metal-v26 .jr-topbar-fluid-v26 {
+  min-height: 68px;
+}
+
+/* Estrutura principal. */
+body.jr-fluid-metal-v26 .login-page,
+body.jr-fluid-metal-v26 .app-shell,
+body.jr-fluid-metal-v26 .main-content,
+body.jr-fluid-metal-v26 .page-section {
+  background: transparent !important;
+}
+
+body.jr-fluid-metal-v26 .login-shell,
+body.jr-fluid-metal-v26 .sidebar,
+body.jr-fluid-metal-v26 .admin-topbar,
+body.jr-fluid-metal-v26 .panel,
+body.jr-fluid-metal-v26 dialog,
+body.jr-fluid-metal-v26 .date-picker-popover,
+body.jr-fluid-metal-v26 .custom-select-menu,
+body.jr-fluid-metal-v26 .period-selector-dialog {
+  border-color: var(--jr26-line) !important;
+  background:
+    linear-gradient(145deg, rgba(24, 29, 34, .97), rgba(10, 13, 16, .985)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    0 8px 22px rgba(0,0,0,.20) !important;
+  filter: none !important;
+}
+
+/* Uma aparência de metal líquido estática apenas nas áreas grandes. */
+body.jr-fluid-metal-v26 .login-brand-panel,
+body.jr-fluid-metal-v26 .welcome-banner,
+body.jr-fluid-metal-v26 .search-page-hero-v21 {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 86% 22%, rgba(245, 247, 248, .16) 0, rgba(141, 150, 157, .065) 18%, transparent 38%),
+    linear-gradient(145deg, #1a2025 0, #0b0f12 62%, #07090b 100%) !important;
+}
+
+body.jr-fluid-metal-v26 .login-brand-panel::after,
+body.jr-fluid-metal-v26 .welcome-banner::after,
+body.jr-fluid-metal-v26 .search-page-hero-v21::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 46%;
+  height: 132%;
+  right: -13%;
+  top: -26%;
+  border-radius: 58% 42% 63% 37% / 43% 58% 42% 57%;
+  pointer-events: none;
+  opacity: .72;
+  background:
+    radial-gradient(ellipse at 30% 24%, rgba(255,255,255,.34) 0, transparent 13%),
+    linear-gradient(137deg, transparent 12%, rgba(242,244,245,.19) 31%, rgba(81,89,95,.08) 49%, rgba(224,228,231,.14) 67%, transparent 84%);
+  box-shadow:
+    inset -30px -22px 48px rgba(0,0,0,.56),
+    inset 18px 12px 28px rgba(255,255,255,.075);
+}
+
+/* Sidebar maior, rolável e sem cortar Ordens de Serviço. */
+@media (min-width: 901px) {
+  body.jr-fluid-metal-v26 #sidebar,
+  body.jr-fluid-metal-v26 .sidebar {
+    width: 248px !important;
+    min-width: 248px !important;
+    max-width: 248px !important;
+    flex: 0 0 248px !important;
+  }
+
+  body.jr-fluid-metal-v26 #app-view .app-shell,
+  body.jr-fluid-metal-v26 #app-view .admin-shell,
+  body.jr-fluid-metal-v26 #app-view .admin-layout,
+  body.jr-fluid-metal-v26 #app-view .dashboard-layout {
+    grid-template-columns: 248px minmax(0, 1fr) !important;
+  }
+}
+
+body.jr-fluid-metal-v26 #sidebar,
+body.jr-fluid-metal-v26 .sidebar {
+  padding: 13px 10px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: #596169 transparent;
+}
+
+body.jr-fluid-metal-v26 .sidebar-logo {
+  min-height: 62px !important;
+  height: 68px !important;
+  margin-bottom: 5px !important;
+  flex: 0 0 auto;
+}
+
+body.jr-fluid-metal-v26 .sidebar-logo img,
+body.jr-fluid-metal-v26 .sidebar-logo {
+  max-width: 158px !important;
+}
+
+body.jr-fluid-metal-v26 .jr-nav-fluid-v26,
+body.jr-fluid-metal-v26 #sidebar nav,
+body.jr-fluid-metal-v26 .sidebar-nav {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  flex: 0 0 auto;
+  overflow: visible !important;
+}
+
+body.jr-fluid-metal-v26 #sidebar .nav-item,
+body.jr-fluid-metal-v26 .sidebar .nav-item {
+  width: 100% !important;
+  min-height: 45px !important;
+  height: auto !important;
+  padding: 10px 12px !important;
+  flex: 0 0 auto !important;
+  line-height: 1.18 !important;
+}
+
+body.jr-fluid-metal-v26 #sidebar .nav-item > span:last-child,
+body.jr-fluid-metal-v26 .sidebar .nav-item > span:last-child {
+  min-width: 0;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  overflow-wrap: anywhere;
+}
+
+body.jr-fluid-metal-v26 .jr-orders-nav-v26 {
+  min-height: 50px !important;
+}
+
+body.jr-fluid-metal-v26 .sidebar-status {
+  margin-top: 10px !important;
+  padding: 10px !important;
+  flex: 0 0 auto;
+}
+
+body.jr-fluid-metal-v26 .sidebar-status p {
+  display: none !important;
+}
+
+/* Cartões metálicos bonitos, porém estáticos. */
+body.jr-fluid-metal-v26 .summary-card,
+body.jr-fluid-metal-v26 .team-score-card,
+body.jr-fluid-metal-v26 .daily-period-card,
+body.jr-fluid-metal-v26 .daily-score-total,
+body.jr-fluid-metal-v26 .team-folder-card,
+body.jr-fluid-metal-v26 .report-card,
+body.jr-fluid-metal-v26 .order-summary-card-v17,
+body.jr-fluid-metal-v26 .orders-table-wrap-v17,
+body.jr-fluid-metal-v26 .search-page-form-v21,
+body.jr-fluid-metal-v26 .search-page-summary-v21,
+body.jr-fluid-metal-v26 .reports-selected-team-card-v22,
+body.jr-fluid-metal-v26 .report-team-search-card-v22,
+body.jr-fluid-metal-v26 .monitor-card,
+body.jr-fluid-metal-v26 .status-banner,
+body.jr-fluid-metal-v26 .info-box,
+body.jr-fluid-metal-v26 .mini-card {
+  border-color: var(--jr26-line) !important;
+  background:
+    linear-gradient(155deg, rgba(32, 38, 43, .94), rgba(10, 13, 16, .98)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    0 5px 14px rgba(0,0,0,.16) !important;
+  filter: none !important;
+}
+
+body.jr-fluid-metal-v26 .summary-card::after,
+body.jr-fluid-metal-v26 .team-score-card::after,
+body.jr-fluid-metal-v26 .team-folder-card::after,
+body.jr-fluid-metal-v26 .report-card::after,
+body.jr-fluid-metal-v26 .order-summary-card-v17::after {
+  display: none !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  body.jr-fluid-metal-v26 .summary-card,
+  body.jr-fluid-metal-v26 .team-score-card,
+  body.jr-fluid-metal-v26 .team-folder-card,
+  body.jr-fluid-metal-v26 .report-card,
+  body.jr-fluid-metal-v26 .order-summary-card-v17,
+  body.jr-fluid-metal-v26 .nav-item,
+  body.jr-fluid-metal-v26 button {
+    transition:
+      border-color .10s ease,
+      background-color .10s ease,
+      transform .10s ease !important;
+  }
+
+  body.jr-fluid-metal-v26 .summary-card:hover,
+  body.jr-fluid-metal-v26 .team-score-card:hover,
+  body.jr-fluid-metal-v26 .team-folder-card:hover,
+  body.jr-fluid-metal-v26 .report-card:hover,
+  body.jr-fluid-metal-v26 .order-summary-card-v17:hover {
+    transform: translateY(-1px) !important;
+    border-color: var(--jr26-line-strong) !important;
+  }
+}
+
+/* Navegação toda em grafite e prata. */
+body.jr-fluid-metal-v26 .nav-item {
+  color: rgba(230, 233, 235, .74) !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.jr-fluid-metal-v26 .nav-item svg {
+  color: var(--jr26-metal) !important;
+  stroke: currentColor !important;
+  filter: none !important;
+}
+
+body.jr-fluid-metal-v26 .nav-item:hover {
+  color: #fff !important;
+  border-color: var(--jr26-line) !important;
+  background: rgba(255,255,255,.045) !important;
+}
+
+body.jr-fluid-metal-v26 .nav-item.active {
+  color: #fff !important;
+  border-color: var(--jr26-line-strong) !important;
+  background:
+    linear-gradient(100deg, rgba(224,228,231,.13), rgba(255,255,255,.025)) !important;
+  box-shadow: inset 3px 0 0 var(--jr26-metal) !important;
+}
+
+/* Ícones metálicos sem brilho exagerado. */
+body.jr-fluid-metal-v26 .summary-icon,
+body.jr-fluid-metal-v26 .team-folder-card > span,
+body.jr-fluid-metal-v26 .report-card > span,
+body.jr-fluid-metal-v26 .global-result-icon-v19,
+body.jr-fluid-metal-v26 .global-result-arrow-v19,
+body.jr-fluid-metal-v26 .search-page-hero-icon-v21,
+body.jr-fluid-metal-v26 .restricted-badge > span,
+body.jr-fluid-metal-v26 .monitor-card > span {
+  color: var(--jr26-metal) !important;
+  border-color: var(--jr26-line) !important;
+  background:
+    linear-gradient(145deg, #343b41, #161b1f 56%, #0b0e11) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08) !important;
+  filter: none !important;
+}
+
+/* Nenhum azul nos controles. */
+body.jr-fluid-metal-v26 .period-selector-icon,
+body.jr-fluid-metal-v26 .period-selector-arrow,
+body.jr-fluid-metal-v26 .orders-search-box-v18 > span,
+body.jr-fluid-metal-v26 .light-search-box-v19 > span,
+body.jr-fluid-metal-v26 .custom-select-arrow,
+body.jr-fluid-metal-v26 .picker-trigger svg,
+body.jr-fluid-metal-v26 .panel-kicker,
+body.jr-fluid-metal-v26 .panel-kicker svg,
+body.jr-fluid-metal-v26 .section-title-row svg,
+body.jr-fluid-metal-v26 .search-page-input-v21 > span,
+body.jr-fluid-metal-v26 .global-result-copy-v19 em,
+body.jr-fluid-metal-v26 a {
+  color: var(--jr26-metal) !important;
+}
+
+/* Botões */
+body.jr-fluid-metal-v26 .primary-button {
+  color: #101316 !important;
+  border-color: #dce0e3 !important;
+  background:
+    linear-gradient(145deg, #f0f2f3 0, #c3c9cd 52%, #8b959c 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.72),
+    0 4px 10px rgba(0,0,0,.13) !important;
+  filter: none !important;
+}
+
+body.jr-fluid-metal-v26 .secondary-button,
+body.jr-fluid-metal-v26 .outline-button,
+body.jr-fluid-metal-v26 .icon-button,
+body.jr-fluid-metal-v26 .table-action,
+body.jr-fluid-metal-v26 .tab-button {
+  color: #e6e9eb !important;
+  border-color: var(--jr26-line) !important;
+  background:
+    linear-gradient(145deg, #242a2f, #101417) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+  filter: none !important;
+}
+
+body.jr-fluid-metal-v26 .primary-button:hover,
+body.jr-fluid-metal-v26 .secondary-button:hover,
+body.jr-fluid-metal-v26 .outline-button:hover,
+body.jr-fluid-metal-v26 .icon-button:hover,
+body.jr-fluid-metal-v26 .table-action:hover,
+body.jr-fluid-metal-v26 .tab-button:hover,
+body.jr-fluid-metal-v26 .tab-button.active {
+  border-color: var(--jr26-line-strong) !important;
+  filter: none !important;
+}
+
+/* Campos uniformes. */
+body.jr-fluid-metal-v26 input,
+body.jr-fluid-metal-v26 select,
+body.jr-fluid-metal-v26 textarea,
+body.jr-fluid-metal-v26 .input-shell,
+body.jr-fluid-metal-v26 .search-shell,
+body.jr-fluid-metal-v26 .picker-trigger,
+body.jr-fluid-metal-v26 .custom-select-trigger,
+body.jr-fluid-metal-v26 .period-selector-card,
+body.jr-fluid-metal-v26 .period-picker-trigger,
+body.jr-fluid-metal-v26 .period-native-field,
+body.jr-fluid-metal-v26 .search-page-input-v21 input,
+body.jr-fluid-metal-v26 #orders-search-input,
+body.jr-fluid-metal-v26 #reports-observation-filter {
+  color: var(--jr26-text) !important;
+  border-color: var(--jr26-line) !important;
+  background: var(--jr26-input) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025) !important;
+  filter: none !important;
+}
+
+body.jr-fluid-metal-v26 input::placeholder,
+body.jr-fluid-metal-v26 textarea::placeholder {
+  color: rgba(226,230,233,.40) !important;
+}
+
+body.jr-fluid-metal-v26 input:focus,
+body.jr-fluid-metal-v26 select:focus,
+body.jr-fluid-metal-v26 textarea:focus,
+body.jr-fluid-metal-v26 .input-shell:focus-within,
+body.jr-fluid-metal-v26 .search-shell:focus-within,
+body.jr-fluid-metal-v26 .picker-trigger:focus-visible,
+body.jr-fluid-metal-v26 .custom-select-trigger:focus-visible,
+body.jr-fluid-metal-v26 .period-selector-card:focus-visible,
+body.jr-fluid-metal-v26 .search-page-input-v21 input:focus,
+body.jr-fluid-metal-v26 #orders-search-input:focus,
+body.jr-fluid-metal-v26 #reports-observation-filter:focus {
+  border-color: rgba(232,235,237,.68) !important;
+  box-shadow: 0 0 0 2px rgba(232,235,237,.075) !important;
+  outline: none !important;
+}
+
+/* Remove retângulos atrás de textos e mensagens. */
+body.jr-fluid-metal-v26 .panel-kicker,
+body.jr-fluid-metal-v26 .eyebrow,
+body.jr-fluid-metal-v26 .topbar-brand-copy,
+body.jr-fluid-metal-v26 .topbar-brand-copy *,
+body.jr-fluid-metal-v26 .sidebar-monogram,
+body.jr-fluid-metal-v26 .sidebar-monogram *,
+body.jr-fluid-metal-v26 .period-selector-copy,
+body.jr-fluid-metal-v26 .period-selector-copy *,
+body.jr-fluid-metal-v26 .panel-title-row > div,
+body.jr-fluid-metal-v26 .section-title-row > div,
+body.jr-fluid-metal-v26 .empty-state strong,
+body.jr-fluid-metal-v26 .empty-state span,
+body.jr-fluid-metal-v26 .module-empty strong,
+body.jr-fluid-metal-v26 .module-empty p,
+body.jr-fluid-metal-v26 .toast *,
+body.jr-fluid-metal-v26 .notification *,
+body.jr-fluid-metal-v26 .alert-message *,
+body.jr-fluid-metal-v26 .status-message *,
+body.jr-fluid-metal-v26 .details-copy *,
+body.jr-fluid-metal-v26 .search-page-summary-v21 *,
+body.jr-fluid-metal-v26 .reports-selected-team-copy-v22 * {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Tabelas */
+body.jr-fluid-metal-v26 .table-wrap,
+body.jr-fluid-metal-v26 .orders-table-wrap-v17 {
+  border-color: var(--jr26-line) !important;
+  background: #0b0e11 !important;
+  box-shadow: none !important;
+}
+
+body.jr-fluid-metal-v26 table thead th {
+  color: rgba(236,239,241,.73) !important;
+  border-bottom-color: var(--jr26-line) !important;
+  background: #14181c !important;
+}
+
+body.jr-fluid-metal-v26 table tbody tr {
+  border-bottom-color: rgba(183,190,195,.13) !important;
+  background: transparent !important;
+}
+
+body.jr-fluid-metal-v26 table tbody tr:hover {
+  background: rgba(255,255,255,.025) !important;
+}
+
+/* Pesquisa, Ordens e Relatórios no mesmo padrão. */
+body.jr-fluid-metal-v26 .search-page-form-v21,
+body.jr-fluid-metal-v26 .search-page-summary-v21,
+body.jr-fluid-metal-v26 .search-page-empty-v21,
+body.jr-fluid-metal-v26 .global-search-result-card-v19,
+body.jr-fluid-metal-v26 .reports-selected-team-card-v22,
+body.jr-fluid-metal-v26 .report-team-search-card-v22,
+body.jr-fluid-metal-v26 .order-service-number,
+body.jr-fluid-metal-v26 .order-team-badge {
+  border-color: var(--jr26-line) !important;
+  background: var(--jr26-panel-raised) !important;
+  box-shadow: none !important;
+}
+
+body.jr-fluid-metal-v26 .search-page-chips-v21 span {
+  color: rgba(232,235,237,.66) !important;
+  border-color: var(--jr26-line) !important;
+  background: rgba(255,255,255,.025) !important;
+}
+
+/* Mantém somente as cores de estado úteis. */
+body.jr-fluid-metal-v26 .team-danger-card.danger,
+body.jr-fluid-metal-v26 .status-banner.danger,
+body.jr-fluid-metal-v26 .danger-button {
+  border-color: rgba(255,83,105,.66) !important;
+}
+
+body.jr-fluid-metal-v26 .team-danger-card.warning,
+body.jr-fluid-metal-v26 .status-banner.warning {
+  border-color: rgba(255,183,69,.60) !important;
+}
+
+body.jr-fluid-metal-v26 .connection-status.online,
+body.jr-fluid-metal-v26 .status-pill.confirmed {
+  color: #8bd9b5 !important;
+}
+
+/* Logo sem sombra cara. */
+body.jr-fluid-metal-v26 .login-logo,
+body.jr-fluid-metal-v26 .sidebar-logo,
+body.jr-fluid-metal-v26 .topbar-system-logo {
+  filter: none !important;
+}
+
+/* Mobile: efeito estático menor e sidebar adequada. */
+@media (max-width: 900px) {
+  body.jr-fluid-metal-v26 #sidebar,
+  body.jr-fluid-metal-v26 .sidebar {
+    width: min(290px, 88vw) !important;
+    min-width: min(290px, 88vw) !important;
+    max-width: min(290px, 88vw) !important;
+  }
+
+  body.jr-fluid-metal-v26 .login-brand-panel::after,
+  body.jr-fluid-metal-v26 .welcome-banner::after,
+  body.jr-fluid-metal-v26 .search-page-hero-v21::after {
+    width: 58%;
+    opacity: .42;
+  }
+
+  body.jr-fluid-metal-v26 .panel,
+  body.jr-fluid-metal-v26 .summary-card,
+  body.jr-fluid-metal-v26 .team-score-card,
+  body.jr-fluid-metal-v26 .team-folder-card,
+  body.jr-fluid-metal-v26 .report-card {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.035) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.jr-fluid-metal-v26 *,
+  body.jr-fluid-metal-v26 *::before,
+  body.jr-fluid-metal-v26 *::after {
+    transition: none !important;
+  }
+}
+
+/* ============================================================
+   JR GESTÃO — CORREÇÕES DE DESIGN V27
+   Sidebar, cards de equipe, topo e cores.
+   ============================================================ */
+
+body.jr-fluid-metal-v26 {
+  --jr27-sidebar-width: 224px;
+  --jr27-silver: #d8dde0;
+  --jr27-muted: rgba(224, 229, 232, .64);
+  --jr27-line: rgba(190, 198, 204, .25);
+  --jr27-panel: #12171b;
+  --jr27-panel-raised: #171c20;
+}
+
+/* Sidebar sem sobrepor o conteúdo. */
+@media (min-width: 901px) {
+  body.jr-fluid-metal-v26 .jr-shell-layout-v27 {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: var(--jr27-sidebar-width) minmax(0, 1fr) !important;
+    align-items: stretch !important;
+  }
+
+  body.jr-fluid-metal-v26 .jr-shell-layout-v27 > #sidebar,
+  body.jr-fluid-metal-v26 .jr-shell-layout-v27 > .sidebar {
+    position: sticky !important;
+    top: 0 !important;
+    left: auto !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: var(--jr27-sidebar-width) !important;
+    min-width: var(--jr27-sidebar-width) !important;
+    max-width: var(--jr27-sidebar-width) !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    transform: none !important;
+    z-index: 20 !important;
+  }
+
+  body.jr-fluid-metal-v26 .jr-shell-layout-v27 > .jr-shell-content-v27 {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    transform: none !important;
+    overflow-x: clip !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar,
+  body.jr-fluid-metal-v26 .sidebar {
+    width: var(--jr27-sidebar-width) !important;
+    min-width: var(--jr27-sidebar-width) !important;
+    max-width: var(--jr27-sidebar-width) !important;
+    flex-basis: var(--jr27-sidebar-width) !important;
+  }
+}
+
+/* No celular continua sendo menu lateral móvel. */
+@media (max-width: 900px) {
+  body.jr-fluid-metal-v26 .jr-shell-layout-v27 {
+    display: block !important;
+  }
+
+  body.jr-fluid-metal-v26 .jr-shell-content-v27 {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+  }
+}
+
+/* Remove visualmente os blocos que o JS também exclui. */
+body.jr-fluid-metal-v26 .sidebar-monogram,
+body.jr-fluid-metal-v26 .sidebar-brand-card,
+body.jr-fluid-metal-v26 .sidebar-brand-copy,
+body.jr-fluid-metal-v26 .sidebar-title-card,
+body.jr-fluid-metal-v26 .sidebar-status,
+body.jr-fluid-metal-v26 .sidebar-monitor,
+body.jr-fluid-metal-v26 .automatic-conference-card,
+body.jr-fluid-metal-v26 .conference-status-card {
+  display: none !important;
+}
+
+/* Logo compacta, com respiro suficiente. */
+body.jr-fluid-metal-v26 #sidebar .sidebar-logo,
+body.jr-fluid-metal-v26 .sidebar .sidebar-logo {
+  width: 100% !important;
+  height: 82px !important;
+  min-height: 82px !important;
+  margin: 0 0 12px !important;
+  padding: 8px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid var(--jr27-line) !important;
+  border-radius: 15px !important;
+  background: rgba(7, 10, 13, .76) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04) !important;
+}
+
+body.jr-fluid-metal-v26 #sidebar .sidebar-logo img,
+body.jr-fluid-metal-v26 .sidebar .sidebar-logo img {
+  width: auto !important;
+  max-width: 150px !important;
+  height: 62px !important;
+  max-height: 62px !important;
+  object-fit: contain !important;
+  filter: none !important;
+}
+
+/* Menu sempre visível e Ordens de Serviço sem corte. */
+body.jr-fluid-metal-v26 #sidebar nav,
+body.jr-fluid-metal-v26 .sidebar nav,
+body.jr-fluid-metal-v26 .sidebar-nav {
+  min-height: 0 !important;
+  overflow: visible !important;
+  flex: 0 0 auto !important;
+}
+
+body.jr-fluid-metal-v26 #sidebar .nav-item,
+body.jr-fluid-metal-v26 .sidebar .nav-item {
+  min-height: 44px !important;
+  padding: 9px 10px !important;
+}
+
+body.jr-fluid-metal-v26 .jr-orders-visible-v27 {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-height: 49px !important;
+}
+
+body.jr-fluid-metal-v26 .jr-orders-visible-v27 > span:last-child {
+  display: block !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  line-height: 1.15 !important;
+}
+
+/* Cards de Fotos, Códigos e Relatórios. */
+body.jr-fluid-metal-v26 .jr-team-folder-card-v27,
+body.jr-fluid-metal-v26 .team-folder-card {
+  min-width: 0 !important;
+  grid-template-columns: 58px minmax(0, 1fr) auto 34px !important;
+  align-items: center !important;
+  column-gap: 14px !important;
+  padding: 15px 16px !important;
+  border-color: var(--jr27-line) !important;
+  background:
+    linear-gradient(145deg, #171c20 0%, #111519 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 4px 12px rgba(0,0,0,.14) !important;
+}
+
+/* Retira o retângulo cinza/escuro atrás do nome da equipe. */
+body.jr-fluid-metal-v26 .jr-folder-copy-v27,
+body.jr-fluid-metal-v26 .folder-card-copy,
+body.jr-fluid-metal-v26 .jr-folder-copy-v27 *,
+body.jr-fluid-metal-v26 .folder-card-copy * {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+body.jr-fluid-metal-v26 .jr-folder-copy-v27,
+body.jr-fluid-metal-v26 .folder-card-copy {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 4px !important;
+}
+
+body.jr-fluid-metal-v26 .folder-card-copy strong {
+  width: auto !important;
+  color: #f5f7f8 !important;
+  line-height: 1.2 !important;
+  overflow-wrap: anywhere !important;
+}
+
+body.jr-fluid-metal-v26 .folder-card-copy small,
+body.jr-fluid-metal-v26 .folder-card-copy em {
+  color: var(--jr27-muted) !important;
+  line-height: 1.32 !important;
+  font-style: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+body.jr-fluid-metal-v26 .folder-card-icon {
+  border-color: var(--jr27-line) !important;
+  color: var(--jr27-silver) !important;
+  background:
+    linear-gradient(145deg, #2a3137, #111519) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.055) !important;
+}
+
+body.jr-fluid-metal-v26 .folder-card-arrow {
+  color: var(--jr27-silver) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Retira o azul restante de textos, ícones e bordas normais. */
+body.jr-fluid-metal-v26 .panel-kicker,
+body.jr-fluid-metal-v26 .panel-kicker *,
+body.jr-fluid-metal-v26 .section-kicker,
+body.jr-fluid-metal-v26 .section-kicker *,
+body.jr-fluid-metal-v26 .summary-card p,
+body.jr-fluid-metal-v26 .summary-card small,
+body.jr-fluid-metal-v26 .summary-card em,
+body.jr-fluid-metal-v26 .panel-title-row p,
+body.jr-fluid-metal-v26 .section-title-row p,
+body.jr-fluid-metal-v26 .orders-list-header-v17 small,
+body.jr-fluid-metal-v26 .topbar-user-card svg,
+body.jr-fluid-metal-v26 .user-card svg,
+body.jr-fluid-metal-v26 .welcome-banner svg,
+body.jr-fluid-metal-v26 .welcome-icon,
+body.jr-fluid-metal-v26 .search-page-hero-icon-v21,
+body.jr-fluid-metal-v26 .search-page-input-v21 > span,
+body.jr-fluid-metal-v26 .light-search-box-v19 > span,
+body.jr-fluid-metal-v26 .orders-search-box-v18 > span {
+  color: var(--jr27-silver) !important;
+  border-color: var(--jr27-line) !important;
+}
+
+body.jr-fluid-metal-v26 .topbar-user-card,
+body.jr-fluid-metal-v26 .user-card {
+  border-color: var(--jr27-line) !important;
+  background: #101419 !important;
+  box-shadow: none !important;
+}
+
+/* Texto do topo removido sem deixar espaço vazio. */
+body.jr-fluid-metal-v26 .topbar-brand-copy,
+body.jr-fluid-metal-v26 .topbar-system-copy,
+body.jr-fluid-metal-v26 .brand-copy,
+body.jr-fluid-metal-v26 .system-copy {
+  display: none !important;
+}
+
+/* Evita caixas atrás de mensagens e títulos. */
+body.jr-fluid-metal-v26 .toast *,
+body.jr-fluid-metal-v26 .notification *,
+body.jr-fluid-metal-v26 .alert-message *,
+body.jr-fluid-metal-v26 .status-message *,
+body.jr-fluid-metal-v26 .module-empty *,
+body.jr-fluid-metal-v26 .empty-state *,
+body.jr-fluid-metal-v26 .details-copy *,
+body.jr-fluid-metal-v26 .folder-card-copy * {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Mantém cores apenas para estados reais. */
+body.jr-fluid-metal-v26 .status-pill.confirmed,
+body.jr-fluid-metal-v26 .connection-status.online {
+  color: #8bd9b5 !important;
+}
+
+body.jr-fluid-metal-v26 .status-pill.pending {
+  color: #d6dadd !important;
+  border-color: var(--jr27-line) !important;
+  background: #22282d !important;
+}
+
+@media (max-width: 720px) {
+  body.jr-fluid-metal-v26 .jr-team-folder-card-v27,
+  body.jr-fluid-metal-v26 .team-folder-card {
+    grid-template-columns: 48px minmax(0, 1fr) 30px !important;
+  }
+
+  body.jr-fluid-metal-v26 .team-folder-card .status-pill {
+    grid-column: 2 !important;
+    justify-self: start !important;
+  }
+
+  body.jr-fluid-metal-v26 .folder-card-arrow {
+    grid-column: 3 !important;
+    grid-row: 1 / span 2 !important;
+  }
+}
+
+/* JR_GESTAO_CORRECOES_DESIGN_INSTALADOR_V28 */
+
+/* ============================================================
+   JR GESTÃO — AJUSTES VISUAIS CLEAN V29
+   Login, logos, menu, topo e cards por equipe.
+   ============================================================ */
+
+body.jr-fluid-metal-v26 {
+  --jr29-panel: #12171b;
+  --jr29-panel-soft: #171c20;
+  --jr29-input: #0b0f12;
+  --jr29-line: rgba(191, 199, 205, .25);
+  --jr29-line-strong: rgba(225, 230, 233, .43);
+  --jr29-silver: #d9dee1;
+  --jr29-muted: rgba(222, 227, 230, .63);
+}
+
+/* 1. LOGIN: remove a peça cinza grande atrás da logo e dos textos. */
+body.jr-fluid-metal-v26 .login-brand-panel::before,
+body.jr-fluid-metal-v26 .login-brand-panel::after,
+body.jr-fluid-metal-v26 .login-brand::before,
+body.jr-fluid-metal-v26 .login-brand::after,
+body.jr-fluid-metal-v26 .login-hero::before,
+body.jr-fluid-metal-v26 .login-hero::after,
+body.jr-fluid-metal-v26 .jr-login-clean-v29::before,
+body.jr-fluid-metal-v26 .jr-login-clean-v29::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+body.jr-fluid-metal-v26 .login-brand-panel,
+body.jr-fluid-metal-v26 .login-brand,
+body.jr-fluid-metal-v26 .login-hero,
+body.jr-fluid-metal-v26 .jr-login-clean-v29 {
+  isolation: auto !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 30% 18%, rgba(255,255,255,.045), transparent 30%),
+    linear-gradient(145deg, #171c20 0%, #090c0f 72%) !important;
+}
+
+body.jr-fluid-metal-v26 .jr-login-clean-v29 .liquid-wave,
+body.jr-fluid-metal-v26 .jr-login-clean-v29 .liquid-metal,
+body.jr-fluid-metal-v26 .jr-login-clean-v29 .metal-blob,
+body.jr-fluid-metal-v26 .jr-login-clean-v29 .liquid-blob,
+body.jr-fluid-metal-v26 .jr-login-clean-v29 .brand-blob,
+body.jr-fluid-metal-v26 .jr-login-clean-v29 .login-decoration {
+  display: none !important;
+}
+
+/* 2. BANNER DA TELA INICIAL: remove a mancha cinza atrás da logo. */
+body.jr-fluid-metal-v26 .welcome-banner::before,
+body.jr-fluid-metal-v26 .welcome-banner::after,
+body.jr-fluid-metal-v26 .welcome-card::before,
+body.jr-fluid-metal-v26 .welcome-card::after,
+body.jr-fluid-metal-v26 .dashboard-hero::before,
+body.jr-fluid-metal-v26 .dashboard-hero::after,
+body.jr-fluid-metal-v26 .jr-welcome-clean-v29::before,
+body.jr-fluid-metal-v26 .jr-welcome-clean-v29::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+body.jr-fluid-metal-v26 .welcome-banner,
+body.jr-fluid-metal-v26 .welcome-card,
+body.jr-fluid-metal-v26 .dashboard-hero,
+body.jr-fluid-metal-v26 .jr-welcome-clean-v29 {
+  isolation: auto !important;
+  background:
+    linear-gradient(145deg, #181d21 0%, #0c1013 100%) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 5px 14px rgba(0,0,0,.14) !important;
+}
+
+body.jr-fluid-metal-v26 .jr-welcome-clean-v29 .liquid-wave,
+body.jr-fluid-metal-v26 .jr-welcome-clean-v29 .liquid-metal,
+body.jr-fluid-metal-v26 .jr-welcome-clean-v29 .metal-blob,
+body.jr-fluid-metal-v26 .jr-welcome-clean-v29 .liquid-blob,
+body.jr-fluid-metal-v26 .jr-welcome-clean-v29 .welcome-decoration {
+  display: none !important;
+}
+
+/* Logo do banner continua limpa, sem caixa ou sombra. */
+body.jr-fluid-metal-v26 .welcome-banner img,
+body.jr-fluid-metal-v26 .welcome-card img,
+body.jr-fluid-metal-v26 .dashboard-hero img {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* 3. LOGO DO MENU: somente a imagem, maior e sem quadrado preto. */
+body.jr-fluid-metal-v26 #sidebar .sidebar-logo,
+body.jr-fluid-metal-v26 .sidebar .sidebar-logo,
+body.jr-fluid-metal-v26 .jr-sidebar-logo-clean-v29 {
+  width: 100% !important;
+  height: 96px !important;
+  min-height: 96px !important;
+  margin: 0 !important;
+  padding: 3px 6px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+body.jr-fluid-metal-v26 #sidebar .sidebar-logo::before,
+body.jr-fluid-metal-v26 #sidebar .sidebar-logo::after,
+body.jr-fluid-metal-v26 .sidebar .sidebar-logo::before,
+body.jr-fluid-metal-v26 .sidebar .sidebar-logo::after,
+body.jr-fluid-metal-v26 .jr-sidebar-logo-clean-v29::before,
+body.jr-fluid-metal-v26 .jr-sidebar-logo-clean-v29::after {
+  content: none !important;
+  display: none !important;
+}
+
+body.jr-fluid-metal-v26 #sidebar .sidebar-logo img,
+body.jr-fluid-metal-v26 .sidebar .sidebar-logo img,
+body.jr-fluid-metal-v26 .jr-sidebar-logo-image-v29 {
+  width: auto !important;
+  max-width: 190px !important;
+  height: 88px !important;
+  max-height: 88px !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  object-fit: contain !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* 4. OPÇÕES DO MENU CENTRALIZADAS PARA ADMIN E SOMENTE LEITURA. */
+body.jr-fluid-metal-v26 .jr-sidebar-centered-v29,
+body.jr-fluid-metal-v26 #sidebar,
+body.jr-fluid-metal-v26 .sidebar {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+body.jr-fluid-metal-v26 .jr-sidebar-nav-centered-v29,
+body.jr-fluid-metal-v26 #sidebar nav,
+body.jr-fluid-metal-v26 .sidebar nav,
+body.jr-fluid-metal-v26 .sidebar-nav {
+  width: 100% !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 12px 0 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  gap: 6px !important;
+  overflow: visible !important;
+}
+
+body.jr-fluid-metal-v26 #sidebar .nav-item,
+body.jr-fluid-metal-v26 .sidebar .nav-item {
+  width: 100% !important;
+  justify-content: flex-start !important;
+}
+
+/* 5. CARDS DE FOTOS, CÓDIGOS E RELATÓRIOS:
+      força o bloco interno a ficar completamente transparente. */
+body.jr-fluid-metal-v26 .team-folder-card > .folder-card-copy,
+body.jr-fluid-metal-v26 .team-folder-card > .jr-folder-copy-v27,
+body.jr-fluid-metal-v26 .team-folder-card > .jr-team-copy-clean-v29,
+body.jr-fluid-metal-v26 .jr-team-card-clean-v29 > .folder-card-copy,
+body.jr-fluid-metal-v26 .jr-team-card-clean-v29 > .jr-team-copy-clean-v29 {
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+body.jr-fluid-metal-v26 .team-folder-card > .folder-card-copy::before,
+body.jr-fluid-metal-v26 .team-folder-card > .folder-card-copy::after,
+body.jr-fluid-metal-v26 .team-folder-card > .jr-folder-copy-v27::before,
+body.jr-fluid-metal-v26 .team-folder-card > .jr-folder-copy-v27::after,
+body.jr-fluid-metal-v26 .team-folder-card > .jr-team-copy-clean-v29::before,
+body.jr-fluid-metal-v26 .team-folder-card > .jr-team-copy-clean-v29::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+body.jr-fluid-metal-v26 .team-folder-card > .folder-card-copy *,
+body.jr-fluid-metal-v26 .team-folder-card > .jr-folder-copy-v27 *,
+body.jr-fluid-metal-v26 .team-folder-card > .jr-team-copy-clean-v29 * {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+body.jr-fluid-metal-v26 .team-folder-card {
+  overflow: hidden !important;
+  background:
+    linear-gradient(145deg, #181d21 0%, #111519 100%) !important;
+}
+
+body.jr-fluid-metal-v26 .team-folder-card > .folder-card-copy {
+  align-self: stretch !important;
+  justify-content: center !important;
+}
+
+/* 6. TOPO: remove a logo completamente. */
+body.jr-fluid-metal-v26 .topbar-system-logo,
+body.jr-fluid-metal-v26 .topbar-logo,
+body.jr-fluid-metal-v26 .system-logo,
+body.jr-fluid-metal-v26 .header-logo {
+  display: none !important;
+}
+
+/* Evita espaço vazio deixado pela área antiga da marca. */
+body.jr-fluid-metal-v26 .jr-topbar-clean-v29,
+body.jr-fluid-metal-v26 .admin-topbar,
+body.jr-fluid-metal-v26 .topbar {
+  min-height: 68px !important;
+  justify-content: flex-end !important;
+}
+
+body.jr-fluid-metal-v26 .jr-topbar-clean-v29 > :first-child:empty,
+body.jr-fluid-metal-v26 .admin-topbar > :first-child:empty,
+body.jr-fluid-metal-v26 .topbar > :first-child:empty {
+  display: none !important;
+}
+
+/* 7. ADMIN / ADMINISTRADOR: cinza e com a mesma altura do botão Sair. */
+body.jr-fluid-metal-v26 .jr-user-card-clean-v29,
+body.jr-fluid-metal-v26 .topbar-user-card,
+body.jr-fluid-metal-v26 .user-card,
+body.jr-fluid-metal-v26 .account-card {
+  min-height: 48px !important;
+  height: 48px !important;
+  margin: 0 !important;
+  padding: 7px 14px !important;
+  border: 1px solid var(--jr29-line) !important;
+  border-radius: 12px !important;
+  color: #f1f3f4 !important;
+  background:
+    linear-gradient(145deg, #282e33 0%, #171b1f 100%) !important;
+  box-shadow: none !important;
+}
+
+body.jr-fluid-metal-v26 .jr-user-card-clean-v29 svg,
+body.jr-fluid-metal-v26 .topbar-user-card svg,
+body.jr-fluid-metal-v26 .user-card svg,
+body.jr-fluid-metal-v26 .account-card svg {
+  color: var(--jr29-silver) !important;
+  stroke: currentColor !important;
+}
+
+body.jr-fluid-metal-v26 .jr-user-card-clean-v29 small,
+body.jr-fluid-metal-v26 .topbar-user-card small,
+body.jr-fluid-metal-v26 .user-card small,
+body.jr-fluid-metal-v26 .account-card small {
+  color: var(--jr29-muted) !important;
+}
+
+body.jr-fluid-metal-v26 .jr-logout-clean-v29,
+body.jr-fluid-metal-v26 #logout-button {
+  min-height: 48px !important;
+  height: 48px !important;
+  margin: 0 !important;
+  border-radius: 12px !important;
+}
+
+/* Mantém os dois controles perfeitamente alinhados. */
+body.jr-fluid-metal-v26 .account-area,
+body.jr-fluid-metal-v26 .topbar-actions,
+body.jr-fluid-metal-v26 .user-actions {
+  margin-left: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+/* 8. Azul restante neutralizado nos elementos mostrados nos prints. */
+body.jr-fluid-metal-v26 .panel-kicker,
+body.jr-fluid-metal-v26 .panel-kicker *,
+body.jr-fluid-metal-v26 .eyebrow,
+body.jr-fluid-metal-v26 .eyebrow *,
+body.jr-fluid-metal-v26 .compact-field,
+body.jr-fluid-metal-v26 .compact-field *,
+body.jr-fluid-metal-v26 .folder-card-copy small,
+body.jr-fluid-metal-v26 .folder-card-copy em,
+body.jr-fluid-metal-v26 .topbar-user-card *,
+body.jr-fluid-metal-v26 .account-card *,
+body.jr-fluid-metal-v26 footer,
+body.jr-fluid-metal-v26 footer * {
+  color: var(--jr29-silver) !important;
+  border-color: var(--jr29-line) !important;
+}
+
+body.jr-fluid-metal-v26 footer {
+  background: #0c1013 !important;
+}
+
+/* Mobile */
+@media (max-width: 900px) {
+  body.jr-fluid-metal-v26 #sidebar .sidebar-logo,
+  body.jr-fluid-metal-v26 .sidebar .sidebar-logo {
+    height: 88px !important;
+    min-height: 88px !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar .sidebar-logo img,
+  body.jr-fluid-metal-v26 .sidebar .sidebar-logo img {
+    max-width: 175px !important;
+    height: 80px !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar nav,
+  body.jr-fluid-metal-v26 .sidebar nav,
+  body.jr-fluid-metal-v26 .sidebar-nav {
+    justify-content: flex-start !important;
+  }
+}
+
+/* ============================================================
+   JR GESTÃO — INTERFACE ENXUTA V30
+   Remoção de textos, listas compactas e barras uniformes.
+   ============================================================ */
+
+/* Início: remove totalmente o banner Envio completo/data/equipe. */
+body.jr-fluid-metal-v26 #status-banner,
+body.jr-fluid-metal-v26 .status-banner {
+  display: none !important;
+}
+
+/* Início: equipes em lista compacta. */
+body.jr-fluid-metal-v26 .team-score-list-v30 {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 8px !important;
+}
+
+body.jr-fluid-metal-v26 .team-score-row-v30 {
+  min-width: 0;
+  min-height: 82px;
+  padding: 11px 13px;
+  border: 1px solid rgba(190, 198, 204, .23);
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: minmax(175px, .8fr) minmax(520px, 2.5fr) 80px auto;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(145deg, #171c20, #101418);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+body.jr-fluid-metal-v26 .team-score-row-name-v30 {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+body.jr-fluid-metal-v26 .team-score-row-name-v30 small,
+body.jr-fluid-metal-v26 .team-score-row-total-v30 small,
+body.jr-fluid-metal-v26 .team-score-row-values-v30 small {
+  color: rgba(222, 227, 230, .56) !important;
+  font-size: 8px !important;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+
+body.jr-fluid-metal-v26 .team-score-row-name-v30 strong {
+  color: #f6f7f8;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+body.jr-fluid-metal-v26 .team-score-row-name-v30 em {
+  color: rgba(222, 227, 230, .48);
+  font-size: 9px;
+  font-style: normal;
+}
+
+body.jr-fluid-metal-v26 .team-score-row-values-v30 {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(105px, 1fr));
+  gap: 7px;
+}
+
+body.jr-fluid-metal-v26 .team-score-row-values-v30 > span {
+  min-width: 0;
+  min-height: 54px;
+  padding: 8px 9px;
+  border: 1px solid rgba(190, 198, 204, .16);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  background: rgba(7, 10, 13, .42);
+}
+
+body.jr-fluid-metal-v26 .team-score-row-values-v30 strong {
+  color: #f6f7f8;
+  font-size: 17px;
+  line-height: 1;
+}
+
+body.jr-fluid-metal-v26 .team-score-row-total-v30 {
+  min-height: 54px;
+  padding: 7px;
+  border: 1px solid rgba(218, 223, 226, .30);
+  border-radius: 11px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #2a3035, #15191d);
+}
+
+body.jr-fluid-metal-v26 .team-score-row-total-v30 strong {
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+}
+
+body.jr-fluid-metal-v26 .team-list-issue-v30 {
+  min-height: 42px;
+  padding: 7px 9px;
+  border: 1px solid;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+body.jr-fluid-metal-v26 .team-list-issue-v30 svg {
+  width: 15px;
+  height: 15px;
+}
+
+body.jr-fluid-metal-v26 .team-list-issue-v30.danger {
+  border-color: rgba(255, 83, 105, .62);
+  background: #49121f;
+}
+
+body.jr-fluid-metal-v26 .team-list-issue-v30.warning {
+  border-color: rgba(255, 183, 69, .58);
+  background: #4b310d;
+}
+
+/* Pesquisar: remove resumo, chips e metadados permanentes. */
+body.jr-fluid-metal-v26 .search-page-clean-v30 .search-page-chips-v21,
+body.jr-fluid-metal-v26 .search-page-clean-v30 .search-page-summary-v21,
+body.jr-fluid-metal-v26 .search-page-clean-v30 .search-page-meta-v21 {
+  display: none !important;
+}
+
+body.jr-fluid-metal-v26 .search-page-hero-clean-v30 p {
+  max-width: 720px;
+}
+
+body.jr-fluid-metal-v26 .search-page-form-clean-v30 {
+  margin-bottom: 14px;
+}
+
+body.jr-fluid-metal-v26 .search-inline-status-v30 {
+  min-height: 0;
+  margin-top: 8px;
+  display: block;
+  color: rgba(222, 227, 230, .62);
+}
+
+body.jr-fluid-metal-v26 .search-inline-status-v30:empty {
+  display: none;
+}
+
+body.jr-fluid-metal-v26 .search-inline-status-v30.error {
+  display: block;
+  color: #ff8798;
+}
+
+body.jr-fluid-metal-v26 .search-page-empty-clean-v30 {
+  min-height: 190px;
+}
+
+/* Fotos e Relatórios: barras com o mesmo tamanho e alinhamento. */
+body.jr-fluid-metal-v26 .module-toolbar-uniform-v30 {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: minmax(300px, 1fr) minmax(180px, 220px) minmax(210px, 250px) !important;
+  align-items: stretch !important;
+  gap: 11px !important;
+}
+
+body.jr-fluid-metal-v26 .module-toolbar-uniform-v30 > *,
+body.jr-fluid-metal-v26 .module-period-control-v30,
+body.jr-fluid-metal-v26 .module-filter-control-v30,
+body.jr-fluid-metal-v26 .module-action-control-v30 {
+  min-width: 0 !important;
+  min-height: 58px !important;
+  height: 58px !important;
+  margin: 0 !important;
+  align-self: stretch !important;
+}
+
+body.jr-fluid-metal-v26 .module-toolbar-uniform-v30 .period-selector-card,
+body.jr-fluid-metal-v26 .module-toolbar-uniform-v30 .custom-select-trigger,
+body.jr-fluid-metal-v26 .module-toolbar-uniform-v30 .module-action-control-v30,
+body.jr-fluid-metal-v26 .module-toolbar-uniform-v30 button {
+  width: 100% !important;
+  min-height: 58px !important;
+  height: 58px !important;
+  margin: 0 !important;
+  border-radius: 12px !important;
+}
+
+body.jr-fluid-metal-v26 .module-toolbar-uniform-v30 .period-selector-copy em {
+  display: none !important;
+}
+
+body.jr-fluid-metal-v26 .module-toolbar-uniform-v30 .period-selector-copy {
+  justify-content: center !important;
+}
+
+body.jr-fluid-metal-v26 .module-filter-control-v30 {
+  display: flex !important;
+  align-items: stretch !important;
+}
+
+body.jr-fluid-metal-v26 .module-filter-control-v30 .custom-select-trigger {
+  flex: 1 1 auto !important;
+}
+
+/* Fotos e Relatórios: remove a seta ao lado de COMPLETO/SEM FOTOS/PRONTO. */
+body.jr-fluid-metal-v26 #photos-team-list .folder-card-arrow,
+body.jr-fluid-metal-v26 #reports-team-list .folder-card-arrow,
+body.jr-fluid-metal-v26 .module-team-list-no-arrow-v30 .folder-card-arrow {
+  display: none !important;
+}
+
+body.jr-fluid-metal-v26 #photos-team-list .team-folder-card,
+body.jr-fluid-metal-v26 #reports-team-list .team-folder-card,
+body.jr-fluid-metal-v26 .module-team-list-no-arrow-v30 .team-folder-card {
+  grid-template-columns: 58px minmax(0, 1fr) auto !important;
+}
+
+/* Ordens: remove todos os textos de ajuda solicitados. */
+body.jr-fluid-metal-v26 .orders-toolbar-clean-v30 .orders-toolbar-help-v21,
+body.jr-fluid-metal-v26 .orders-toolbar-clean-v30 .light-search-help-v19,
+body.jr-fluid-metal-v26 .orders-toolbar-clean-v30 .period-selector-copy em {
+  display: none !important;
+}
+
+body.jr-fluid-metal-v26 .orders-toolbar-clean-v30 .orders-period-field-v21::after,
+body.jr-fluid-metal-v26 .orders-toolbar-clean-v30 .orders-period-clean-v30::after {
+  content: none !important;
+  display: none !important;
+}
+
+body.jr-fluid-metal-v26 .orders-toolbar-clean-v30 .orders-toolbar-field-v21 {
+  grid-template-rows: 16px 50px !important;
+  align-content: start !important;
+}
+
+body.jr-fluid-metal-v26 .orders-toolbar-clean-v30 .orders-period-field-v21,
+body.jr-fluid-metal-v26 .orders-toolbar-clean-v30 .orders-search-field-v21,
+body.jr-fluid-metal-v26 .orders-toolbar-clean-v30 .orders-team-field-v21,
+body.jr-fluid-metal-v26 .orders-toolbar-clean-v30 .orders-refresh-field-v21 {
+  min-height: 73px !important;
+}
+
+/* Logo mais baixa e diretamente acima de Início. */
+body.jr-fluid-metal-v26 .sidebar-brand-lowered-v30 {
+  justify-content: center !important;
+}
+
+body.jr-fluid-metal-v26 .sidebar-logo-lowered-v30 {
+  flex: 0 0 auto !important;
+  margin: 0 0 7px !important;
+}
+
+body.jr-fluid-metal-v26 .sidebar-nav-below-logo-v30,
+body.jr-fluid-metal-v26 #sidebar nav.sidebar-nav-below-logo-v30,
+body.jr-fluid-metal-v26 .sidebar nav.sidebar-nav-below-logo-v30 {
+  flex: 0 0 auto !important;
+  justify-content: flex-start !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Remove a faixa preta em degradê localizada no topo. */
+body.jr-fluid-metal-v26.top-gradient-removed-v30,
+body.jr-fluid-metal-v26.top-gradient-removed-v30 .app-shell,
+body.jr-fluid-metal-v26.top-gradient-removed-v30 .admin-shell,
+body.jr-fluid-metal-v26.top-gradient-removed-v30 .main-content,
+body.jr-fluid-metal-v26.top-gradient-removed-v30 .app-content,
+body.jr-fluid-metal-v26 .flat-top-background-v30 {
+  background-color: #0b0f12 !important;
+  background-image: none !important;
+}
+
+body.jr-fluid-metal-v26.top-gradient-removed-v30 .app-shell::before,
+body.jr-fluid-metal-v26.top-gradient-removed-v30 .app-shell::after,
+body.jr-fluid-metal-v26.top-gradient-removed-v30 .admin-shell::before,
+body.jr-fluid-metal-v26.top-gradient-removed-v30 .admin-shell::after,
+body.jr-fluid-metal-v26 .flat-top-background-v30::before,
+body.jr-fluid-metal-v26 .flat-top-background-v30::after {
+  content: none !important;
+  display: none !important;
+}
+
+@media (max-width: 1220px) {
+  body.jr-fluid-metal-v26 .team-score-row-v30 {
+    grid-template-columns: minmax(170px, .8fr) minmax(0, 2fr) 76px !important;
+  }
+
+  body.jr-fluid-metal-v26 .team-list-issue-v30 {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+
+  body.jr-fluid-metal-v26 .team-score-row-values-v30 {
+    grid-template-columns: repeat(2, minmax(110px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  body.jr-fluid-metal-v26 .module-toolbar-uniform-v30 {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.jr-fluid-metal-v26 .module-toolbar-uniform-v30 > *,
+  body.jr-fluid-metal-v26 .module-period-control-v30,
+  body.jr-fluid-metal-v26 .module-filter-control-v30,
+  body.jr-fluid-metal-v26 .module-action-control-v30 {
+    width: 100% !important;
+  }
+
+  body.jr-fluid-metal-v26 .sidebar-brand-lowered-v30 {
+    justify-content: flex-start !important;
+  }
+}
+
+@media (max-width: 700px) {
+  body.jr-fluid-metal-v26 .team-score-row-v30 {
+    grid-template-columns: 1fr 74px !important;
+  }
+
+  body.jr-fluid-metal-v26 .team-score-row-values-v30 {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.jr-fluid-metal-v26 .team-list-issue-v30 {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    justify-content: center;
+  }
+
+  body.jr-fluid-metal-v26 #photos-team-list .team-folder-card,
+  body.jr-fluid-metal-v26 #reports-team-list .team-folder-card,
+  body.jr-fluid-metal-v26 .module-team-list-no-arrow-v30 .team-folder-card {
+    grid-template-columns: 48px minmax(0, 1fr) !important;
+  }
+
+  body.jr-fluid-metal-v26 #photos-team-list .status-pill,
+  body.jr-fluid-metal-v26 #reports-team-list .status-pill {
+    grid-column: 2 !important;
+    justify-self: start !important;
+  }
+}
+
+@media (max-height: 650px) and (min-width: 901px) {
+  body.jr-fluid-metal-v26 .sidebar-brand-lowered-v30 {
+    justify-content: flex-start !important;
+  }
+}
+
+/* ============================================================
+   JR GESTÃO — FLUIDEZ, CALENDÁRIO E LOGIN V31
+   ============================================================ */
+
+/* Troca de páginas mais leve. */
+body.jr-fluid-metal-v26.jr-performance-v31 .page-section.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.jr-fluid-metal-v26.jr-performance-v31 .page-section:not(.hidden) {
+  content-visibility: auto;
+  contain-intrinsic-size: 900px;
+}
+
+body.jr-fluid-metal-v26.jr-performance-v31 .page-section,
+body.jr-fluid-metal-v26.jr-performance-v31 .module-panel,
+body.jr-fluid-metal-v26.jr-performance-v31 .team-folder-card,
+body.jr-fluid-metal-v26.jr-performance-v31 .table-wrap {
+  transition: none !important;
+}
+
+/* Corrige Ocultar/Mostrar equipes: a regra da lista não vence mais hidden. */
+body.jr-fluid-metal-v26 .team-score-list-v30.hidden,
+body.jr-fluid-metal-v26 #team-score-grid.hidden {
+  display: none !important;
+}
+
+/* Fotos e Relatórios: calendário alinhado à esquerda igual a Códigos. */
+body.jr-fluid-metal-v26 [data-open-period-selector="photos"].period-card-left-v31,
+body.jr-fluid-metal-v26 [data-open-period-selector="reports"].period-card-left-v31 {
+  display: grid !important;
+  grid-template-columns: 38px minmax(0, 1fr) 22px !important;
+  align-items: center !important;
+  justify-content: stretch !important;
+  gap: 13px !important;
+  text-align: left !important;
+  padding-inline: 16px !important;
+}
+
+body.jr-fluid-metal-v26 [data-open-period-selector="photos"].period-card-left-v31 .period-selector-icon,
+body.jr-fluid-metal-v26 [data-open-period-selector="reports"].period-card-left-v31 .period-selector-icon {
+  justify-self: start !important;
+}
+
+body.jr-fluid-metal-v26 [data-open-period-selector="photos"].period-card-left-v31 .period-selector-copy,
+body.jr-fluid-metal-v26 [data-open-period-selector="reports"].period-card-left-v31 .period-selector-copy {
+  width: 100% !important;
+  justify-self: stretch !important;
+  justify-items: start !important;
+  align-content: center !important;
+  text-align: left !important;
+}
+
+body.jr-fluid-metal-v26 [data-open-period-selector="photos"].period-card-left-v31 .period-selector-copy *,
+body.jr-fluid-metal-v26 [data-open-period-selector="reports"].period-card-left-v31 .period-selector-copy * {
+  width: 100% !important;
+  text-align: left !important;
+}
+
+body.jr-fluid-metal-v26 [data-open-period-selector="photos"].period-card-left-v31 .period-selector-arrow,
+body.jr-fluid-metal-v26 [data-open-period-selector="reports"].period-card-left-v31 .period-selector-arrow {
+  justify-self: end !important;
+}
+
+/* Calendário: remove o retângulo preto atrás da data. */
+body.jr-fluid-metal-v26 .period-dialog-clean-v31 .period-native-field,
+body.jr-fluid-metal-v26 .period-dialog-clean-v31 .period-picker-control,
+body.jr-fluid-metal-v26 .period-dialog-clean-v31 .picker-control {
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+body.jr-fluid-metal-v26 .period-dialog-clean-v31 .period-native-field {
+  padding: 0 !important;
+}
+
+body.jr-fluid-metal-v26 .period-dialog-clean-v31 .period-native-field::before,
+body.jr-fluid-metal-v26 .period-dialog-clean-v31 .period-native-field::after,
+body.jr-fluid-metal-v26 .period-dialog-clean-v31 .period-picker-control::before,
+body.jr-fluid-metal-v26 .period-dialog-clean-v31 .period-picker-control::after,
+body.jr-fluid-metal-v26 .period-dialog-clean-v31 .picker-control::before,
+body.jr-fluid-metal-v26 .period-dialog-clean-v31 .picker-control::after {
+  content: none !important;
+  display: none !important;
+}
+
+body.jr-fluid-metal-v26 .period-dialog-clean-v31 .period-picker-trigger {
+  border: 1px solid rgba(191, 199, 205, .28) !important;
+  border-radius: 12px !important;
+  background: #0b0f12 !important;
+  box-shadow: none !important;
+}
+
+/* Login: remove os traços internos nas laterais de usuário e senha. */
+body.jr-fluid-metal-v26 .login-form-clean-v31 .input-shell {
+  overflow: hidden !important;
+  border: 1px solid rgba(191, 199, 205, .38) !important;
+  background: #0b0f12 !important;
+  box-shadow: none !important;
+}
+
+body.jr-fluid-metal-v26 .login-form-clean-v31 .input-shell::before,
+body.jr-fluid-metal-v26 .login-form-clean-v31 .input-shell::after {
+  content: none !important;
+  display: none !important;
+}
+
+body.jr-fluid-metal-v26 .login-form-clean-v31 .input-shell input {
+  height: 52px !important;
+  margin: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border: 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+body.jr-fluid-metal-v26 .login-form-clean-v31 .input-shell input:focus,
+body.jr-fluid-metal-v26 .login-form-clean-v31 .input-shell input:active {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+body.jr-fluid-metal-v26 .login-form-clean-v31 .input-shell .icon-button {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+body.jr-fluid-metal-v26 .login-form-clean-v31 .input-shell:focus-within {
+  border-color: rgba(231, 235, 238, .70) !important;
+  box-shadow: 0 0 0 2px rgba(231, 235, 238, .07) !important;
+}
+
+@media (max-width: 700px) {
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"].period-card-left-v31,
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"].period-card-left-v31 {
+    grid-template-columns: 34px minmax(0, 1fr) 20px !important;
+    padding-inline: 13px !important;
+  }
+}
+
+/* ============================================================
+   JR GESTÃO — LOGIN E LOGOUT MOBILE V32
+   ============================================================ */
+
+body.jr-fluid-metal-v26.jr-mobile-session-v32 {
+  --jr-mobile-vh-v32: 100dvh;
+}
+
+body.jr-fluid-metal-v26 #login-view.hidden,
+body.jr-fluid-metal-v26 #app-view.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+body.jr-fluid-metal-v26 #login-view:not(.hidden),
+body.jr-fluid-metal-v26 #app-view:not(.hidden) {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+body.jr-fluid-metal-v26 .sidebar-overlay:not(.show) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+body.jr-fluid-metal-v26 .sidebar-overlay.show {
+  display: block !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+body.jr-fluid-metal-v26[data-mobile-session-v32="login"] #sidebar,
+body.jr-fluid-metal-v26[data-mobile-session-v32="login"] .sidebar-overlay {
+  pointer-events: none !important;
+}
+
+body.jr-fluid-metal-v26[data-mobile-session-v32="login"] .sidebar-overlay {
+  display: none !important;
+}
+
+body.jr-fluid-metal-v26 #login-form,
+body.jr-fluid-metal-v26 #login-form *,
+body.jr-fluid-metal-v26 #logout-button,
+body.jr-fluid-metal-v26 #mobile-menu-button {
+  touch-action: manipulation !important;
+}
+
+body.jr-fluid-metal-v26 #login-form {
+  position: relative !important;
+  z-index: 5 !important;
+  pointer-events: auto !important;
+}
+
+body.jr-fluid-metal-v26 #login-form input,
+body.jr-fluid-metal-v26 #login-form button {
+  pointer-events: auto !important;
+}
+
+body.jr-fluid-metal-v26 .admin-topbar,
+body.jr-fluid-metal-v26 .topbar,
+body.jr-fluid-metal-v26 #logout-button,
+body.jr-fluid-metal-v26 #mobile-menu-button {
+  position: relative;
+  z-index: 30;
+  pointer-events: auto !important;
+}
+
+body.jr-fluid-metal-v26 #logout-button[aria-busy="true"] {
+  pointer-events: none !important;
+  opacity: .72 !important;
+}
+
+@media (max-width: 900px) {
+  html.login-active,
+  body.login-active,
+  html.app-active,
+  body.app-active {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: var(--jr-mobile-vh-v32, 100dvh) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    position: static !important;
+    inset: auto !important;
+    touch-action: pan-y pinch-zoom !important;
+    overscroll-behavior-y: auto !important;
+  }
+
+  body.jr-fluid-metal-v26 #login-view:not(.hidden),
+  body.jr-fluid-metal-v26 #app-view:not(.hidden) {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: var(--jr-mobile-vh-v32, 100dvh) !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+  }
+
+  body.jr-fluid-metal-v26 #app-view .app-shell,
+  body.jr-fluid-metal-v26 #app-view .admin-shell,
+  body.jr-fluid-metal-v26 #app-view .admin-layout,
+  body.jr-fluid-metal-v26 #app-view .dashboard-layout {
+    min-height: var(--jr-mobile-vh-v32, 100dvh) !important;
+  }
+
+  body.jr-fluid-metal-v26 .sidebar-overlay.show {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: var(--jr-mobile-vh-v32, 100dvh) !important;
+    z-index: 70 !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar.open {
+    z-index: 80 !important;
+  }
+
+  body.jr-fluid-metal-v26[data-mobile-session-v32="login"],
+  body.jr-fluid-metal-v26[data-mobile-session-v32="app"] {
+    overflow-y: auto !important;
+  }
+
+  body.jr-fluid-metal-v26 #login-view {
+    align-items: flex-start !important;
+    padding-top: max(14px, env(safe-area-inset-top)) !important;
+    padding-bottom: max(18px, env(safe-area-inset-bottom)) !important;
+  }
+
+  body.jr-fluid-metal-v26 #login-button,
+  body.jr-fluid-metal-v26 #logout-button,
+  body.jr-fluid-metal-v26 #mobile-menu-button {
+    min-height: 46px !important;
+  }
+}
+
+/* ============================================================
+   JR GESTÃO — MENU FLUTUANTE MOBILE V33
+   Restaura o botão de três linhas que acompanha a rolagem.
+   ============================================================ */
+
+@media (max-width: 900px) {
+  /* Corrige a regra da V32 que tornou o botão relativo. */
+  body.jr-fluid-metal-v26 #mobile-menu-button.jr-floating-menu-v33 {
+    position: fixed !important;
+    top: max(12px, env(safe-area-inset-top)) !important;
+    left: max(12px, env(safe-area-inset-left)) !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1px solid rgba(210, 216, 220, .31) !important;
+    border-radius: 13px !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #eef1f3 !important;
+    background:
+      linear-gradient(145deg, rgba(42, 48, 53, .97), rgba(16, 20, 24, .98)) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.06),
+      0 7px 18px rgba(0,0,0,.30) !important;
+    backdrop-filter: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    z-index: 120 !important;
+  }
+
+  body.jr-fluid-metal-v26[data-mobile-session-v32="app"]
+  #mobile-menu-button.jr-floating-menu-visible-v33 {
+    display: inline-flex !important;
+  }
+
+  body.jr-fluid-metal-v26[data-mobile-session-v32="login"]
+  #mobile-menu-button.jr-floating-menu-v33,
+  body.jr-fluid-metal-v26 #app-view.hidden
+  #mobile-menu-button.jr-floating-menu-v33 {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  body.jr-fluid-metal-v26 #mobile-menu-button.jr-floating-menu-v33 svg {
+    width: 23px !important;
+    height: 23px !important;
+    min-width: 23px !important;
+    stroke-width: 2.1 !important;
+    color: currentColor !important;
+  }
+
+  body.jr-fluid-metal-v26 #mobile-menu-button.jr-floating-menu-v33:active {
+    transform: scale(.96) !important;
+  }
+
+  body.jr-fluid-metal-v26 #mobile-menu-button.jr-floating-menu-v33:focus-visible {
+    outline: 2px solid rgba(239, 243, 245, .72) !important;
+    outline-offset: 3px !important;
+  }
+
+  /* Reserva espaço para o botão sem cobrir o topo do conteúdo. */
+  body.jr-fluid-metal-v26[data-mobile-session-v32="app"] .admin-topbar,
+  body.jr-fluid-metal-v26[data-mobile-session-v32="app"] .topbar {
+    padding-left: 72px !important;
+  }
+
+  /* Quando o menu estiver aberto, o botão continua disponível acima do overlay. */
+  body.jr-fluid-metal-v26.sidebar-open
+  #mobile-menu-button.jr-floating-menu-v33 {
+    z-index: 130 !important;
+  }
+}
+
+@media (min-width: 901px) {
+  body.jr-fluid-metal-v26 #mobile-menu-button.jr-floating-menu-v33 {
+    position: relative !important;
+  }
+}
+
+/* JR_GESTAO_MOBILE_CALENDARIO_EQUIPES_V37 */
+
+@media (max-width: 900px) {
+  /*
+    Data de serviço: o calendário fica ancorado ao campo e não altera
+    a rolagem da página.
+  */
+  body.jr-fluid-metal-v26
+  .jr-service-date-popover-v37 {
+    position: fixed !important;
+    inset: auto !important;
+    top: var(--jr37-floating-top, 78px) !important;
+    left: var(--jr37-floating-left, 12px) !important;
+    width: var(--jr37-floating-width, calc(100vw - 24px)) !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: var(--jr37-floating-max-height, calc(100dvh - 24px)) !important;
+    margin: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    transform: none !important;
+    translate: none !important;
+    z-index: 10020 !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.05),
+      0 12px 30px rgba(0,0,0,.44) !important;
+  }
+
+  /*
+    Lista de equipes: também fica presa ao campo, evitando pular para
+    o final da página quando abre.
+  */
+  body.jr-fluid-metal-v26
+  .jr-team-select-menu-v37 {
+    position: fixed !important;
+    inset: auto !important;
+    top: var(--jr37-floating-top, 78px) !important;
+    left: var(--jr37-floating-left, 12px) !important;
+    width: var(--jr37-floating-width, calc(100vw - 24px)) !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: min(
+      var(--jr37-floating-max-height, calc(100dvh - 24px)),
+      360px
+    ) !important;
+    margin: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    transform: none !important;
+    translate: none !important;
+    z-index: 10015 !important;
+  }
+
+  body.jr-fluid-metal-v26
+  .jr-service-date-anchor-v37,
+  body.jr-fluid-metal-v26
+  .jr-team-select-anchor-v37 {
+    scroll-margin: 0 !important;
+  }
+
+  body.jr-fluid-metal-v26
+  .jr-service-date-popover-v37 *,
+  body.jr-fluid-metal-v26
+  .jr-team-select-menu-v37 * {
+    touch-action: manipulation !important;
+  }
+
+  /* Seleção de equipe sem animações ou recálculos visuais pesados. */
+  body.jr-fluid-metal-v26
+  .team-score-row-v30,
+  body.jr-fluid-metal-v26
+  .team-folder-card,
+  body.jr-fluid-metal-v26
+  .custom-select-menu,
+  body.jr-fluid-metal-v26
+  .custom-select-option {
+    transition: none !important;
+  }
+
+  body.jr-fluid-metal-v26
+  .photo-grid,
+  body.jr-fluid-metal-v26
+  #photos-grid {
+    content-visibility: auto;
+    contain-intrinsic-size: 900px;
+  }
+}
+
+/* ============================================================
+   JR GESTÃO — CALENDÁRIO DATA DE SERVIÇO FIXO V38
+   ============================================================ */
+
+@media (max-width: 900px) {
+  html.jr-service-date-opening-v38,
+  body.jr-service-date-opening-v38 {
+    scroll-behavior: auto !important;
+    overscroll-behavior: none !important;
+  }
+
+  body.jr-fluid-metal-v26
+  .jr-service-date-popover-fixed-v38 {
+    position: fixed !important;
+    inset: auto !important;
+    top: var(--jr38-calendar-top, 74px) !important;
+    left: var(--jr38-calendar-left, 10px) !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: var(--jr38-calendar-width, calc(100vw - 20px)) !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: var(--jr38-calendar-max-height, calc(100dvh - 24px)) !important;
+    margin: 0 !important;
+    translate: none !important;
+    transform: none !important;
+    transform-origin: top left !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scroll-behavior: auto !important;
+    touch-action: pan-y manipulation !important;
+    z-index: 14020 !important;
+    box-sizing: border-box !important;
+  }
+
+  body.jr-fluid-metal-v26
+  .jr-service-date-popover-fixed-v38.open,
+  body.jr-fluid-metal-v26
+  .jr-service-date-popover-fixed-v38.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  body.jr-fluid-metal-v26
+  .jr-service-date-anchor-v38 {
+    scroll-margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  body.jr-fluid-metal-v26
+  .jr-service-date-anchor-v38 .picker-trigger {
+    scroll-margin: 0 !important;
+    touch-action: manipulation !important;
+  }
+
+  body.jr-fluid-metal-v26
+  .jr-service-date-popover-fixed-v38 *,
+  body.jr-fluid-metal-v26
+  .jr-service-date-popover-fixed-v38 button,
+  body.jr-fluid-metal-v26
+  .jr-service-date-popover-fixed-v38 input {
+    touch-action: manipulation !important;
+  }
+}
+
+
+
+/* ============================================================
+   JR GESTÃO — CARREGAMENTO E CALENDÁRIO CORRIGIDOS V39
+   ============================================================ */
+
+@media (max-width: 900px) {
+  /*
+    Regra preventiva: o popover já fica fora do fluxo ANTES de abrir.
+    Isso elimina o salto para o final da página.
+  */
+  body.jr-fluid-metal-v26
+  [data-date-picker-for="date-filter"]
+  > .picker-popover,
+  body.jr-fluid-metal-v26
+  [data-date-picker-for="date-filter"]
+  .picker-popover,
+  body.jr-fluid-metal-v26
+  [data-date-picker-for="date-filter"]
+  .date-picker-popover,
+  body.jr-fluid-metal-v26
+  .jr-service-date-popover-fixed-v39 {
+    position: fixed !important;
+    inset: auto !important;
+    top: var(--jr38-calendar-top, 74px) !important;
+    left: var(--jr38-calendar-left, 10px) !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: var(--jr38-calendar-width, calc(100vw - 20px)) !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: var(--jr38-calendar-max-height, calc(100dvh - 24px)) !important;
+    margin: 0 !important;
+    translate: none !important;
+    transform: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scroll-behavior: auto !important;
+    touch-action: pan-y manipulation !important;
+    z-index: 14020 !important;
+    box-sizing: border-box !important;
+  }
+
+  html.jr-service-date-opening-v38,
+  body.jr-service-date-opening-v38,
+  body.jr-service-date-opening-v39 {
+    scroll-behavior: auto !important;
+    overscroll-behavior: none !important;
+  }
+}

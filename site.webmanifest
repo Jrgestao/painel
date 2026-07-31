@@ -4,20 +4,32 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#07111f",
-  "theme_color": "#07111f",
+  "background_color": "#05131f",
+  "theme_color": "#05131f",
   "icons": [
     {
-      "src": "./favicon-192x192.png?v=jr-painel-v13",
+      "src": "./favicon-192x192.png?v=jr-full-v11",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./favicon-512x512.png?v=jr-painel-v13",
+      "src": "./favicon-512x512.png?v=jr-full-v11",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "./favicon-maskable-192x192.png?v=jr-full-v11",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./favicon-maskable-512x512.png?v=jr-full-v11",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

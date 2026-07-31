@@ -1,0 +1,47 @@
+/* JR_GESTAO_CALENDARIO_DATA_SERVICO_V42 */
+
+@media (max-width: 900px) {
+  html.jr-service-calendar-opening-v40,
+  body.jr-service-calendar-opening-v40 {
+    scroll-behavior: auto !important;
+    overscroll-behavior: none !important;
+  }
+
+  body .jr-service-calendar-fixed-v40 {
+    position: fixed !important;
+    inset: auto !important;
+    top: var(--jr-calendar-top-v40, 74px) !important;
+    left: var(--jr-calendar-left-v40, 10px) !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: var(--jr-calendar-width-v40, calc(100vw - 20px)) !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: var(--jr-calendar-max-height-v40, calc(100dvh - 24px)) !important;
+    margin: 0 !important;
+    translate: none !important;
+    transform: none !important;
+    transform-origin: top left !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scroll-behavior: auto !important;
+    touch-action: pan-y manipulation !important;
+    z-index: 14020 !important;
+    box-sizing: border-box !important;
+  }
+
+  body .jr-service-calendar-fixed-v40.open,
+  body .jr-service-calendar-fixed-v40.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  body .jr-service-calendar-fixed-v40 *,
+  body .jr-service-calendar-fixed-v40 button,
+  body .jr-service-calendar-fixed-v40 input {
+    touch-action: manipulation !important;
+  }
+}

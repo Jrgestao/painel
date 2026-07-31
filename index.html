@@ -1,400 +1,757 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-  <meta name="theme-color" content="#050607">
-  <meta name="robots" content="noindex,nofollow">
-  <title>JR Gestão</title>
-
-  <link rel="preload" href="./logo-jr-gestao.png?v=50" as="image" type="image/png">
-
-  <style>
-    /* JR_GESTAO_WRAPPER_RESTAURADO_V50 */
-
-    :root {
-      color-scheme: dark;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: #050607;
-      --jr-vh: 100dvh;
-    }
-
-    * { box-sizing: border-box; }
-
-    html,
-    body {
-      width: 100%;
-      height: 100%;
-      min-height: 100%;
-      margin: 0;
-      overflow: hidden;
-      background: #050607;
-      overscroll-behavior: none;
-    }
-
-    body {
-      min-height: var(--jr-vh, 100dvh);
-    }
-
-    #panel {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      display: block;
-      width: 100%;
-      height: var(--jr-vh, 100dvh);
-      border: 0;
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-      background: #050607;
-    }
-
-    /*
-      Não existe tela cheia cobrindo o painel.
-      É apenas uma barra pequena e não bloqueia toques/cliques.
-    */
-    #jr-connection-v50 {
-      position: fixed;
-      top: max(8px, env(safe-area-inset-top));
-      left: 50%;
-      z-index: 30;
-      display: grid;
-      grid-template-columns: 40px minmax(0,1fr);
-      align-items: center;
-      width: min(94vw, 440px);
-      min-height: 56px;
-      padding: 8px 12px 8px 8px;
-      border: 1px solid rgba(218,224,227,.22);
-      border-radius: 16px;
-      color: #eef1f2;
-      background: linear-gradient(150deg, rgba(39,43,46,.94), rgba(9,11,13,.95));
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 15px 38px rgba(0,0,0,.46);
-      transform: translate3d(-50%,0,0);
-      transition: opacity .25s ease, visibility .25s ease, transform .25s ease;
-      pointer-events: none;
-    }
-
-    #jr-connection-v50.hidden {
-      opacity: 0;
-      visibility: hidden;
-      transform: translate3d(-50%,-16px,0);
-    }
-
-    #jr-connection-v50.error {
-      pointer-events: auto;
-    }
-
-    .jr-logo-v50 {
-      display: block;
-      width: 40px;
-      height: 40px;
-      object-fit: contain;
-      border-radius: 9px;
-      filter: drop-shadow(0 6px 10px rgba(0,0,0,.36));
-    }
-
-    .jr-copy-v50 {
-      min-width: 0;
-      padding-left: 9px;
-    }
-
-    #jr-message-v50 {
-      display: block;
-      overflow: hidden;
-      color: #f5f6f7;
-      font-size: 13px;
-      font-weight: 800;
-      line-height: 1.3;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    #jr-note-v50 {
-      display: block;
-      margin-top: 3px;
-      overflow: hidden;
-      color: #a1a8ac;
-      font-size: 11px;
-      line-height: 1.25;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .jr-progress-v50 {
-      position: absolute;
-      right: 12px;
-      bottom: 5px;
-      left: 57px;
-      height: 3px;
-      overflow: hidden;
-      border-radius: 999px;
-      background: rgba(0,0,0,.52);
-    }
-
-    .jr-progress-v50::before {
-      content: "";
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 38%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, transparent, #a7afb3, #f4f6f7, #9aa2a6, transparent);
-      transform: translate3d(-120%,0,0);
-      animation: jr-progress-v50 1.25s linear infinite;
-      -webkit-animation: jr-progress-v50 1.25s linear infinite;
-    }
-
-    #jr-retry-v50,
-    #jr-direct-v50 {
-      display: none;
-      min-height: 36px;
-      margin-top: 8px;
-      border: 1px solid rgba(218,224,227,.24);
-      border-radius: 10px;
-      color: #f2f4f5;
-      font: inherit;
-      font-size: 12px;
-      font-weight: 800;
-      background: linear-gradient(145deg, #363b3e, #15181a);
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-
-    #jr-connection-v50.error {
-      grid-template-columns: 40px minmax(0,1fr);
-    }
-
-    #jr-connection-v50.error #jr-retry-v50,
-    #jr-connection-v50.error #jr-direct-v50 {
-      display: inline-block;
-      pointer-events: auto;
-    }
-
-    .jr-actions-v50 {
-      display: flex;
-      grid-column: 1 / -1;
-      gap: 7px;
-    }
-
-    .jr-actions-v50 button {
-      flex: 1;
-    }
-
-    @keyframes jr-progress-v50 {
-      0%   { transform: translate3d(-120%,0,0); opacity:.42; }
-      45%  { opacity:1; }
-      100% { transform: translate3d(340%,0,0); opacity:.46; }
-    }
-
-    @media (max-width: 600px) {
-      #jr-connection-v50 {
-        width: calc(100vw - 16px);
-      }
-    }
-  </style>
-</head>
-<body>
-  <iframe
-    id="panel"
-    title="Painel JR Gestão"
-    allow="clipboard-read;clipboard-write;fullscreen"
-    referrerpolicy="strict-origin-when-cross-origin"
-  ></iframe>
-
-  <aside id="jr-connection-v50" role="status" aria-live="polite">
-    <img
-      class="jr-logo-v50"
-      src="./logo-jr-gestao.png?v=50"
-      alt=""
-      width="1536"
-      height="1024"
-      decoding="async"
-    >
-
-    <div class="jr-copy-v50">
-      <span id="jr-message-v50">Conectando ao painel...</span>
-      <small id="jr-note-v50">O painel não fica bloqueado durante a conexão</small>
-    </div>
-
-    <div class="jr-actions-v50">
-      <button id="jr-retry-v50" type="button">TENTAR NOVAMENTE</button>
-      <button id="jr-direct-v50" type="button">ABRIR DIRETO</button>
-    </div>
-
-    <div class="jr-progress-v50" aria-hidden="true"></div>
-  </aside>
-
+  <!-- JR_GESTAO_FRONTEND_DIRETO_GITHUB_DUCKDNS -->
+<!-- JR_GESTAO_FAVICON_LOGO_COMPLETA_V11_INICIO -->
+  <link rel="icon" type="image/x-icon" href="./favicon.ico?v=jr-full-v11-20260728">
+  <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico?v=jr-full-v11-20260728">
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png?v=jr-full-v11-20260728">
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png?v=jr-full-v11-20260728">
+  <link rel="icon" type="image/png" sizes="48x48" href="./favicon-48x48.png?v=jr-full-v11-20260728">
+  <link rel="icon" type="image/png" sizes="64x64" href="./favicon-64x64.png?v=jr-full-v11-20260728">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=jr-full-v11-20260728">
+  <link rel="manifest" href="./site.webmanifest?v=jr-full-v11-20260728">
+  <meta name="apple-mobile-web-app-title" content="JR Gestão">
+  <meta name="msapplication-TileImage" content="./favicon-192x192.png?v=jr-full-v11-20260728">
   <script>
     (() => {
-      'use strict';
-
-      const panel = document.getElementById('panel');
-      const status = document.getElementById('jr-connection-v50');
-      const message = document.getElementById('jr-message-v50');
-      const note = document.getElementById('jr-note-v50');
-      const retry = document.getElementById('jr-retry-v50');
-      const direct = document.getElementById('jr-direct-v50');
-
-      let currentTarget = '';
-      let abortController = null;
-      let releaseTimer = 0;
-      let loadTimer = 0;
-
-      function updateViewport() {
-        const height = Math.round(
-          window.visualViewport?.height ||
-          window.innerHeight ||
-          document.documentElement.clientHeight ||
-          800
-        );
-
-        document.documentElement.style.setProperty('--jr-vh', `${height}px`);
-      }
-
-      function showStatus(main, secondary) {
-        status.classList.remove('hidden', 'error');
-        message.textContent = main;
-        note.textContent = secondary;
-      }
-
-      function hideStatus(reason) {
-        clearTimeout(releaseTimer);
-        clearTimeout(loadTimer);
-        status.classList.add('hidden');
-        console.info('[JR V50] Aviso removido:', reason);
-      }
-
-      function showError(main) {
-        clearTimeout(releaseTimer);
-        clearTimeout(loadTimer);
-        status.classList.remove('hidden');
-        status.classList.add('error');
-        message.textContent = main;
-        note.textContent = 'Tente novamente ou abra o servidor diretamente';
-      }
-
-      function validTarget(value) {
-        try {
-          const url = new URL(String(value || '').trim());
-          return url.protocol === 'https:' ? url.href.replace(/\/+$/, '') : '';
-        } catch (_error) {
-          return '';
+      const icon = 'data:image/png;base64,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';
+      const apply = () => {
+        let link = document.getElementById('jr-favicon-logo-completa-v11');
+        if (!link) {
+          link = document.createElement('link');
+          link.id = 'jr-favicon-logo-completa-v11';
+          link.rel = 'icon';
+          link.type = 'image/png';
+          link.sizes = '64x64';
+          document.head.appendChild(link);
         }
-      }
-
-      async function fetchTargetOnce() {
-        abortController?.abort();
-        abortController = new AbortController();
-
-        const timeout = window.setTimeout(
-          () => abortController.abort(),
-          6500
-        );
-
-        try {
-          const response = await fetch(
-            `./target.json?v=${Date.now()}`,
-            {
-              cache: 'no-store',
-              signal: abortController.signal,
-              headers: { Accept: 'application/json' },
-            }
-          );
-
-          if (!response.ok) throw new Error('target-http');
-
-          const data = await response.json();
-          const target = validTarget(data.url);
-
-          if (!target) throw new Error('target-invalid');
-          return target;
-        } finally {
-          clearTimeout(timeout);
-        }
-      }
-
-      async function fetchTarget() {
-        let lastError = null;
-
-        for (let attempt = 1; attempt <= 3; attempt += 1) {
-          try {
-            return await fetchTargetOnce();
-          } catch (error) {
-            lastError = error;
-            await new Promise((resolve) => setTimeout(resolve, 450 * attempt));
-          }
-        }
-
-        const cached = validTarget(localStorage.getItem('jr-last-target-v50'));
-        if (cached) return cached;
-
-        throw lastError || new Error('target-unavailable');
-      }
-
-      async function openPanel(force = false) {
-        showStatus(
-          force ? 'Buscando o servidor novamente...' : 'Conectando ao painel...',
-          'O painel não fica bloqueado durante a conexão'
-        );
-
-        try {
-          currentTarget = await fetchTarget();
-          localStorage.setItem('jr-last-target-v50', currentTarget);
-
-          /*
-            O iframe já está visível. Nenhuma camada cobre o painel.
-          */
-          panel.src = `${currentTarget}/?jr_fixed_link=50&v=${Date.now()}`;
-
-          clearTimeout(releaseTimer);
-          releaseTimer = window.setTimeout(
-            () => hideStatus('limite máximo de 3 segundos'),
-            3000
-          );
-        } catch (_error) {
-          showError('Não foi possível localizar o servidor.');
-        }
-      }
-
-      panel.addEventListener('load', () => {
-        clearTimeout(loadTimer);
-        loadTimer = window.setTimeout(
-          () => hideStatus('iframe carregado'),
-          250
-        );
-      });
-
-      retry.addEventListener('click', () => openPanel(true));
-
-      direct.addEventListener('click', () => {
-        const target =
-          validTarget(currentTarget) ||
-          validTarget(localStorage.getItem('jr-last-target-v50'));
-
-        if (target) window.open(target, '_blank', 'noopener');
-      });
-
-      window.visualViewport?.addEventListener(
-        'resize',
-        updateViewport,
-        { passive: true }
-      );
-
-      window.addEventListener(
-        'resize',
-        updateViewport,
-        { passive: true }
-      );
-
-      window.addEventListener('orientationchange', () => {
-        window.setTimeout(updateViewport, 100);
-        window.setTimeout(updateViewport, 380);
-      }, { passive: true });
-
-      updateViewport();
-      openPanel();
+        link.href = icon;
+      };
+      apply();
+      window.addEventListener('pageshow', apply);
+      window.addEventListener('load', apply, { once: true });
     })();
   </script>
+  <!-- JR_GESTAO_FAVICON_LOGO_COMPLETA_V11_FIM -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#030b16" />
+  <meta name="description" content="Painel administrativo JR Gestão" />
+  <meta name="application-name" content="JR Gestão" />
+<!-- Fallback embutido: não depende do caminho do site e não reutiliza o planeta em cache. -->
+<script>
+    (() => {
+      const jrIcon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAFV0lEQVR42u2XW2xTdRzHPz093dqOAWs33To2Oi5Cyza2dWPjNhSQq4BINBOJ4jUmGt9MFFFfFnwxMYQXgxEjESUSp1xERYRtwMYYd8cAgXVr13brbbTbeu85PhiSzQEPhrEXv68nOd/P7/vP+f3PV8EQKVQapTg+WyXqp6jFNL2IUhR4EEompMSgL5HwdUQSwZ64HA8n7zwSh5gL4gSDSp1fkV699btORkGNtc8bI7bW/kTAKcvxsASgGGKeojZWja/e8o31yMt52tEAWPaVPdS4bVNBpPN0MBFwxuR4WFIoUjSCOD4nRW2cO6rmIyGag4mgK6YQ9QVq9eQ56Yu27u0cbfOhEA21NcZI15l+hWbGkomLPznqeFjmQyGOvb80V1BqdSJjJKVWJwoKpUoYKwCFUiXcd3pBEACZWWYTc8otqEQlHq+P0tlFxOMxHC43Pq+HHreHLpsdp6t3xDuyMvVYLKVcuHgJt9sLgCzLjNgDI+gEAUmSAFCJIjNmmiibbebTz3aQkTGRivIy9tUdYqbJREmxmQ5rJydONnH0j3om5WaTm2PA7nCy5PGFLFw4n60f19Lb60EQlMhy8n4ACkBGliRSUlSUlRSDAvw+D6FwFF1GBscbGnl8UTXnz5/nz/Z2ZhcVsn7dWlYsXw6SxIT0NDZseJpTp5rJ1Os409LC6hVL0WjUtLSeH57yMGvFP+YAlpIiPtryLmtXr8Tp6OHQz79yOxjkrTdfIZGQGRgMUVJciLvXgyAIeHx9/LT/AOcuXEI7bhx2m43K8lLmz6tCrdWQmZnJo1n6EeOOSECr0bBg/hxWrVxFe/sVvt9XR15+PvFYFOstK/qJE4hGwxxrOInZbGLXFzvo6HJy+dJFDv7yK5rUVELhKP6+AG1Xr/PH8UZC4TCvv/wSXq9/2PmPAJBlmeIiE3l5Rn478juDAwM8v7GGeVVVbN++neMN9cydW4leryM3W48qJZWm02fJycmm3FJKcfEsOjo66O7uZsY0IypRZPqUAjRaNX6/n6ysTPLzJmGzd9/9CKoqysmfbERUKrHZ7JSVleLodnCsvoE1a9bwaFYm8ViU4qJCmprPIIqp9LqcXGlrR63WUGGx8NormykpKaXH7SMajfLq5k08tXI5Go0Gh9PFY1ML7p3AO2+/wY8HDtPWdoW/btwiEg6jVIkUKpU4VSnos7LZ/e0+Om/dQJumxWQ2MzAwyOEjBzj482EMBgO5OdkkZQmrtYsVSxfh9fcRDAZoPXuOvtsBVq9awdH6E3cH2LO3jqbmJnQZOnINOVRWVRKLRqlvPIFep0cUlfT19ZGamop4O8ju3XsYDIWorLAwu8iMw9nDtRs3mVdZQfYjWThcbjweD9mGSXh8PkwzZ9DnD9w7gcVPVDM4EMRqs/HshmdwOJzkGnJYu/Yp0tPSCAQCTJ1SQCQape1KO4VmE2Ulxeyr28/69evYu/d7Vk19Eq/XT/vVa3z4wXt8vXsPsgySBDU1z7Fr19f3BvB63FRXL2Bl2jg+3/klE8aPYzA0mfzJeQDcvGVl+rRp5E0yICWTdNnt6HQTCQT7+aHuABUVFtxuDz6fn8t/tnHxwgWuXruOIAhsfulFWlrOcaKpefjWSS/f+Ej1lj3WsbgNG7e9UDBmF9FdP8P/AcZC9/0fmLvT7noQJs1v5OXcMwE5GZfGano5GZfEZMif+C/kD6QwhfwJIe7tiDTU1hiXfWUPPcwd0FBbY4x7OyJCsr8nFrW19jdu21TwMCDuFJOorbU/2d8TE+RYWEoEXLFI5+ngaEMMr2aumBwLS4p/ldOUh1ROY8PK6VjW878BT/x96ptSdN8AAAAASUVORK5CYII=";
+      const refreshIcon = () => {
+        let link = document.getElementById('jr-inline-favicon');
+        if (!link) {
+          link = document.createElement('link');
+          link.id = 'jr-inline-favicon';
+          link.rel = 'icon';
+          link.type = 'image/png';
+          link.sizes = '32x32';
+          document.head.appendChild(link);
+        }
+        link.href = jrIcon;
+      };
+      refreshIcon();
+      window.addEventListener('pageshow', refreshIcon, { once: true });
+    })();
+  </script>
+  <!-- JR_GESTAO_SITE_TOPO_MOBILE_LOGO_LIMPO_V9 -->
+  <title>JR Gestão — Painel Administrativo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./src/styles.css?v=20260731">
+  <!-- JR_GESTAO_CORRECAO_MUITAS_SOLICITACOES_V11 -->
+  <!-- JR_GESTAO_CORRECAO_DATA_RELATORIO_DIA_ATUAL_V12 -->
+  <!-- JR_GESTAO_CORRECAO_DATA_PLANILHA_CODIGOS_V13 -->
+  <!-- JR_GESTAO_PENDENCIAS_COM_EQUIPE_V14 -->
+<!-- JR_GESTAO_PENDENCIAS_OLHINHO_CARD_POR_EQUIPE_V15 -->
+<!-- JR_GESTAO_PENDENCIAS_OLHINHO_CARD_POR_EQUIPE_V15 -->
+<!-- JR_GESTAO_CARD_PERIGO_AO_LADO_TOTAL_V16 -->
+<!-- JR_GESTAO_MENU_ORDEM_SERVICO_V17 -->
+<!-- JR_GESTAO_ORDENS_MES_ATUAL_BUSCA_PADRAO_V18 -->
+<!-- JR_GESTAO_PESQUISAS_LEVES_ROBUSTO_V20 -->
+<!-- JR_GESTAO_MENU_PESQUISAR_ALINHAMENTO_ORDENS_V21 -->
+<!-- JR_GESTAO_PESQUISAR_RELATORIO_POR_EQUIPE_V22 -->
+<!-- JR_GESTAO_SITE_METAL_LIQUIDO_ALTERACOES_V24 -->
+<!-- JR_GESTAO_SITE_CLEAN_LISO_V25 -->
+<!-- JR_GESTAO_METAL_FLUIDO_LEVE_V26 -->
+<!-- JR_GESTAO_CORRECOES_DESIGN_INSTALADOR_V28 -->
+<!-- JR_GESTAO_AJUSTES_VISUAIS_CLEAN_V29 -->
+<!-- JR_GESTAO_INTERFACE_ENXUTA_V30 -->
+<!-- JR_GESTAO_FLUIDEZ_CALENDARIO_LOGIN_V31 -->
+<!-- JR_GESTAO_LOGIN_LOGOUT_MOBILE_V32 -->
+<!-- JR_GESTAO_MENU_FLUTUANTE_MOBILE_V33 -->
+  <link rel="preload" href="./assets/logo-jr-gestao.png" as="image" type="image/png">
+<!-- JR_GESTAO_TELA_CARREGAMENTO_METAL_V34 -->
+  <link rel="preload" href="./assets/logo-jr-gestao.png" as="image" type="image/png">
+<link rel="stylesheet" href="./src/styles-carregamento-calendario-v39.css?v=definitivo">
+<link rel="stylesheet" href="./src/calendar-service-date-v42.css?v=20260731">
+  <link rel="preload" href="./assets/logo-jr-gestao.png" as="image" type="image/png">
+
+  <!-- JR_GESTAO_CARREGAMENTO_E_CALENDARIO_CORRIGIDOS_V39 -->
+</head>
+<body>
+<div id="toast" class="toast" aria-live="polite"></div>
+
+  <section id="login-view" class="login-page">
+    <div class="login-shell">
+      <aside class="login-brand-panel">
+        <img src="./assets/logo.png" alt="Logo oficial JR Gestão" class="login-logo" />
+        <div class="login-brand-copy">
+          <h1>JR GESTÃO</h1>
+          <p>CONTROLE DE CAMPO E CONFERÊNCIA</p>
+        </div>
+        <div class="restricted-badge">
+          <span data-icon="shield"></span>
+          <div><strong>ACESSO RESTRITO</strong><small>Ambiente administrativo protegido</small></div>
+        </div>
+      </aside>
+
+      <main class="login-form-panel">
+        <div class="login-heading">
+          <span class="eyebrow">ADMINISTRAÇÃO</span>
+          <h2><span>PAINEL</span> <span>ADMINISTRATIVO</span></h2>
+          <span class="heading-line"></span>
+          <p>Entre com um usuário liberado para acessar o painel no Supabase.</p>
+        </div>
+
+        <form id="login-form" novalidate>
+          <label class="field-label" for="username">USUÁRIO</label>
+          <div class="input-shell">
+            <span data-icon="user"></span>
+            <input id="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" enterkeyhint="next" required placeholder="Usuário" />
+          </div>
+
+          <label class="field-label" for="password">SENHA</label>
+          <div class="input-shell">
+            <span data-icon="lock"></span>
+            <input id="password" type="password" autocomplete="current-password" enterkeyhint="go" required placeholder="••••••••" />
+            <button id="toggle-password" class="icon-button" type="button" aria-label="Mostrar ou esconder senha" data-icon-button="eye"></button>
+          </div>
+
+          <label class="remember-login-row">
+            <input id="remember-login" type="checkbox" checked />
+            <span><strong>Manter conectado</strong><small>Não pedir login toda hora neste aparelho</small></span>
+          </label>
+
+          <button id="login-button" class="primary-button login-button" type="submit">
+            <span class="button-label">ENTRAR</span><span data-icon="arrow-right"></span>
+          </button>
+          <div id="login-error" class="form-error" role="alert"></div>
+        </form>
+      </main>
+    </div>
+    <footer class="login-footer">© 2026 JR Gestão – Todos os direitos reservados.</footer>
+  </section>
+
+  <section id="app-view" class="app-shell hidden">
+    <button id="mobile-menu-button" class="mobile-menu-button" type="button" aria-label="Abrir menu" data-icon-button="menu"></button>
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-logo-wrap">
+        <img src="./assets/logo.png" alt="Logo oficial JR Gestão" class="sidebar-logo" />
+      </div>
+      <div class="sidebar-monogram"><strong>JR</strong><span>GESTÃO</span></div>
+
+      <nav class="sidebar-nav" aria-label="Menu principal">
+        <button class="nav-item active" type="button" data-page="home"><span data-icon="home"></span><span>Início</span></button>
+        <button class="nav-item" type="button" data-page="photos"><span data-icon="image"></span><span>Fotos</span></button>
+        <button class="nav-item" type="button" data-page="settings"><span data-icon="settings"></span><span>Configurações</span></button>
+        <button class="nav-item" type="button" data-page="codes"><span data-icon="table"></span><span>Códigos</span></button>
+                <button class="nav-item" type="button" data-page="orders"><span data-icon="file-text"></span><span>Ordens de Serviço</span></button>
+<button class="nav-item" type="button" data-page="reports"><span data-icon="file-text"></span><span>Relatórios</span></button>
+      </nav>
+
+      <div class="monitor-card">
+        <span data-icon="shield-check"></span>
+        <strong>CONFERÊNCIA AUTOMÁTICA</strong>
+        <p>Sistema ativo e em monitoramento</p>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="admin-topbar">
+        <div class="topbar-system-brand" aria-label="JR Gestão">
+          <img src="./assets/logo.png" alt="Logo JR Gestão" class="topbar-system-logo" />
+          <span class="topbar-brand-copy">
+            <strong>JR GESTÃO</strong>
+            <small>SISTEMA DE GESTÃO OPERACIONAL</small>
+          </span>
+        </div>
+        <div class="admin-actions">
+          <div class="admin-profile">
+            <span data-icon="user"></span>
+            <div><strong id="admin-name">Administrador</strong><small>Administrador</small></div>
+          </div>
+          <button id="logout-button" class="outline-button" type="button"><span data-icon="log-out"></span>Sair</button>
+        </div>
+      </header>
+
+      <section id="page-home" class="page-section">
+        <section class="welcome-banner">
+          <div class="welcome-icon" data-icon="users"></div>
+          <div class="welcome-copy">
+            <h1>BEM-VINDO AO PAINEL ADMINISTRATIVO</h1>
+            <p>Gerencie e monitore os lançamentos em tempo real.</p>
+          </div>
+          <img src="./assets/logo.png?v=5" alt="Logo oficial JR Gestão" class="welcome-logo" decoding="async" />
+          <span class="welcome-line"></span>
+        </section>
+
+        <section class="monthly-summary-block" aria-labelledby="monthly-summary-title">
+          <div class="monthly-summary-toolbar">
+            <div>
+              <span class="eyebrow">RESUMO MENSAL</span>
+              <h2 id="monthly-summary-title">Pontuação total por mês</h2>
+              <p>Selecione apenas o mês e o ano para consultar os totais.</p>
+            </div>
+            <label class="month-picker-label picker-field">
+              <span>Mês e ano</span>
+              <div class="picker-control" data-month-picker-for="month-filter">
+                <button class="picker-trigger" type="button" aria-label="Selecionar mês e ano" aria-haspopup="dialog" aria-expanded="false">
+                  <span class="picker-trigger-value">Selecione o mês</span>
+                  <span data-icon="calendar"></span>
+                </button>
+                <input id="month-filter" type="hidden" />
+              </div>
+            </label>
+          </div>
+          <div class="summary-grid top-summary">
+            <article class="summary-card blue monthly-total-card"><span class="summary-icon" data-icon="shield-check"></span><div><p>Pontuação total</p><strong id="top-total">0</strong><small>Total do mês selecionado</small></div></article>
+            <article class="summary-card blue monthly-breakdown-card"><span class="summary-icon" data-icon="sun"></span><div class="monthly-breakdown-content"><p>Pontos</p><strong id="top-points">0</strong><div class="monthly-period-grid"><span><small>Manhã/Tarde</small><b id="top-points-day">0</b></span><span><small>Noite</small><b id="top-points-night">0</b></span></div><small class="month-card-note">Total de pontos no mês selecionado</small></div></article>
+            <article class="summary-card blue monthly-breakdown-card"><span class="summary-icon" data-icon="chart"></span><div class="monthly-breakdown-content"><p>Levantamentos</p><strong id="top-surveys">0</strong><div class="monthly-period-grid"><span><small>Manhã/Tarde</small><b id="top-surveys-day">0</b></span><span><small>Noite</small><b id="top-surveys-night">0</b></span></div><small class="month-card-note">Total de levantamentos no mês selecionado</small></div></article>
+            <article class="summary-card muted admin-only"><span class="summary-icon" data-icon="circle-x"></span><div><p>Excluídos</p><strong id="top-deleted">0</strong><small>Total do mês selecionado</small></div></article>
+            <article class="summary-card blue admin-only"><span class="summary-icon" data-icon="image"></span><div><p>Fotos recebidas</p><strong id="top-photos">0/0</strong><small>Total do mês selecionado</small></div></article>
+            <article class="summary-card warning admin-only"><span class="summary-icon" data-icon="triangle-alert"></span><div><p>Pendências críticas do dia</p><strong id="top-issues">0</strong><small>Data de serviço selecionada</small></div></article>
+          </div>
+        </section>
+
+        <section class="panel conference-panel">
+          <div class="panel-title-row">
+            <div><span class="panel-kicker"><span data-icon="chart"></span>PONTUAÇÃO POR EQUIPE</span><p>Pontuação do dia selecionado, separada por equipe.</p></div>
+            <div id="connection-status" class="connection-status"><span></span>Consultando o Supabase...</div>
+          </div>
+
+          <div class="filter-grid">
+            <label class="picker-field"><span>Data do serviço</span>
+              <div class="picker-control" data-date-picker-for="date-filter" data-allow-clear="false">
+                <button class="picker-trigger" type="button" aria-label="Selecionar data do serviço" aria-haspopup="dialog" aria-expanded="false">
+                  <span class="picker-trigger-value">Selecione a data</span>
+                  <span data-icon="calendar"></span>
+                </button>
+                <input id="date-filter" type="hidden" />
+              </div>
+            </label>
+            <label class="picker-field"><span>Equipe</span>
+              <div class="custom-select-control" data-select-for="team-filter">
+                <button class="custom-select-trigger" type="button" aria-label="Selecionar equipe" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="custom-select-value">Todas as equipes</span>
+                  <span class="custom-select-arrow" data-icon="chevron-down"></span>
+                </button>
+                <select id="team-filter" class="native-control-hidden" tabindex="-1" aria-hidden="true"><option value="all">Todas as equipes</option></select>
+                <div class="custom-select-menu" role="listbox"></div>
+              </div>
+            </label>
+            <button id="refresh-button" class="secondary-button" type="button"><span data-icon="refresh"></span>Atualizar agora</button>
+          </div>
+
+          <div id="status-banner" class="status-banner"></div>
+
+          <div class="scoreboard-heading">
+            <div>
+              <strong>TOTAIS DA DATA SELECIONADA</strong>
+              <small>Resumo diário separado por equipe.</small>
+            </div>
+            <button id="toggle-team-scores" class="outline-button compact-button" type="button"><span data-icon="eye-off"></span>Ocultar equipes</button>
+          </div>
+          <div id="daily-score-total" class="daily-score-total"></div>
+          <div id="team-score-grid" class="team-score-grid"></div>
+
+        </section>
+
+        <section class="panel records-panel">
+          <div class="panel-title-row records-heading">
+            <div><span class="panel-kicker"><span data-icon="table"></span>REGISTROS RECEBIDOS</span><p>Somente pontos que entram no lançamento.</p></div>
+            <div class="connection-status online"><span></span>Consultando o Supabase...</div>
+          </div>
+          <div class="records-tools">
+            <div class="search-shell"><input id="search-input" type="search" placeholder="Buscar ordem, rua, observação ou horário..." /><span data-icon="search"></span></div>
+            <div class="custom-select-control records-kind-filter" data-select-for="record-kind-filter">
+              <button class="custom-select-trigger" type="button" aria-label="Filtrar tipo de registro" aria-haspopup="listbox" aria-expanded="false">
+                <span class="custom-select-value">Pontos e levantamentos</span>
+                <span class="custom-select-arrow" data-icon="chevron-down"></span>
+              </button>
+              <select id="record-kind-filter" class="native-control-hidden" tabindex="-1" aria-hidden="true">
+                <option value="all">Pontos e levantamentos</option>
+                <option value="points">Somente pontos</option>
+                <option value="surveys">Somente levantamentos</option>
+              </select>
+              <div class="custom-select-menu" role="listbox"></div>
+            </div>
+            <div class="view-switch">
+              <button class="tab-button active" data-tab="valid" type="button">Válidos</button>
+              <button class="tab-button" data-tab="deleted" type="button">Excluídos</button>
+              <button class="tab-button" data-tab="issues" type="button">Pendências</button>
+            </div>
+          </div>
+          <div id="loading-state" class="loading-state hidden"><span class="spinner"></span>Consultando o Supabase...</div>
+          <div id="empty-state" class="empty-state hidden"><strong>Nenhum item encontrado</strong><span>Altere a data, equipe ou busca.</span></div>
+          <div class="table-wrap"><table><thead id="table-head"></thead><tbody id="table-body"></tbody></table></div>
+          <div class="table-footer"><span id="table-count">0 registros</span><button id="load-more-button" class="outline-button" type="button"><span data-icon="list"></span>Ver todos os registros</button></div>
+        </section>
+      </section>
+
+      <section id="page-photos" class="page-section hidden">
+        <section class="panel module-panel">
+          <div class="panel-title-row">
+            <div><span class="panel-kicker"><span data-icon="image"></span>FOTOS POR EQUIPE</span><p>Escolha um dia, vários dias ou um mês completo. As fotos serão organizadas por equipe e data.</p></div>
+            <div id="photos-connection" class="connection-status online"><span></span>Dados do Supabase</div>
+          </div>
+          <div class="module-toolbar range-toolbar period-toolbar" data-range-toolbar="photos">
+            <div class="period-selector-wrap">
+              <button class="period-selector-card" type="button" data-open-period-selector="photos">
+                <span class="period-selector-icon" data-icon="calendar"></span>
+                <span class="period-selector-copy">
+                  <small>PERÍODO DAS FOTOS</small>
+                  <strong id="photos-period-summary">Hoje</strong>
+                  <em>Abrir calendário: 1 dia, vários dias ou mês inteiro</em>
+                </span>
+                <span class="period-selector-arrow" data-icon="chevron-down"></span>
+              </button>
+              <input id="photos-range-start" type="hidden" />
+              <input id="photos-range-end" type="hidden" />
+              <input id="photos-range-month" type="hidden" />
+            </div>
+
+            <button id="photos-refresh-button" class="secondary-button range-refresh-button" type="button"><span data-icon="refresh"></span>ATUALIZAR</button>
+            <button id="photos-all-download" class="primary-button range-download-button" type="button"><span data-icon="archive"></span>BAIXAR TODAS AS FOTOS</button>
+          </div>
+          <div id="photos-team-list" class="team-folder-grid"></div>
+          <div id="photos-folder-detail" class="folder-detail hidden">
+            <div class="folder-detail-header">
+              <button id="photos-back-button" class="outline-button" type="button"><span data-icon="arrow-left"></span>Voltar para equipes</button>
+              <div><span class="eyebrow">PASTA DE FOTOS</span><h2 id="photos-folder-title">Equipe</h2><p id="photos-folder-summary"></p></div>
+              <button id="photos-team-download" class="primary-button" type="button"><span data-icon="archive"></span>BAIXAR PASTA ZIP</button>
+            </div>
+            <div id="photos-grid" class="photos-grid"></div>
+          </div>
+        </section>
+      </section>
+
+      <section id="page-settings" class="page-section hidden">
+        <section class="panel module-panel">
+          <div class="panel-title-row">
+            <div><span class="panel-kicker"><span data-icon="settings"></span>CONFIGURAÇÕES</span><p>Preferências do painel, equipes do aplicativo e acessos administrativos.</p></div>
+            <button id="new-access-button" class="primary-button admin-only" type="button"><span data-icon="user-plus"></span>NOVO ACESSO</button>
+          </div>
+
+          <div class="settings-grid">
+            <label class="toggle-row"><span><strong>Atualização automática</strong><small>Atualiza o painel quando o Supabase receber alterações.</small></span><input id="auto-refresh-toggle" type="checkbox" checked /></label>
+            <div id="admin-api-status" class="info-box admin-api-status admin-only"><strong>Gerenciamento seguro de acessos</strong><p>Verificando o serviço administrativo local...</p></div>
+          </div>
+
+          <section class="access-management admin-only">
+            <div class="section-heading-row">
+              <div><span class="eyebrow">EQUIPES E USUÁRIOS</span><h2>Acessos cadastrados</h2><p>Crie equipes para o aplicativo e usuários do site com acesso administrativo ou somente leitura.</p></div>
+              <button id="reload-accesses-button" class="outline-button" type="button"><span data-icon="refresh"></span>Atualizar lista</button>
+            </div>
+            <div class="access-help"><span data-icon="shield-check"></span><p>Ao excluir uma equipe, o acesso é arquivado e bloqueado. Os pontos antigos permanecem no Supabase para não perder histórico.</p></div>
+            <div class="table-wrap access-table-wrap"><table><thead><tr><th>Usuário</th><th>Equipe/Nome</th><th>Acesso</th><th>Situação</th><th>Ações</th></tr></thead><tbody id="accesses-table-body"></tbody></table></div>
+            <div id="accesses-empty" class="empty-state hidden"><strong>Nenhum acesso encontrado</strong><span>Crie a primeira equipe ou usuário administrativo.</span></div>
+          </section>
+
+          <div class="viewer-settings-note viewer-only hidden"><span data-icon="shield"></span><div><strong>Acesso somente leitura</strong><p>Este usuário pode consultar as páginas Início, Fotos, Ordens de Serviço e Relatórios. As funções administrativas permanecem bloqueadas.</p></div></div>
+        </section>
+      </section>
+
+      <section id="page-codes" class="page-section hidden">
+        <section class="panel module-panel">
+          <div class="panel-title-row"><div><span class="panel-kicker"><span data-icon="table"></span>CÓDIGOS POR EQUIPE</span><p>Selecione um período e uma equipe para juntar vários dias em uma única planilha oficial.</p></div></div>
+          <div class="module-toolbar range-toolbar period-toolbar" data-range-toolbar="codes">
+            <div class="period-selector-wrap">
+              <button class="period-selector-card" type="button" data-open-period-selector="codes">
+                <span class="period-selector-icon" data-icon="calendar"></span>
+                <span class="period-selector-copy">
+                  <small>PERÍODO DA PLANILHA EM CÓDIGOS</small>
+                  <strong id="codes-period-summary">Hoje</strong>
+                  <em>Abrir calendário: 1 dia, vários dias ou mês inteiro</em>
+                </span>
+                <span class="period-selector-arrow" data-icon="chevron-down"></span>
+              </button>
+              <input id="codes-range-start" type="hidden" />
+              <input id="codes-range-end" type="hidden" />
+              <input id="codes-range-month" type="hidden" />
+            </div>
+
+            <button id="codes-refresh-button" class="secondary-button range-refresh-button" type="button"><span data-icon="refresh"></span>ATUALIZAR</button>
+
+          </div>
+          <div id="codes-team-list" class="team-folder-grid"></div>
+          <div id="codes-team-detail" class="folder-detail hidden">
+            <div class="folder-detail-header">
+              <button id="codes-back-button" class="outline-button" type="button"><span data-icon="arrow-left"></span>Voltar para equipes</button>
+              <div><span class="eyebrow">PLANILHA EM CÓDIGOS</span><h2 id="codes-team-title">Equipe</h2><p id="codes-team-summary"></p></div>
+              <button id="codes-team-download" class="primary-button" type="button"><span data-icon="download"></span>GERAR PLANILHA</button>
+            </div>
+            <div id="codes-preview" class="module-preview"></div>
+          </div>
+        </section>
+      </section>
+
+      
+      <section id="page-orders" class="page-section hidden">
+        <section class="panel module-panel orders-page-panel">
+          <div class="panel-title-row">
+            <div>
+              <span class="panel-kicker"><span data-icon="file-text"></span>ORDENS DE SERVIÇO</span>
+              <p>Consulte todas as ordens executadas, pesquise pelo número, filtre por equipe e selecione a data de execução.</p>
+            </div>
+            <div class="connection-status online"><span></span>Dados do Supabase</div>
+          </div>
+
+          <div class="module-toolbar orders-toolbar-v17" data-range-toolbar="orders">
+            <div class="period-selector-wrap">
+              <button class="period-selector-card" type="button" data-open-period-selector="orders">
+                <span class="period-selector-icon" data-icon="calendar"></span>
+                <span class="period-selector-copy">
+                  <small>DATA DE EXECUÇÃO</small>
+                  <strong id="orders-period-summary">Mês atual</strong>
+                  <em class="orders-current-month-note-v18">Padrão: mês atual • também permite escolher outro período</em>
+                </span>
+                <span class="period-selector-arrow" data-icon="chevron-down"></span>
+              </button>
+              <input id="orders-range-start" type="hidden" />
+              <input id="orders-range-end" type="hidden" />
+              <input id="orders-range-month" type="hidden" />
+            </div>
+
+                        <div class="orders-search-control-v18">
+              <label for="orders-search-input">PESQUISAR NÚMERO DA ORDEM</label>
+              <div class="orders-search-box-v18">
+                <input id="orders-search-input" type="search" placeholder="Digite o número da ordem de serviço..." autocomplete="off" />
+                <span data-icon="search"></span>
+              </div>
+            </div>
+
+            <div class="custom-select-control orders-team-control-v17" data-select-for="orders-team-filter">
+              <button class="custom-select-trigger" type="button" aria-label="Filtrar ordens por equipe" aria-haspopup="listbox" aria-expanded="false">
+                <span class="custom-select-value">Todas as equipes</span>
+                <span class="custom-select-arrow" data-icon="chevron-down"></span>
+              </button>
+              <select id="orders-team-filter" class="native-control-hidden" tabindex="-1" aria-hidden="true">
+                <option value="all">Todas as equipes</option>
+              </select>
+              <div class="custom-select-menu" role="listbox"></div>
+            </div>
+
+            <button id="orders-refresh-button" class="secondary-button orders-refresh-button-v17" type="button">
+              <span data-icon="refresh"></span>ATUALIZAR
+            </button>
+          </div>
+
+          <div class="orders-summary-grid-v17">
+            <article class="order-summary-card-v17">
+              <span class="summary-icon" data-icon="file-text"></span>
+              <div><p>Ordens diferentes</p><strong id="orders-metric-orders">0</strong><small>Números de OS encontrados</small></div>
+            </article>
+            <article class="order-summary-card-v17">
+              <span class="summary-icon" data-icon="calendar"></span>
+              <div><p>Execuções</p><strong id="orders-metric-executions">0</strong><small>Registros executados no período</small></div>
+            </article>
+            <article class="order-summary-card-v17">
+              <span class="summary-icon" data-icon="users"></span>
+              <div><p>Equipes</p><strong id="orders-metric-teams">0</strong><small>Equipes que executaram</small></div>
+            </article>
+            <article class="order-summary-card-v17">
+              <span class="summary-icon" data-icon="home"></span>
+              <div><p>Endereços</p><strong id="orders-metric-streets">0</strong><small>Ruas e números atendidos</small></div>
+            </article>
+          </div>
+
+          <div class="orders-list-header-v17">
+            <div>
+              <strong>ORDENS EXECUTADAS NO PERÍODO</strong>
+              <small>Do registro mais recente para o mais antigo.</small>
+            </div>
+            <span id="orders-table-count">0 execuções</span>
+          </div>
+
+          <div class="table-wrap orders-table-wrap-v17">
+            <table class="orders-table-v17">
+              <thead>
+                <tr>
+                  <th>Ordem de serviço</th>
+                  <th>Data de execução</th>
+                  <th>Rua / endereço</th>
+                  <th>Equipe executora</th>
+                  <th>Serviço / observação</th>
+                  <th>Situação</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody id="orders-table-body"></tbody>
+            </table>
+          </div>
+
+          <div id="orders-empty-state" class="empty-state orders-empty-v17 hidden">
+            <strong>Nenhuma ordem de serviço encontrada</strong>
+            <span>Altere a data, a equipe ou o número pesquisado.</span>
+          </div>
+
+          <div class="table-footer orders-table-footer-v17">
+            <span>Somente registros válidos e não excluídos.</span>
+            <button id="orders-load-more-button" class="outline-button hidden" type="button"><span data-icon="list"></span>VER MAIS ORDENS</button>
+          </div>
+        </section>
+      </section>
+
+<section id="page-reports" class="page-section hidden">
+        <section class="panel module-panel">
+          <div class="panel-title-row"><div><span class="panel-kicker"><span data-icon="file-text"></span>RELATÓRIOS POR EQUIPE</span><p>Selecione o período, filtre pontos, levantamentos e observações e gere uma única planilha por equipe.</p></div></div>
+          <div class="module-toolbar range-toolbar period-toolbar" data-range-toolbar="reports">
+            <div class="period-selector-wrap">
+              <button class="period-selector-card" type="button" data-open-period-selector="reports">
+                <span class="period-selector-icon" data-icon="calendar"></span>
+                <span class="period-selector-copy">
+                  <small>PERÍODO DO RELATÓRIO</small>
+                  <strong id="reports-period-summary">Hoje</strong>
+                  <em>Abrir calendário: 1 dia, vários dias ou mês inteiro</em>
+                </span>
+                <span class="period-selector-arrow" data-icon="chevron-down"></span>
+              </button>
+              <input id="reports-range-start" type="hidden" />
+              <input id="reports-range-end" type="hidden" />
+              <input id="reports-range-month" type="hidden" />
+            </div>
+            <div class="custom-select-control report-kind-control" data-select-for="reports-kind-filter">
+              <button class="custom-select-trigger" type="button" aria-label="Filtrar pontos ou levantamentos" aria-haspopup="listbox" aria-expanded="false">
+                <span class="custom-select-value">Pontos e levantamentos</span>
+                <span class="custom-select-arrow" data-icon="chevron-down"></span>
+              </button>
+              <select id="reports-kind-filter" class="native-control-hidden" tabindex="-1" aria-hidden="true">
+                <option value="all">Pontos e levantamentos</option>
+                <option value="points">Somente pontos</option>
+                <option value="surveys">Somente levantamentos</option>
+              </select>
+              <div class="custom-select-menu" role="listbox"></div>
+            </div>
+            <label class="report-observation-field"><span>Observação contém</span><div class="search-shell"><input id="reports-observation-filter" type="search" placeholder="Ex.: LED apagada, LED acesa..." /><span data-icon="search"></span></div></label>
+<button id="reports-refresh-button" class="secondary-button range-refresh-button" type="button"><span data-icon="refresh"></span>ATUALIZAR</button>
+
+          </div>
+          <div id="reports-team-list" class="team-folder-grid"></div>
+          <div id="reports-team-detail" class="folder-detail hidden">
+            <div class="folder-detail-header">
+              <button id="reports-back-button" class="outline-button" type="button"><span data-icon="arrow-left"></span>Voltar para equipes</button>
+              <div><span class="eyebrow">PLANILHA EM NOMES</span><h2 id="reports-team-title">Equipe</h2><p id="reports-team-summary"></p></div>
+              <button id="reports-team-download" class="primary-button" type="button"><span data-icon="download"></span>GERAR PLANILHA</button>
+            </div>
+            <div id="reports-preview" class="module-preview"></div>
+          </div>
+        </section>
+      </section>
+
+      <footer class="app-footer"><span>JR Gestão © 2026 – Todos os direitos reservados.</span><span>Desenvolvido com segurança e tecnologia. <span data-icon="shield"></span></span></footer>
+    </main>
+  </section>
+
+
+  <dialog id="period-selector-dialog" class="period-selector-dialog">
+    <form id="period-selector-form" method="dialog">
+      <div class="dialog-header period-dialog-header">
+        <div>
+          <span class="eyebrow">SELECIONAR PERÍODO</span>
+          <h2 id="period-selector-title">Escolha as datas</h2>
+          <p>Use uma opção clara e confirme somente quando estiver certo.</p>
+        </div>
+        <button id="period-selector-close" class="icon-button" type="button" aria-label="Fechar" data-icon-button="x"></button>
+      </div>
+
+      <div class="period-selector-body">
+        <div class="period-mode-grid" role="tablist" aria-label="Tipo de período">
+          <button class="period-mode-button active" type="button" data-period-mode="day">
+            <span data-icon="calendar"></span>
+            <strong>1 dia</strong>
+            <small>Somente uma data</small>
+          </button>
+          <button class="period-mode-button" type="button" data-period-mode="range">
+            <span data-icon="list"></span>
+            <strong>Vários dias</strong>
+            <small>Data inicial e final</small>
+          </button>
+          <button class="period-mode-button" type="button" data-period-mode="month">
+            <span data-icon="calendar"></span>
+            <strong>Mês inteiro</strong>
+            <small>Mês e ano completos</small>
+          </button>
+        </div>
+
+        <section class="period-mode-panel" data-period-panel="day">
+          <div class="period-field-heading">
+            <div>
+              <strong>Calendário de uma data</strong>
+              <small>Ao entrar nesta opção, o dia atual de Campo Grande fica selecionado.</small>
+            </div>
+            <button id="period-use-today" class="period-today-button" type="button">
+              <span data-icon="calendar"></span>USAR HOJE
+            </button>
+          </div>
+          <label class="period-native-field">
+            <span>Escolha o dia</span>
+            <div class="picker-control period-picker-control" data-date-picker-for="period-single-date" data-allow-clear="false">
+              <button class="picker-trigger period-picker-trigger" type="button" aria-label="Abrir calendário de uma data" aria-haspopup="dialog" aria-expanded="false">
+                <span class="picker-trigger-value">Selecione a data</span>
+                <span data-icon="calendar"></span>
+              </button>
+              <input id="period-single-date" type="hidden" />
+            </div>
+          </label>
+          <div class="period-choice-help"><span data-icon="shield-check"></span><p>Ao confirmar, o início e o fim serão o mesmo dia.</p></div>
+        </section>
+
+        <section class="period-mode-panel hidden" data-period-panel="range">
+          <div class="period-field-heading">
+            <div>
+              <strong>Selecione o primeiro e o último dia</strong>
+              <small>O sistema juntará todos os registros dentro desse intervalo.</small>
+            </div>
+          </div>
+          <div class="period-range-pair">
+            <label class="period-native-field">
+              <span>Começa em</span>
+              <div class="picker-control period-picker-control" data-date-picker-for="period-multiple-start" data-allow-clear="false">
+                <button class="picker-trigger period-picker-trigger" type="button" aria-label="Abrir calendário da data inicial" aria-haspopup="dialog" aria-expanded="false">
+                  <span class="picker-trigger-value">Selecione a data inicial</span>
+                  <span data-icon="calendar"></span>
+                </button>
+                <input id="period-multiple-start" type="hidden" />
+              </div>
+            </label>
+            <span class="period-range-arrow" data-icon="arrow-right"></span>
+            <label class="period-native-field">
+              <span>Termina em</span>
+              <div class="picker-control period-picker-control" data-date-picker-for="period-multiple-end" data-allow-clear="false">
+                <button class="picker-trigger period-picker-trigger" type="button" aria-label="Abrir calendário da data final" aria-haspopup="dialog" aria-expanded="false">
+                  <span class="picker-trigger-value">Selecione a data final</span>
+                  <span data-icon="calendar"></span>
+                </button>
+                <input id="period-multiple-end" type="hidden" />
+              </div>
+            </label>
+          </div>
+          <div id="period-range-preview" class="period-choice-preview">Selecione o primeiro e o último dia.</div>
+        </section>
+
+        <section class="period-mode-panel hidden" data-period-panel="month">
+          <div class="period-field-heading">
+            <div>
+              <strong>Calendário do mês inteiro</strong>
+              <small>Escolha apenas o mês e o ano. Todos os dias serão incluídos.</small>
+            </div>
+          </div>
+          <label class="period-native-field">
+            <span>Escolha o mês e o ano</span>
+            <div class="picker-control period-picker-control" data-month-picker-for="period-full-month">
+              <button class="picker-trigger period-picker-trigger" type="button" aria-label="Abrir calendário de mês e ano" aria-haspopup="dialog" aria-expanded="false">
+                <span class="picker-trigger-value">Selecione o mês</span>
+                <span data-icon="calendar"></span>
+              </button>
+              <input id="period-full-month" type="hidden" />
+            </div>
+          </label>
+          <div class="period-choice-help"><span data-icon="archive"></span><p>O sistema carregará automaticamente todos os dias daquele mês.</p></div>
+        </section>
+
+        <div id="period-selector-error" class="form-error period-selector-error" aria-live="polite"></div>
+      </div>
+
+      <div class="dialog-actions period-dialog-actions">
+        <button id="period-selector-cancel" class="outline-button" type="button">CANCELAR</button>
+        <button id="period-selector-apply" class="primary-button" type="submit"><span data-icon="shield-check"></span>OK, APLICAR PERÍODO</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="details-dialog" class="details-dialog">
+    <div class="dialog-header"><div><span class="eyebrow">DETALHES DO REGISTRO</span><h2 id="details-title">Ponto</h2></div><button id="details-close" class="icon-button" type="button" aria-label="Fechar" data-icon-button="x"></button></div>
+    <div id="details-body" class="details-body"></div>
+  </dialog>
+
+
+  <dialog id="access-dialog" class="details-dialog access-dialog">
+    <form id="access-form" method="dialog">
+      <div class="dialog-header"><div><span class="eyebrow">GERENCIAR ACESSO</span><h2 id="access-dialog-title">Novo acesso</h2></div><button id="access-dialog-close" class="icon-button" type="button" aria-label="Fechar" data-icon-button="x"></button></div>
+      <div class="access-form-body">
+        <input id="access-user-id" type="hidden" />
+        <div class="form-grid">
+          <label class="picker-field"><span>Tipo de acesso</span>
+            <div class="custom-select-control" data-select-for="access-type">
+              <button class="custom-select-trigger" type="button" aria-label="Selecionar tipo de acesso" aria-haspopup="listbox" aria-expanded="false">
+                <span class="custom-select-value">Equipe</span>
+                <span class="custom-select-arrow" data-icon="chevron-down"></span>
+              </button>
+              <select id="access-type" class="native-control-hidden" tabindex="-1" aria-hidden="true"><option value="team">Equipe</option><option value="site">Site</option></select>
+              <div class="custom-select-menu" role="listbox"></div>
+            </div>
+          </label>
+          <label>Usuário<input id="access-username" autocomplete="off" required maxlength="40" placeholder="ex.: ricardo" /></label>
+          <label id="access-team-name-field" class="form-span-2">Equipe ou nome de exibição<input id="access-team-name" maxlength="80" placeholder="ex.: Ricardo e Daniel" /></label>
+          <label id="access-permission-field" class="picker-field form-span-2 hidden"><span>Permissão</span>
+            <div class="custom-select-control" data-select-for="access-permission">
+              <button class="custom-select-trigger" type="button" aria-label="Selecionar permissão do site" aria-haspopup="listbox" aria-expanded="false">
+                <span class="custom-select-value">Administrador</span>
+                <span class="custom-select-arrow" data-icon="chevron-down"></span>
+              </button>
+              <select id="access-permission" class="native-control-hidden" tabindex="-1" aria-hidden="true"><option value="admin">Administrador</option><option value="viewer">Somente leitura</option></select>
+              <div class="custom-select-menu" role="listbox"></div>
+            </div>
+          </label>
+          <input id="access-role" type="hidden" value="team" />
+          <label class="form-span-2">Senha <small id="access-password-help">Obrigatória para novo acesso.</small>
+            <div class="password-input-control">
+              <span data-icon="lock"></span>
+              <input id="access-password" type="password" minlength="6" autocomplete="new-password" placeholder="Mínimo de 6 caracteres" />
+              <button id="access-toggle-password" class="icon-button" type="button" aria-label="Mostrar ou esconder senha" data-icon-button="eye"></button>
+            </div>
+          </label>
+          <label class="checkbox-field form-span-2"><input id="access-active" type="checkbox" checked /><span>Acesso ativo</span></label>
+        </div>
+        <div id="access-form-error" class="form-error" role="alert"></div>
+        <div class="dialog-actions"><button id="access-cancel" class="outline-button" type="button">CANCELAR</button><button id="access-save" class="primary-button" type="submit"><span data-icon="save"></span><span class="button-label">SALVAR ACESSO</span></button></div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="archive-access-dialog" class="details-dialog purge-dialog">
+    <div class="dialog-header"><div><span class="eyebrow danger-eyebrow">ARQUIVAR ACESSO</span><h2 id="archive-access-title">Arquivar equipe?</h2></div><button id="archive-access-close" class="icon-button" type="button" aria-label="Fechar" data-icon-button="x"></button></div>
+    <div class="purge-body"><p id="archive-access-description">O usuário não conseguirá mais entrar. Os pontos antigos serão preservados.</p><div class="purge-warning"><span data-icon="triangle-alert"></span><p>Esta ação bloqueia o login sem apagar os registros enviados.</p></div><div class="dialog-actions"><button id="archive-access-cancel" class="outline-button" type="button">CANCELAR</button><button id="archive-access-confirm" class="danger-button" type="button"><span data-icon="trash"></span><span class="button-label">ARQUIVAR ACESSO</span></button></div></div>
+  </dialog>
+  <dialog id="purge-dialog" class="details-dialog purge-dialog">
+    <div class="dialog-header">
+      <div><span class="eyebrow danger-eyebrow">EXCLUSÃO DEFINITIVA</span><h2>Excluir do Supabase?</h2></div>
+      <button id="purge-close" class="icon-button" type="button" aria-label="Fechar" data-icon-button="x"></button>
+    </div>
+    <div class="purge-body">
+      <span class="purge-icon" data-icon="trash"></span>
+      <strong id="purge-title">Ponto excluído</strong>
+      <p id="purge-description">O registro será removido definitivamente do Supabase. Esta ação não pode ser desfeita.</p>
+      <div class="purge-warning">Somente pontos que já estão na aba EXCLUÍDOS podem ser apagados definitivamente.</div>
+      <div class="purge-actions">
+        <button id="purge-cancel" class="outline-button" type="button">CANCELAR</button>
+        <button id="purge-confirm" class="danger-button" type="button"><span data-icon="trash"></span><span class="button-label">EXCLUIR DO SUPABASE</span></button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script type="module" src="./src/main-definitivo.js?v=20260731"></script>
+  <script defer src="./src/calendar-service-date-v42.js?v=20260731"></script>
 </body>
 </html>
