@@ -1,114 +1,359 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <!-- JR_GESTAO_FAVICON_PAINEL_V14_INICIO -->
-  <link rel="icon" type="image/x-icon" href="./favicon.ico?v=jr-painel-v14-20260728">
-  <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico?v=jr-painel-v14-20260728">
-  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png?v=jr-painel-v14-20260728">
-  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png?v=jr-painel-v14-20260728">
-  <link rel="icon" type="image/png" sizes="64x64" href="./favicon-64x64.png?v=jr-painel-v14-20260728">
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=jr-painel-v14-20260728">
-  <link rel="manifest" href="./site.webmanifest?v=jr-painel-v14-20260728">
-  <meta name="apple-mobile-web-app-title" content="JR Gestão">
-  <meta name="msapplication-TileImage" content="./favicon-192x192.png?v=jr-painel-v14-20260728">
-  <script>
-    (() => {
-      const dataIcon = 'data:image/png;base64,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';
-      const applyJrFavicon = () => {
-        let link = document.getElementById('jr-favicon-painel-v14');
-        if (!link) {
-          link = document.createElement('link');
-          link.id = 'jr-favicon-painel-v14';
-          link.rel = 'icon';
-          link.type = 'image/png';
-          link.sizes = '64x64';
-          document.head.appendChild(link);
-        }
-        link.href = dataIcon;
-      };
-      applyJrFavicon();
-      window.addEventListener('pageshow', applyJrFavicon);
-      window.addEventListener('load', applyJrFavicon, { once: true });
-    })();
-  </script>
-  <!-- JR_GESTAO_FAVICON_PAINEL_V14_FIM -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta name="theme-color" content="#050607">
   <title>JR Gestão</title>
-  <!-- JR_FRAME_WRAPPER_V2 -->
+
+  <link rel="icon" type="image/x-icon" href="./favicon.ico?v=jr-wrapper-v40">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=jr-wrapper-v40">
+  <link rel="preload" href="./logo-jr-gestao.png?v=40" as="image" type="image/png">
+
   <style>
+    /* JR_GESTAO_WRAPPER_METAL_V40 */
+
     :root {
       color-scheme: dark;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: #07111f;
+      background: #050607;
+      --jr-vh: 100dvh;
+      --jr-mx: 50%;
+      --jr-my: 46%;
     }
-    * { box-sizing: border-box; }
-    html, body {
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
       width: 100%;
       height: 100%;
+      min-height: 100%;
       margin: 0;
       overflow: hidden;
-      background: #07111f;
+      background: #050607;
+      overscroll-behavior: none;
     }
+
+    body {
+      min-height: var(--jr-vh, 100dvh);
+    }
+
     #panel {
-      display: block;
-      width: 100%;
-      height: 100%;
-      border: 0;
-      background: #07111f;
-    }
-    #loading {
       position: fixed;
       inset: 0;
-      z-index: 10;
+      z-index: 1;
+      display: block;
+      width: 100%;
+      height: var(--jr-vh, 100dvh);
+      border: 0;
+      background: #050607;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity .28s ease;
+    }
+
+    #panel.is-ready {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    #jr-loader-v40 {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
       display: grid;
       place-items: center;
-      padding: 24px;
+      width: 100%;
+      min-height: var(--jr-vh, 100dvh);
+      padding:
+        max(18px, env(safe-area-inset-top))
+        max(18px, env(safe-area-inset-right))
+        max(18px, env(safe-area-inset-bottom))
+        max(18px, env(safe-area-inset-left));
+      overflow: hidden;
+      color: #f4f6f7;
       background:
-        radial-gradient(circle at 18% 14%, rgba(42,112,211,.25), transparent 35rem),
-        #07111f;
-      color: #eef6ff;
-      text-align: center;
-      transition: opacity .25s ease;
+        radial-gradient(circle at var(--jr-mx) var(--jr-my), rgba(223,229,232,.09), transparent 27rem),
+        radial-gradient(circle at 15% 18%, rgba(113,121,126,.10), transparent 28rem),
+        linear-gradient(145deg, #030405 0%, #0a0c0e 48%, #030405 100%);
+      opacity: 1;
+      visibility: visible;
+      transition: opacity .38s ease, visibility .38s ease;
+      isolation: isolate;
     }
-    #loading.hidden {
+
+    #jr-loader-v40.is-leaving {
       opacity: 0;
+      visibility: hidden;
       pointer-events: none;
     }
-    .card {
-      width: min(92vw, 460px);
-      padding: 34px;
-      border: 1px solid rgba(151,182,224,.15);
-      border-radius: 24px;
-      background: rgba(13,27,48,.9);
-      box-shadow: 0 28px 80px rgba(0,0,0,.42);
+
+    .jr-metal-v40 {
+      position: absolute;
+      inset: -16%;
+      z-index: -2;
+      overflow: hidden;
+      pointer-events: none;
+      filter: saturate(.25) contrast(1.05);
     }
-    .spinner {
-      width: 48px;
-      height: 48px;
-      margin: 0 auto 20px;
-      border: 4px solid rgba(88,148,228,.18);
-      border-top-color: #4194ff;
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
+
+    .jr-metal-v40::before,
+    .jr-metal-v40::after,
+    .jr-metal-wave-v40 {
+      content: "";
+      position: absolute;
+      border-radius: 48% 52% 55% 45% / 45% 56% 44% 55%;
+      background:
+        radial-gradient(circle at 32% 28%, rgba(255,255,255,.34), transparent 10%),
+        radial-gradient(circle at 62% 48%, rgba(158,166,170,.17), transparent 28%),
+        radial-gradient(circle at 44% 68%, rgba(13,15,17,.92), transparent 48%),
+        linear-gradient(125deg, rgba(239,243,245,.12), rgba(18,21,23,.24) 38%, rgba(214,219,221,.11) 70%, rgba(3,4,5,.08));
+      box-shadow:
+        inset 0 0 80px rgba(255,255,255,.055),
+        0 0 100px rgba(0,0,0,.55);
+      opacity: .58;
+      will-change: transform;
+      transform: translate3d(0,0,0);
     }
-    h1 { margin: 0 0 10px; font-size: 25px; }
-    p { margin: 0; color: #9eb4d1; line-height: 1.5; }
-    button {
-      display: none;
+
+    .jr-metal-v40::before {
+      width: min(78vw, 940px);
+      height: min(58vw, 680px);
+      left: -12%;
+      top: -14%;
+      animation: jrMetalA40 14s ease-in-out infinite alternate;
+    }
+
+    .jr-metal-v40::after {
+      width: min(72vw, 860px);
+      height: min(62vw, 720px);
+      right: -14%;
+      bottom: -22%;
+      animation: jrMetalB40 17s ease-in-out infinite alternate;
+    }
+
+    .jr-metal-wave-v40 {
+      width: min(58vw, 720px);
+      height: min(34vw, 430px);
+      left: 28%;
+      top: 36%;
+      opacity: .32;
+      animation: jrMetalC40 19s ease-in-out infinite alternate;
+    }
+
+    .jr-card-v40 {
+      position: relative;
+      width: min(91vw, 540px);
+      padding: clamp(24px, 4vw, 38px);
+      border: 1px solid rgba(210,216,219,.20);
+      border-radius: 26px;
+      text-align: center;
+      background:
+        linear-gradient(150deg, rgba(29,33,36,.80), rgba(7,9,11,.88));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.055),
+        0 26px 76px rgba(0,0,0,.54);
+      overflow: hidden;
+    }
+
+    .jr-card-v40::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(115deg, transparent 18%, rgba(255,255,255,.055) 42%, transparent 63%);
+      transform: translate3d(-70%,0,0);
+      animation: jrCardReflection40 5.8s ease-in-out infinite;
+    }
+
+    .jr-logo-wrap-v40 {
+      position: relative;
+      display: grid;
+      place-items: center;
       width: 100%;
-      margin-top: 20px;
-      padding: 13px 18px;
-      border: 0;
-      border-radius: 12px;
-      background: #287bdc;
-      color: white;
-      font-weight: 700;
-      cursor: pointer;
+      min-height: clamp(130px, 24vw, 205px);
+      margin: -16px auto -4px;
+      overflow: hidden;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .jr-logo-v40 {
+      display: block;
+      width: min(100%, 420px);
+      max-height: 230px;
+      object-fit: contain;
+      filter:
+        drop-shadow(0 13px 24px rgba(0,0,0,.34))
+        drop-shadow(0 0 9px rgba(255,255,255,.05));
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .jr-title-v40 {
+      margin: 4px 0 6px;
+      color: #f3f5f6;
+      font-size: clamp(21px, 4.5vw, 28px);
+      font-weight: 800;
+      letter-spacing: .035em;
+    }
+
+    .jr-message-v40 {
+      min-height: 24px;
+      margin: 0;
+      color: #bfc5c8;
+      font-size: clamp(14px, 3.6vw, 16px);
+      line-height: 1.5;
+    }
+
+    .jr-progress-v40 {
+      position: relative;
+      width: min(100%, 390px);
+      height: 6px;
+      margin: 24px auto 12px;
+      overflow: hidden;
+      border: 1px solid rgba(211,217,220,.18);
+      border-radius: 999px;
+      background: rgba(0,0,0,.62);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,.85);
+      transform: translateZ(0);
+    }
+
+    .jr-progress-v40::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 42%;
+      border-radius: inherit;
+      background:
+        linear-gradient(90deg,
+          transparent 0%,
+          rgba(151,158,162,.45) 20%,
+          rgba(247,249,250,.95) 48%,
+          rgba(161,168,172,.48) 74%,
+          transparent 100%);
+      box-shadow: 0 0 10px rgba(235,239,241,.18);
+      will-change: transform, opacity;
+      animation: jrProgress40 1.45s linear infinite;
+      -webkit-animation: jrProgress40 1.45s linear infinite;
+      transform: translate3d(-120%,0,0);
+    }
+
+    .jr-note-v40 {
+      display: block;
+      min-height: 18px;
+      color: #858d92;
+      font-size: 12px;
+      letter-spacing: .02em;
+    }
+
+    .jr-retry-v40 {
+      display: none;
+      width: min(100%, 300px);
+      min-height: 46px;
+      margin: 19px auto 0;
+      padding: 11px 18px;
+      border: 1px solid rgba(219,224,226,.25);
+      border-radius: 13px;
+      color: #f1f3f4;
+      font: inherit;
+      font-weight: 760;
+      background: linear-gradient(145deg, rgba(54,60,64,.96), rgba(18,21,23,.98));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .jr-retry-v40.is-visible {
+      display: block;
+    }
+
+    @keyframes jrProgress40 {
+      0% {
+        transform: translate3d(-120%,0,0);
+        opacity: .38;
+      }
+      44% {
+        opacity: 1;
+      }
+      100% {
+        transform: translate3d(345%,0,0);
+        opacity: .48;
+      }
+    }
+
+    @keyframes jrMetalA40 {
+      from { transform: translate3d(-3%, -2%, 0) rotate(-4deg) scale(.98); }
+      to   { transform: translate3d(7%, 6%, 0) rotate(6deg) scale(1.07); }
+    }
+
+    @keyframes jrMetalB40 {
+      from { transform: translate3d(3%, 7%, 0) rotate(7deg) scale(1.04); }
+      to   { transform: translate3d(-7%, -3%, 0) rotate(-5deg) scale(.97); }
+    }
+
+    @keyframes jrMetalC40 {
+      from { transform: translate3d(-5%, 4%, 0) rotate(-3deg) scale(.96); }
+      to   { transform: translate3d(6%, -5%, 0) rotate(5deg) scale(1.05); }
+    }
+
+    @keyframes jrCardReflection40 {
+      0%, 55% { transform: translate3d(-75%,0,0); opacity: 0; }
+      72%     { opacity: .75; }
+      100%    { transform: translate3d(90%,0,0); opacity: 0; }
+    }
+
+    @media (max-width: 900px) {
+      #jr-loader-v40 {
+        place-items: center;
+        min-height: var(--jr-vh, 100dvh);
+        padding-top: max(15px, env(safe-area-inset-top));
+        padding-bottom: max(15px, env(safe-area-inset-bottom));
+      }
+
+      .jr-card-v40 {
+        width: min(93vw, 470px);
+        padding: 23px 20px 25px;
+        border-radius: 22px;
+      }
+
+      .jr-logo-wrap-v40 {
+        min-height: 145px;
+        margin-top: -12px;
+      }
+
+      .jr-logo-v40 {
+        width: min(100%, 350px);
+        max-height: 185px;
+      }
+
+      .jr-progress-v40::before {
+        animation: jrProgress40 1.35s linear infinite !important;
+        -webkit-animation: jrProgress40 1.35s linear infinite !important;
+        animation-play-state: running !important;
+        -webkit-animation-play-state: running !important;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .jr-metal-v40::before,
+      .jr-metal-v40::after,
+      .jr-metal-wave-v40,
+      .jr-card-v40::before {
+        animation: none !important;
+      }
+
+      .jr-progress-v40::before {
+        animation: jrProgress40 1.8s linear infinite !important;
+        -webkit-animation: jrProgress40 1.8s linear infinite !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -119,96 +364,240 @@
     referrerpolicy="strict-origin-when-cross-origin"
   ></iframe>
 
-  <div id="loading">
-    <div class="card">
-      <div class="spinner" id="spinner"></div>
-      <h1>JR GESTÃO</h1>
-      <p id="message">Conectando ao painel…</p>
-      <button id="retry" type="button">TENTAR NOVAMENTE</button>
+  <div id="jr-loader-v40" role="status" aria-live="polite" aria-label="Carregando JR Gestão">
+    <div class="jr-metal-v40" aria-hidden="true">
+      <i class="jr-metal-wave-v40"></i>
     </div>
+
+    <main class="jr-card-v40">
+      <div class="jr-logo-wrap-v40">
+        <img
+          class="jr-logo-v40"
+          src="./logo-jr-gestao.png?v=40"
+          alt="JR Gestão"
+          width="1536"
+          height="1024"
+          decoding="async"
+          fetchpriority="high"
+        >
+      </div>
+
+      <h1 class="jr-title-v40">JR GESTÃO</h1>
+      <p id="jr-message-v40" class="jr-message-v40">Conectando ao painel...</p>
+
+      <div class="jr-progress-v40" role="progressbar" aria-label="Carregando o painel"></div>
+      <small id="jr-note-v40" class="jr-note-v40">Aguarde alguns instantes</small>
+
+      <button id="jr-retry-v40" class="jr-retry-v40" type="button">
+        TENTAR NOVAMENTE
+      </button>
+    </main>
   </div>
 
   <script>
-    const panel = document.getElementById('panel');
-    const loading = document.getElementById('loading');
-    const message = document.getElementById('message');
-    const retry = document.getElementById('retry');
-    const spinner = document.getElementById('spinner');
+    (() => {
+      'use strict';
 
-    let currentTarget = '';
-    let fallbackTimer = null;
+      const panel = document.getElementById('panel');
+      const loader = document.getElementById('jr-loader-v40');
+      const message = document.getElementById('jr-message-v40');
+      const note = document.getElementById('jr-note-v40');
+      const retry = document.getElementById('jr-retry-v40');
 
-    function targetFile() {
-      return `target.json?v=${Date.now()}`;
-    }
+      let currentTarget = '';
+      let hardReleaseTimer = 0;
+      let fetchController = null;
+      let finished = false;
 
-    function fail(text) {
-      clearTimeout(fallbackTimer);
-      loading.classList.remove('hidden');
-      spinner.style.display = 'none';
-      retry.style.display = 'block';
-      message.textContent = text;
-    }
+      const mobileMedia = window.matchMedia('(max-width: 900px)');
+      const mobileUserAgent =
+        /Android|iPhone|iPad|iPod|Mobile|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    async function openPanel(force = false) {
-      retry.style.display = 'none';
-      spinner.style.display = 'block';
-      loading.classList.remove('hidden');
-      message.textContent = 'Conectando ao painel…';
+      const isMobile = () => mobileMedia.matches || mobileUserAgent;
 
-      try {
-        const response = await fetch(targetFile(), { cache: 'no-store' });
-        if (!response.ok) throw new Error('Destino indisponível');
+      function updateViewportHeight() {
+        const height = Math.round(
+          window.visualViewport?.height ||
+          window.innerHeight ||
+          document.documentElement.clientHeight ||
+          800
+        );
 
-        const data = await response.json();
-        const target = String(data.url || '').trim().replace(/\/+$/, '');
-
-        if (!/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(target)) {
-          throw new Error('Túnel inválido');
-        }
-
-        if (force || target !== currentTarget || !panel.src) {
-          currentTarget = target;
-          panel.src = `${target}/`;
-        }
-
-        clearTimeout(fallbackTimer);
-        fallbackTimer = setTimeout(() => {
-          loading.classList.add('hidden');
-        }, 12000);
-      } catch {
-        fail('O painel está desligado ou ainda está iniciando.');
+        document.documentElement.style.setProperty('--jr-vh', `${height}px`);
       }
-    }
 
-    panel.addEventListener('load', () => {
-      clearTimeout(fallbackTimer);
-      setTimeout(() => loading.classList.add('hidden'), 350);
-    });
+      function updatePointer(event) {
+        const width = Math.max(1, window.innerWidth);
+        const height = Math.max(1, window.innerHeight);
+        const x = Math.max(0, Math.min(100, (event.clientX / width) * 100));
+        const y = Math.max(0, Math.min(100, (event.clientY / height) * 100));
 
-    retry.addEventListener('click', () => openPanel(true));
+        document.documentElement.style.setProperty('--jr-mx', `${x}%`);
+        document.documentElement.style.setProperty('--jr-my', `${y}%`);
+      }
 
-    setInterval(async () => {
-      try {
-        const response = await fetch(targetFile(), { cache: 'no-store' });
-        if (!response.ok) return;
+      function targetFile() {
+        return `./target.json?v=${Date.now()}`;
+      }
 
-        const data = await response.json();
-        const target = String(data.url || '').trim().replace(/\/+$/, '');
+      function setLoadingText(text, secondary = 'Aguarde alguns instantes') {
+        message.textContent = text;
+        note.textContent = secondary;
+      }
 
-        if (
-          /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(target) &&
-          target !== currentTarget
-        ) {
-          currentTarget = target;
-          loading.classList.remove('hidden');
-          message.textContent = 'Reconectando ao painel…';
-          panel.src = `${target}/`;
+      function showLoader(text = 'Conectando ao painel...') {
+        finished = false;
+        loader.classList.remove('is-leaving');
+        retry.classList.remove('is-visible');
+        setLoadingText(text);
+      }
+
+      function revealPanel(immediate = false) {
+        if (finished) return;
+
+        finished = true;
+        clearTimeout(hardReleaseTimer);
+
+        panel.classList.add('is-ready');
+
+        if (immediate) {
+          loader.remove();
+          return;
         }
-      } catch {}
-    }, 30000);
 
-    openPanel();
+        loader.classList.add('is-leaving');
+        window.setTimeout(() => loader.remove(), 430);
+      }
+
+      function showFailure(text) {
+        clearTimeout(hardReleaseTimer);
+        finished = false;
+        loader.classList.remove('is-leaving');
+        setLoadingText(text, 'Verifique o servidor e tente novamente');
+        retry.classList.add('is-visible');
+      }
+
+      async function fetchTarget() {
+        fetchController?.abort();
+        fetchController = new AbortController();
+
+        const timeout = window.setTimeout(() => fetchController.abort(), 8500);
+
+        try {
+          const response = await fetch(targetFile(), {
+            cache: 'no-store',
+            signal: fetchController.signal,
+            headers: { 'Accept': 'application/json' },
+          });
+
+          if (!response.ok) throw new Error('Destino indisponível');
+
+          const data = await response.json();
+          const target = String(data.url || '').trim().replace(/\/+$/, '');
+
+          if (!/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(target)) {
+            throw new Error('Túnel inválido');
+          }
+
+          return target;
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+
+      async function openPanel(force = false) {
+        showLoader(force ? 'Reconectando ao painel...' : 'Conectando ao painel...');
+
+        try {
+          const target = await fetchTarget();
+          currentTarget = target;
+
+          /*
+            No celular, abre o túnel diretamente. Isso elimina o iframe como
+            terceiro domínio, evita travamento de login/localStorage e impede
+            que o navegador fique preso na tela azul do wrapper.
+          */
+          if (isMobile()) {
+            setLoadingText('Abrindo o painel...', 'Você será redirecionado em instantes');
+
+            const destination =
+              `${target}/?jr_fixed_link=1&v=${Date.now()}`;
+
+            window.setTimeout(() => {
+              window.location.replace(destination);
+            }, 180);
+
+            return;
+          }
+
+          panel.classList.remove('is-ready');
+          panel.src = `${target}/?jr_wrapper=40&v=${Date.now()}`;
+
+          clearTimeout(hardReleaseTimer);
+          hardReleaseTimer = window.setTimeout(() => {
+            /*
+              Nunca mantém o desktop preso eternamente no carregamento.
+              Mesmo se o evento load falhar, revela o iframe.
+            */
+            revealPanel();
+          }, 9000);
+        } catch (error) {
+          showFailure(
+            error?.name === 'AbortError'
+              ? 'O servidor demorou para responder.'
+              : 'O painel está desligado ou ainda está iniciando.'
+          );
+        }
+      }
+
+      panel.addEventListener('load', () => {
+        window.setTimeout(() => revealPanel(), 220);
+      });
+
+      retry.addEventListener('click', () => openPanel(true));
+
+      window.visualViewport?.addEventListener('resize', updateViewportHeight, { passive: true });
+      window.addEventListener('resize', updateViewportHeight, { passive: true });
+      window.addEventListener('orientationchange', () => {
+        window.setTimeout(updateViewportHeight, 120);
+        window.setTimeout(updateViewportHeight, 420);
+      }, { passive: true });
+
+      window.addEventListener('pointermove', updatePointer, { passive: true });
+
+      window.addEventListener('pageshow', (event) => {
+        updateViewportHeight();
+
+        if (event.persisted && !isMobile() && panel.src) {
+          revealPanel(true);
+        }
+      });
+
+      /*
+        Atualiza o destino no desktop. No celular o usuário já está navegando
+        diretamente no túnel e basta reabrir o link fixo caso o túnel mude.
+      */
+      window.setInterval(async () => {
+        if (isMobile()) return;
+
+        try {
+          const target = await fetchTarget();
+
+          if (target !== currentTarget) {
+            currentTarget = target;
+            showLoader('Reconectando ao painel...');
+            panel.classList.remove('is-ready');
+            panel.src = `${target}/?jr_wrapper=40&v=${Date.now()}`;
+
+            clearTimeout(hardReleaseTimer);
+            hardReleaseTimer = window.setTimeout(() => revealPanel(), 9000);
+          }
+        } catch (_error) {}
+      }, 30000);
+
+      updateViewportHeight();
+      openPanel();
+    })();
   </script>
 </body>
 </html>
