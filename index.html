@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <!-- JR_GESTAO_FRONTEND_DIRETO_GITHUB_DUCKDNS -->
+  <!-- AJUSTES_SITE_MENU_CALENDARIOS_PLANILHAS=20260731-151052 -->
   <!-- MOBILE_SEM_LOOP=20260731-143015 -->
   <!-- CACHE_FIX_ATIVO=20260731-140035 -->
   <!-- CACHE_FIX_ATIVO=20260731-135522 -->
@@ -97,6 +98,7 @@
   <link rel="preload" href="./assets/logo-jr-gestao.png" as="image" type="image/png">
 
   <!-- JR_GESTAO_CARREGAMENTO_E_CALENDARIO_CORRIGIDOS_V39 -->
+  <link rel="stylesheet" href="./src/ajustes-site-20260731-151052.css">
 </head>
 <body>
 <div id="toast" class="toast" aria-live="polite"></div>
@@ -120,7 +122,7 @@
           <span class="eyebrow">ADMINISTRAÇÃO</span>
           <h2><span>PAINEL</span> <span>ADMINISTRATIVO</span></h2>
           <span class="heading-line"></span>
-          <p>Entre com um usuário liberado para acessar o painel no Supabase.</p>
+          
         </div>
 
         <form id="login-form" novalidate>
@@ -750,11 +752,10 @@
         <button id="purge-confirm" class="danger-button" type="button"><span data-icon="trash"></span><span class="button-label">EXCLUIR DO SUPABASE</span></button>
       </div>
     </div>
-  </dialog>
-
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-<script type="module" src="./src/main-mobile-sem-loop-20260731-143015.js"></script>
+  </dialog><script src="./src/vendor/jszip-3.10.1.min.js"></script>
+  <script src="./src/vendor/exceljs-4.4.0.min.js"></script>
+  <script type="module" src="./src/main-ajustes-site-20260731-151052.js"></script>
   <script defer src="./src/calendar-service-date-v42.js?v=20260731"></script>
+  <script defer src="./src/ajustes-site-20260731-151052.js"></script>
 </body>
 </html>

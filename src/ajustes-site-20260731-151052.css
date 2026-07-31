@@ -1,0 +1,211 @@
+/* JR GESTAO - AJUSTES DE INTERFACE, MENU, CALENDARIOS E PLANILHAS */
+
+/* Fotos e Relatórios: seletor de período menor e centralizado no computador. */
+@media (min-width: 901px) {
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"],
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] {
+    width: 100% !important;
+    min-height: 62px !important;
+    height: 62px !important;
+    grid-template-columns: 30px minmax(0, 1fr) 18px !important;
+    align-items: center !important;
+    align-content: center !important;
+    gap: 10px !important;
+    padding: 8px 13px !important;
+    border-radius: 12px !important;
+    text-align: left !important;
+  }
+
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"] .period-selector-icon,
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] .period-selector-icon {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+    display: grid !important;
+    place-items: center !important;
+    align-self: center !important;
+    justify-self: center !important;
+    margin: 0 !important;
+  }
+
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"] .period-selector-icon svg,
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] .period-selector-icon svg {
+    width: 21px !important;
+    height: 21px !important;
+  }
+
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"] .period-selector-copy,
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] .period-selector-copy {
+    min-width: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    align-content: center !important;
+    gap: 1px !important;
+    margin: 0 !important;
+    text-align: left !important;
+  }
+
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"] .period-selector-copy small,
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] .period-selector-copy small {
+    width: 100% !important;
+    margin: 0 !important;
+    font-size: 8px !important;
+    line-height: 1.1 !important;
+    text-align: left !important;
+  }
+
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"] .period-selector-copy strong,
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] .period-selector-copy strong {
+    width: 100% !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+    text-align: left !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"] .period-selector-copy em,
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] .period-selector-copy em {
+    display: none !important;
+  }
+
+  body.jr-fluid-metal-v26 [data-open-period-selector="photos"] .period-selector-arrow,
+  body.jr-fluid-metal-v26 [data-open-period-selector="reports"] .period-selector-arrow {
+    width: 18px !important;
+    height: 18px !important;
+    align-self: center !important;
+    justify-self: center !important;
+    margin: 0 !important;
+  }
+}
+
+/* Menu móvel centralizado, incluindo logo e opções. */
+@media (max-width: 900px) {
+  body.jr-fluid-metal-v26 #sidebar,
+  body.jr-fluid-metal-v26 .sidebar {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar .sidebar-logo-wrap,
+  body.jr-fluid-metal-v26 .sidebar .sidebar-logo-wrap {
+    width: 100% !important;
+    min-height: 102px !important;
+    display: grid !important;
+    place-items: center !important;
+    margin: 0 auto !important;
+    padding: 4px 12px !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar .sidebar-logo,
+  body.jr-fluid-metal-v26 .sidebar .sidebar-logo,
+  body.jr-fluid-metal-v26 #sidebar .sidebar-logo-wrap img,
+  body.jr-fluid-metal-v26 .sidebar .sidebar-logo-wrap img {
+    display: block !important;
+    width: auto !important;
+    max-width: 180px !important;
+    height: 92px !important;
+    max-height: 92px !important;
+    margin: 0 auto !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar nav,
+  body.jr-fluid-metal-v26 .sidebar nav,
+  body.jr-fluid-metal-v26 #sidebar .sidebar-nav,
+  body.jr-fluid-metal-v26 .sidebar .sidebar-nav {
+    width: 100% !important;
+    padding: 12px 10px 18px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar .nav-item,
+  body.jr-fluid-metal-v26 .sidebar .nav-item {
+    width: min(230px, calc(100% - 12px)) !important;
+    min-height: 50px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 11px !important;
+    margin: 0 auto !important;
+    padding: 0 14px !important;
+    text-align: center !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar .nav-item > span:first-child,
+  body.jr-fluid-metal-v26 .sidebar .nav-item > span:first-child {
+    flex: 0 0 24px !important;
+    display: grid !important;
+    place-items: center !important;
+  }
+
+  body.jr-fluid-metal-v26 #sidebar .nav-item > span:last-child,
+  body.jr-fluid-metal-v26 .sidebar .nav-item > span:last-child {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    text-align: center !important;
+  }
+}
+
+/* Popovers reposicionados pelo JavaScript final. */
+.jr-anchored-popover-final {
+  position: fixed !important;
+  right: auto !important;
+  bottom: auto !important;
+  margin: 0 !important;
+  translate: none !important;
+  transform: none !important;
+  transform-origin: top left !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scroll-behavior: auto !important;
+  z-index: 26000 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+.jr-anchored-popover-final.date-picker-popover {
+  max-width: calc(100vw - 24px) !important;
+}
+
+.jr-anchored-popover-final.custom-select-menu {
+  max-width: calc(100vw - 24px) !important;
+}
+
+@media (max-width: 900px) {
+  .jr-anchored-popover-final {
+    max-height: min(72dvh, 520px) !important;
+  }
+}
+
+/* Evita que cards/painéis escondam calendários e seletores. */
+body.jr-fluid-metal-v26 .monthly-summary-toolbar,
+body.jr-fluid-metal-v26 .filter-grid,
+body.jr-fluid-metal-v26 .picker-field,
+body.jr-fluid-metal-v26 .picker-control,
+body.jr-fluid-metal-v26 .custom-select-control {
+  overflow: visible !important;
+}
+
+/* Feedback discreto durante a geração das planilhas. */
+body.jr-fluid-metal-v26 #codes-team-download[aria-busy="true"],
+body.jr-fluid-metal-v26 #reports-team-download[aria-busy="true"] {
+  cursor: wait !important;
+  opacity: .76 !important;
+  pointer-events: none !important;
+}
