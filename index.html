@@ -7,603 +7,156 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta name="theme-color" content="#050607">
   <title>JR Gestão</title>
-
-  <link rel="icon" type="image/x-icon" href="./favicon.ico?v=42">
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=42">
-  <link rel="preload" href="./logo-jr-gestao.png?v=42" as="image" type="image/png">
-
+  <link rel="preload" href="./logo-jr-gestao.png?v=43" as="image" type="image/png">
   <style>
-    /* JR_GESTAO_LINK_FIXO_MOBILE_V42 */
-
+    /* JR_GESTAO_WRAPPER_SERVER_PRO_V43 */
     :root {
       color-scheme: dark;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: #050607;
-      --jr-vh: 100dvh;
-      --jr-mx: 50%;
-      --jr-my: 46%;
+      --vh: 100dvh;
+      background:#050607;
     }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      width: 100%;
-      height: 100%;
-      min-height: 100%;
-      margin: 0;
-      overflow: hidden;
-      background: #050607;
-      overscroll-behavior: none;
-    }
-
-    body {
-      min-height: var(--jr-vh, 100dvh);
-    }
-
+    * { box-sizing:border-box; }
+    html,body { width:100%;height:100%;margin:0;overflow:hidden;background:#050607; }
+    body { min-height:var(--vh,100dvh); }
     #panel {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      display: block;
-      width: 100%;
-      height: var(--jr-vh, 100dvh);
-      border: 0;
-      background: #050607;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition: opacity .28s ease;
+      position:fixed;inset:0;width:100%;height:var(--vh,100dvh);border:0;
+      background:#050607;opacity:0;visibility:hidden;pointer-events:none;
+      transition:opacity .28s ease;
     }
-
-    #panel.is-ready {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-    }
-
-    #jr-loader-v42 {
-      position: fixed;
-      inset: 0;
-      z-index: 20;
-      display: grid;
-      place-items: center;
-      width: 100%;
-      min-height: var(--jr-vh, 100dvh);
-      padding:
-        max(18px, env(safe-area-inset-top))
-        max(18px, env(safe-area-inset-right))
-        max(18px, env(safe-area-inset-bottom))
-        max(18px, env(safe-area-inset-left));
-      overflow: hidden;
-      color: #f4f6f7;
+    #panel.ready { opacity:1;visibility:visible;pointer-events:auto; }
+    #loader {
+      position:fixed;inset:0;z-index:20;display:grid;place-items:center;
+      min-height:var(--vh,100dvh);
+      padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right))
+              max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));
       background:
-        radial-gradient(circle at var(--jr-mx) var(--jr-my), rgba(223,229,232,.09), transparent 27rem),
-        radial-gradient(circle at 15% 18%, rgba(113,121,126,.10), transparent 28rem),
-        linear-gradient(145deg, #030405 0%, #0a0c0e 48%, #030405 100%);
-      opacity: 1;
-      visibility: visible;
-      transition: opacity .38s ease, visibility .38s ease;
-      isolation: isolate;
+        radial-gradient(circle at 18% 18%,rgba(163,172,178,.11),transparent 31rem),
+        radial-gradient(circle at 78% 74%,rgba(221,226,229,.08),transparent 33rem),
+        linear-gradient(145deg,#020304,#0c0e10 52%,#020304);
+      color:#f4f6f7;overflow:hidden;transition:opacity .38s ease,visibility .38s ease;
     }
-
-    #jr-loader-v42.is-leaving {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
+    #loader.leave { opacity:0;visibility:hidden;pointer-events:none; }
+    .metal,.metal:before,.metal:after {
+      position:absolute;content:"";pointer-events:none;will-change:transform;
     }
-
-    .jr-metal-v42 {
-      position: absolute;
-      inset: -16%;
-      z-index: -2;
-      overflow: hidden;
-      pointer-events: none;
-      filter: saturate(.25) contrast(1.05);
-    }
-
-    .jr-metal-v42::before,
-    .jr-metal-v42::after,
-    .jr-metal-wave-v42 {
-      content: "";
-      position: absolute;
-      border-radius: 48% 52% 55% 45% / 45% 56% 44% 55%;
+    .metal { inset:-18%;z-index:-1;overflow:hidden; }
+    .metal:before,.metal:after {
+      border-radius:50% 46% 53% 47% / 45% 55% 46% 54%;
       background:
-        radial-gradient(circle at 32% 28%, rgba(255,255,255,.34), transparent 10%),
-        radial-gradient(circle at 62% 48%, rgba(158,166,170,.17), transparent 28%),
-        radial-gradient(circle at 44% 68%, rgba(13,15,17,.92), transparent 48%),
-        linear-gradient(125deg, rgba(239,243,245,.12), rgba(18,21,23,.24) 38%, rgba(214,219,221,.11) 70%, rgba(3,4,5,.08));
-      box-shadow:
-        inset 0 0 80px rgba(255,255,255,.055),
-        0 0 100px rgba(0,0,0,.55);
-      opacity: .58;
-      will-change: transform;
-      transform: translate3d(0,0,0);
+        radial-gradient(circle at 34% 28%,rgba(255,255,255,.30),transparent 9%),
+        radial-gradient(circle at 62% 48%,rgba(157,164,168,.17),transparent 29%),
+        radial-gradient(circle at 44% 68%,rgba(6,8,9,.92),transparent 49%),
+        linear-gradient(126deg,rgba(239,243,245,.11),rgba(17,20,22,.24) 39%,rgba(214,219,221,.10) 70%,rgba(3,4,5,.07));
+      box-shadow:inset 0 0 80px rgba(255,255,255,.05),0 0 100px rgba(0,0,0,.55);
+      opacity:.56;
     }
-
-    .jr-metal-v42::before {
-      width: min(78vw, 940px);
-      height: min(58vw, 680px);
-      left: -12%;
-      top: -14%;
-      animation: jrMetalA42 14s ease-in-out infinite alternate;
+    .metal:before { width:min(78vw,940px);height:min(58vw,680px);left:-12%;top:-14%;animation:ma 15s ease-in-out infinite alternate; }
+    .metal:after { width:min(72vw,860px);height:min(62vw,720px);right:-14%;bottom:-22%;animation:mb 18s ease-in-out infinite alternate; }
+    .card {
+      position:relative;width:min(92vw,540px);padding:clamp(24px,4vw,38px);
+      border:1px solid rgba(212,218,221,.19);border-radius:26px;text-align:center;
+      background:linear-gradient(150deg,rgba(31,35,38,.81),rgba(7,9,11,.90));
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 26px 76px rgba(0,0,0,.56);
+      overflow:hidden;
     }
-
-    .jr-metal-v42::after {
-      width: min(72vw, 860px);
-      height: min(62vw, 720px);
-      right: -14%;
-      bottom: -22%;
-      animation: jrMetalB42 17s ease-in-out infinite alternate;
+    .logo-wrap { display:grid;place-items:center;min-height:clamp(130px,24vw,205px);margin:-16px auto -5px;overflow:hidden; }
+    .logo { display:block;width:min(100%,420px);max-height:230px;object-fit:contain;filter:drop-shadow(0 13px 24px rgba(0,0,0,.34)); }
+    h1 { margin:4px 0 7px;font-size:clamp(21px,4.5vw,28px);letter-spacing:.035em; }
+    #message { min-height:24px;margin:0;color:#c0c6c9;font-size:clamp(14px,3.6vw,16px);line-height:1.5; }
+    .bar { position:relative;width:min(100%,390px);height:6px;margin:24px auto 12px;overflow:hidden;border:1px solid rgba(211,217,220,.18);border-radius:999px;background:rgba(0,0,0,.64); }
+    .bar:before {
+      content:"";position:absolute;inset:0 auto 0 0;width:42%;border-radius:inherit;
+      background:linear-gradient(90deg,transparent,rgba(151,158,162,.46),rgba(247,249,250,.95),rgba(161,168,172,.48),transparent);
+      animation:progress 1.45s linear infinite;-webkit-animation:progress 1.45s linear infinite;
+      will-change:transform,opacity;
     }
-
-    .jr-metal-wave-v42 {
-      width: min(58vw, 720px);
-      height: min(34vw, 430px);
-      left: 28%;
-      top: 36%;
-      opacity: .32;
-      animation: jrMetalC42 19s ease-in-out infinite alternate;
+    #note { display:block;min-height:18px;color:#899196;font-size:12px; }
+    #retry { display:none;width:min(100%,300px);min-height:46px;margin:19px auto 0;padding:11px 18px;border:1px solid rgba(219,224,226,.25);border-radius:13px;color:#f1f3f4;font:inherit;font-weight:760;background:linear-gradient(145deg,rgba(54,60,64,.96),rgba(18,21,23,.98));cursor:pointer; }
+    #retry.show { display:block; }
+    @keyframes progress { 0%{transform:translate3d(-120%,0,0);opacity:.38}44%{opacity:1}100%{transform:translate3d(345%,0,0);opacity:.48} }
+    @keyframes ma { from{transform:translate3d(-3%,-2%,0) rotate(-4deg) scale(.98)}to{transform:translate3d(7%,6%,0) rotate(6deg) scale(1.07)} }
+    @keyframes mb { from{transform:translate3d(3%,7%,0) rotate(7deg) scale(1.04)}to{transform:translate3d(-7%,-3%,0) rotate(-5deg) scale(.97)} }
+    @media(max-width:900px) {
+      .card { width:min(93vw,470px);padding:23px 20px 25px;border-radius:22px; }
+      .logo-wrap { min-height:145px;margin-top:-12px; }
+      .logo { width:min(100%,350px);max-height:185px; }
+      .bar:before { animation:progress 1.35s linear infinite!important;-webkit-animation:progress 1.35s linear infinite!important; }
     }
-
-    .jr-card-v42 {
-      position: relative;
-      width: min(91vw, 540px);
-      padding: clamp(24px, 4vw, 38px);
-      border: 1px solid rgba(210,216,219,.20);
-      border-radius: 26px;
-      text-align: center;
-      background:
-        linear-gradient(150deg, rgba(29,33,36,.80), rgba(7,9,11,.88));
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.055),
-        0 26px 76px rgba(0,0,0,.54);
-      overflow: hidden;
-    }
-
-    .jr-card-v42::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background:
-        linear-gradient(115deg, transparent 18%, rgba(255,255,255,.055) 42%, transparent 63%);
-      transform: translate3d(-70%,0,0);
-      animation: jrCardReflection42 5.8s ease-in-out infinite;
-    }
-
-    .jr-logo-wrap-v42 {
-      position: relative;
-      display: grid;
-      place-items: center;
-      width: 100%;
-      min-height: clamp(130px, 24vw, 205px);
-      margin: -16px auto -4px;
-      overflow: hidden;
-    }
-
-    .jr-logo-v42 {
-      display: block;
-      width: min(100%, 420px);
-      max-height: 230px;
-      object-fit: contain;
-      filter:
-        drop-shadow(0 13px 24px rgba(0,0,0,.34))
-        drop-shadow(0 0 9px rgba(255,255,255,.05));
-      user-select: none;
-      -webkit-user-drag: none;
-    }
-
-    .jr-title-v42 {
-      margin: 4px 0 6px;
-      color: #f3f5f6;
-      font-size: clamp(21px, 4.5vw, 28px);
-      font-weight: 800;
-      letter-spacing: .035em;
-    }
-
-    .jr-message-v42 {
-      min-height: 24px;
-      margin: 0;
-      color: #bfc5c8;
-      font-size: clamp(14px, 3.6vw, 16px);
-      line-height: 1.5;
-    }
-
-    .jr-progress-v42 {
-      position: relative;
-      width: min(100%, 390px);
-      height: 6px;
-      margin: 24px auto 12px;
-      overflow: hidden;
-      border: 1px solid rgba(211,217,220,.18);
-      border-radius: 999px;
-      background: rgba(0,0,0,.62);
-      box-shadow: inset 0 1px 4px rgba(0,0,0,.85);
-      transform: translateZ(0);
-    }
-
-    .jr-progress-v42::before {
-      content: "";
-      position: absolute;
-      inset: 0 auto 0 0;
-      width: 42%;
-      border-radius: inherit;
-      background:
-        linear-gradient(90deg,
-          transparent 0%,
-          rgba(151,158,162,.45) 20%,
-          rgba(247,249,250,.95) 48%,
-          rgba(161,168,172,.48) 74%,
-          transparent 100%);
-      box-shadow: 0 0 10px rgba(235,239,241,.18);
-      will-change: transform, opacity;
-      animation: jrProgress42 1.45s linear infinite;
-      -webkit-animation: jrProgress42 1.45s linear infinite;
-      transform: translate3d(-120%,0,0);
-    }
-
-    .jr-note-v42 {
-      display: block;
-      min-height: 18px;
-      color: #858d92;
-      font-size: 12px;
-      letter-spacing: .02em;
-    }
-
-    .jr-retry-v42 {
-      display: none;
-      width: min(100%, 300px);
-      min-height: 46px;
-      margin: 19px auto 0;
-      padding: 11px 18px;
-      border: 1px solid rgba(219,224,226,.25);
-      border-radius: 13px;
-      color: #f1f3f4;
-      font: inherit;
-      font-weight: 760;
-      background: linear-gradient(145deg, rgba(54,60,64,.96), rgba(18,21,23,.98));
-      cursor: pointer;
-      touch-action: manipulation;
-    }
-
-    .jr-retry-v42.is-visible {
-      display: block;
-    }
-
-    @keyframes jrProgress42 {
-      0%   { transform: translate3d(-120%,0,0); opacity:.38; }
-      44%  { opacity:1; }
-      100% { transform: translate3d(345%,0,0); opacity:.48; }
-    }
-
-    @keyframes jrMetalA42 {
-      from { transform: translate3d(-3%,-2%,0) rotate(-4deg) scale(.98); }
-      to   { transform: translate3d(7%,6%,0) rotate(6deg) scale(1.07); }
-    }
-
-    @keyframes jrMetalB42 {
-      from { transform: translate3d(3%,7%,0) rotate(7deg) scale(1.04); }
-      to   { transform: translate3d(-7%,-3%,0) rotate(-5deg) scale(.97); }
-    }
-
-    @keyframes jrMetalC42 {
-      from { transform: translate3d(-5%,4%,0) rotate(-3deg) scale(.96); }
-      to   { transform: translate3d(6%,-5%,0) rotate(5deg) scale(1.05); }
-    }
-
-    @keyframes jrCardReflection42 {
-      0%,55% { transform: translate3d(-75%,0,0); opacity:0; }
-      72%    { opacity:.75; }
-      100%   { transform: translate3d(90%,0,0); opacity:0; }
-    }
-
-    @media (max-width: 900px) {
-      #jr-loader-v42 {
-        min-height: var(--jr-vh, 100dvh);
-        padding-top: max(15px, env(safe-area-inset-top));
-        padding-bottom: max(15px, env(safe-area-inset-bottom));
-      }
-
-      .jr-card-v42 {
-        width: min(93vw, 470px);
-        padding: 23px 20px 25px;
-        border-radius: 22px;
-      }
-
-      .jr-logo-wrap-v42 {
-        min-height: 145px;
-        margin-top: -12px;
-      }
-
-      .jr-logo-v42 {
-        width: min(100%, 350px);
-        max-height: 185px;
-      }
-
-      .jr-progress-v42::before {
-        animation: jrProgress42 1.35s linear infinite !important;
-        -webkit-animation: jrProgress42 1.35s linear infinite !important;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .jr-metal-v42::before,
-      .jr-metal-v42::after,
-      .jr-metal-wave-v42,
-      .jr-card-v42::before {
-        animation: none !important;
-      }
-
-      .jr-progress-v42::before {
-        animation: jrProgress42 1.8s linear infinite !important;
-        -webkit-animation: jrProgress42 1.8s linear infinite !important;
-      }
+    @media(prefers-reduced-motion:reduce) {
+      .metal:before,.metal:after { animation:none!important; }
+      .bar:before { animation:progress 1.8s linear infinite!important;-webkit-animation:progress 1.8s linear infinite!important; }
     }
   </style>
 </head>
 <body>
-  <iframe
-    id="panel"
-    title="Painel JR Gestão"
-    allow="clipboard-read; clipboard-write; fullscreen"
-    referrerpolicy="strict-origin-when-cross-origin"
-  ></iframe>
-
-  <div id="jr-loader-v42" role="status" aria-live="polite" aria-label="Carregando JR Gestão">
-    <div class="jr-metal-v42" aria-hidden="true">
-      <i class="jr-metal-wave-v42"></i>
-    </div>
-
-    <main class="jr-card-v42">
-      <div class="jr-logo-wrap-v42">
-        <img
-          class="jr-logo-v42"
-          src="./logo-jr-gestao.png?v=42"
-          alt="JR Gestão"
-          width="1536"
-          height="1024"
-          decoding="async"
-          fetchpriority="high"
-        >
-      </div>
-
-      <h1 class="jr-title-v42">JR GESTÃO</h1>
-      <p id="jr-message-v42" class="jr-message-v42">Conectando ao painel...</p>
-
-      <div class="jr-progress-v42" role="progressbar" aria-label="Carregando o painel"></div>
-      <small id="jr-note-v42" class="jr-note-v42">Aguarde alguns instantes</small>
-
-      <button id="jr-retry-v42" class="jr-retry-v42" type="button">
-        TENTAR NOVAMENTE
-      </button>
+  <iframe id="panel" title="Painel JR Gestão" allow="clipboard-read;clipboard-write;fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  <section id="loader" role="status" aria-live="polite" aria-label="Carregando JR Gestão">
+    <div class="metal" aria-hidden="true"></div>
+    <main class="card">
+      <div class="logo-wrap"><img class="logo" src="./logo-jr-gestao.png?v=43" alt="JR Gestão" width="1536" height="1024" decoding="async" fetchpriority="high"></div>
+      <h1>JR GESTÃO</h1>
+      <p id="message">Conectando ao painel...</p>
+      <div class="bar" role="progressbar" aria-label="Carregando o painel"></div>
+      <small id="note">Aguarde alguns instantes</small>
+      <button id="retry" type="button">TENTAR NOVAMENTE</button>
     </main>
-  </div>
-
+  </section>
   <script>
-    (() => {
-      'use strict';
+  (() => {
+    'use strict';
+    const panel=document.getElementById('panel');
+    const loader=document.getElementById('loader');
+    const message=document.getElementById('message');
+    const note=document.getElementById('note');
+    const retry=document.getElementById('retry');
+    let currentTarget='', targetOrigin='', released=false, hardTimer=0, loadTimer=0, controller=null;
 
-      const panel = document.getElementById('panel');
-      const loader = document.getElementById('jr-loader-v42');
-      const message = document.getElementById('jr-message-v42');
-      const note = document.getElementById('jr-note-v42');
-      const retry = document.getElementById('jr-retry-v42');
-
-      let currentTarget = '';
-      let panelOrigin = '';
-      let hardReleaseTimer = 0;
-      let loadFallbackTimer = 0;
-      let fetchController = null;
-      let finished = false;
-
-      function updateViewportHeight() {
-        const height = Math.round(
-          window.visualViewport?.height ||
-          window.innerHeight ||
-          document.documentElement.clientHeight ||
-          800
-        );
-
-        document.documentElement.style.setProperty('--jr-vh', `${height}px`);
-      }
-
-      function updatePointer(event) {
-        const width = Math.max(1, window.innerWidth);
-        const height = Math.max(1, window.innerHeight);
-        const x = Math.max(0, Math.min(100, (event.clientX / width) * 100));
-        const y = Math.max(0, Math.min(100, (event.clientY / height) * 100));
-
-        document.documentElement.style.setProperty('--jr-mx', `${x}%`);
-        document.documentElement.style.setProperty('--jr-my', `${y}%`);
-      }
-
-      function targetFile() {
-        return `./target.json?v=${Date.now()}`;
-      }
-
-      function setLoadingText(text, secondary = 'Aguarde alguns instantes') {
-        message.textContent = text;
-        note.textContent = secondary;
-      }
-
-      function showLoader(text = 'Conectando ao painel...') {
-        finished = false;
-        loader.classList.remove('is-leaving');
-        retry.classList.remove('is-visible');
-        setLoadingText(text);
-      }
-
-      function revealPanel(reason = 'ready') {
-        if (finished) return;
-
-        finished = true;
-        clearTimeout(hardReleaseTimer);
-        clearTimeout(loadFallbackTimer);
-
-        panel.classList.add('is-ready');
-        loader.classList.add('is-leaving');
-
-        window.setTimeout(() => {
-          if (loader.isConnected) loader.remove();
-        }, 430);
-
-        console.info(`[JR V42] Painel liberado: ${reason}`);
-      }
-
-      function showFailure(text) {
-        clearTimeout(hardReleaseTimer);
-        clearTimeout(loadFallbackTimer);
-
-        finished = false;
-        loader.classList.remove('is-leaving');
-        setLoadingText(text, 'Verifique o servidor e tente novamente');
-        retry.classList.add('is-visible');
-      }
-
-      async function fetchTarget() {
-        fetchController?.abort();
-        fetchController = new AbortController();
-
-        const timeout = window.setTimeout(() => fetchController.abort(), 8500);
-
-        try {
-          const response = await fetch(targetFile(), {
-            cache: 'no-store',
-            signal: fetchController.signal,
-            headers: { 'Accept': 'application/json' },
-          });
-
-          if (!response.ok) throw new Error('Destino indisponível');
-
-          const data = await response.json();
-          const target = String(data.url || '').trim().replace(/\/+$/, '');
-
-          if (!/^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(target)) {
-            throw new Error('Túnel inválido');
-          }
-
-          return target;
-        } finally {
-          clearTimeout(timeout);
-        }
-      }
-
-      async function openPanel(force = false) {
-        showLoader(force ? 'Reconectando ao painel...' : 'Conectando ao painel...');
-
-        try {
-          const target = await fetchTarget();
-          currentTarget = target;
-          panelOrigin = new URL(target).origin;
-
-          /*
-            O celular permanece no endereço fixo do GitHub Pages.
-            O painel abre dentro do iframe e avisa quando login ou painel
-            estiverem prontos por postMessage.
-          */
-          panel.classList.remove('is-ready');
-          panel.src = `${target}/?jr_wrapper=42&v=${Date.now()}`;
-
-          clearTimeout(hardReleaseTimer);
-          hardReleaseTimer = window.setTimeout(() => {
-            /*
-              Nunca deixa o celular preso no carregamento.
-              Após 12 segundos libera o iframe mesmo sem postMessage.
-            */
-            revealPanel('hard-timeout');
-          }, 12000);
-        } catch (error) {
-          showFailure(
-            error?.name === 'AbortError'
-              ? 'O servidor demorou para responder.'
-              : 'O painel está desligado ou ainda está iniciando.'
-          );
-        }
-      }
-
-      panel.addEventListener('load', () => {
-        /*
-          O evento load indica que o documento chegou.
-          Aguarda rapidamente o sinal interno; caso ele não venha,
-          libera o iframe em 1,8 segundo.
-        */
-        clearTimeout(loadFallbackTimer);
-        loadFallbackTimer = window.setTimeout(
-          () => revealPanel('iframe-load-fallback'),
-          1800
-        );
-      });
-
-      window.addEventListener('message', (event) => {
-        if (!panelOrigin || event.origin !== panelOrigin) return;
-
-        const type = String(event.data?.type || '');
-
-        if (
-          type === 'JR_PANEL_READY_V42' ||
-          type === 'JR_PANEL_LOGIN_READY_V42' ||
-          type === 'JR_PANEL_APP_READY_V42'
-        ) {
-          revealPanel(type);
-        }
-      });
-
-      retry.addEventListener('click', () => openPanel(true));
-
-      window.visualViewport?.addEventListener(
-        'resize',
-        updateViewportHeight,
-        { passive: true }
-      );
-
-      window.addEventListener(
-        'resize',
-        updateViewportHeight,
-        { passive: true }
-      );
-
-      window.addEventListener('orientationchange', () => {
-        window.setTimeout(updateViewportHeight, 120);
-        window.setTimeout(updateViewportHeight, 420);
-      }, { passive: true });
-
-      window.addEventListener('pointermove', updatePointer, { passive: true });
-
-      window.addEventListener('pageshow', (event) => {
-        updateViewportHeight();
-
-        if (event.persisted && panel.src) {
-          revealPanel('pageshow-cache');
-        }
-      });
-
-      window.setInterval(async () => {
-        try {
-          const target = await fetchTarget();
-
-          if (target !== currentTarget) {
-            currentTarget = target;
-            panelOrigin = new URL(target).origin;
-
-            showLoader('Reconectando ao painel...');
-            panel.classList.remove('is-ready');
-            panel.src = `${target}/?jr_wrapper=42&v=${Date.now()}`;
-
-            clearTimeout(hardReleaseTimer);
-            hardReleaseTimer = window.setTimeout(
-              () => revealPanel('reconnect-timeout'),
-              12000
-            );
-          }
-        } catch (_error) {}
-      }, 30000);
-
-      updateViewportHeight();
-      openPanel();
-    })();
+    function vh(){document.documentElement.style.setProperty('--vh',`${Math.round(window.visualViewport?.height||innerHeight||800)}px`);}
+    function text(a,b='Aguarde alguns instantes'){message.textContent=a;note.textContent=b;}
+    function show(a='Conectando ao painel...'){released=false;loader.classList.remove('leave');retry.classList.remove('show');text(a);}
+    function release(reason){
+      if(released)return;
+      released=true;clearTimeout(hardTimer);clearTimeout(loadTimer);
+      panel.classList.add('ready');loader.classList.add('leave');
+      setTimeout(()=>loader.remove(),430);
+      console.info('[JR Server Pro V43] painel liberado:',reason);
+    }
+    function fail(a){clearTimeout(hardTimer);clearTimeout(loadTimer);released=false;loader.classList.remove('leave');text(a,'O servidor tentará novamente quando você clicar');retry.classList.add('show');}
+    async function getTarget(){
+      controller?.abort();controller=new AbortController();
+      const timer=setTimeout(()=>controller.abort(),8500);
+      try{
+        const r=await fetch(`./target.json?v=${Date.now()}`,{cache:'no-store',signal:controller.signal,headers:{Accept:'application/json'}});
+        if(!r.ok)throw new Error('target');
+        const data=await r.json();const raw=String(data.url||'').trim().replace(/\/+$/,'');
+        const u=new URL(raw);
+        if(u.protocol!=='https:')throw new Error('protocol');
+        return u.href.replace(/\/+$/,'');
+      }finally{clearTimeout(timer);}
+    }
+    async function open(force=false){
+      show(force?'Reconectando ao painel...':'Conectando ao painel...');
+      try{
+        const target=await getTarget();currentTarget=target;targetOrigin=new URL(target).origin;
+        panel.classList.remove('ready');
+        panel.src=`${target}/?jr_server_pro=43&v=${Date.now()}`;
+        hardTimer=setTimeout(()=>release('limite-seguranca-12s'),12000);
+      }catch(e){fail(e?.name==='AbortError'?'O servidor demorou para responder.':'O servidor está desligado ou ainda está iniciando.');}
+    }
+    panel.addEventListener('load',()=>{clearTimeout(loadTimer);loadTimer=setTimeout(()=>release('iframe-load'),1600);});
+    window.addEventListener('message',event=>{
+      if(!targetOrigin||event.origin!==targetOrigin)return;
+      const type=String(event.data?.type||'');
+      if(['JR_PANEL_READY_V43','JR_PANEL_LOGIN_READY_V43','JR_PANEL_APP_READY_V43'].includes(type))release(type);
+    });
+    retry.addEventListener('click',()=>open(true));
+    window.visualViewport?.addEventListener('resize',vh,{passive:true});
+    addEventListener('resize',vh,{passive:true});
+    addEventListener('orientationchange',()=>{setTimeout(vh,120);setTimeout(vh,420);},{passive:true});
+    setInterval(async()=>{try{const t=await getTarget();if(t!==currentTarget){currentTarget=t;targetOrigin=new URL(t).origin;show('Reconectando ao painel...');panel.classList.remove('ready');panel.src=`${t}/?jr_server_pro=43&v=${Date.now()}`;hardTimer=setTimeout(()=>release('reconnect-timeout'),12000);}}catch(_e){}},30000);
+    vh();open();
+  })();
   </script>
 </body>
 </html>
