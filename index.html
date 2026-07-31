@@ -3,160 +3,398 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="robots" content="noindex,nofollow">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
   <meta name="theme-color" content="#050607">
+  <meta name="robots" content="noindex,nofollow">
   <title>JR Gestão</title>
-  <link rel="preload" href="./logo-jr-gestao.png?v=43" as="image" type="image/png">
+
+  <link rel="preload" href="./logo-jr-gestao.png?v=48" as="image" type="image/png">
+
   <style>
-    /* JR_GESTAO_WRAPPER_SERVIDOR_AUTONOMO_V46 */
+    /* JR_GESTAO_WRAPPER_PUBLICADO_V49 */
+
     :root {
       color-scheme: dark;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-      --vh: 100dvh;
-      background:#050607;
+      background: #050607;
+      --jr-vh: 100dvh;
     }
-    * { box-sizing:border-box; }
-    html,body { width:100%;height:100%;margin:0;overflow:hidden;background:#050607; }
-    body { min-height:var(--vh,100dvh); }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #050607;
+      overscroll-behavior: none;
+    }
+
+    body {
+      min-height: var(--jr-vh, 100dvh);
+    }
+
     #panel {
-      position:fixed;inset:0;width:100%;height:var(--vh,100dvh);border:0;
-      background:#050607;opacity:0;visibility:hidden;pointer-events:none;
-      transition:opacity .28s ease;
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      display: block;
+      width: 100%;
+      height: var(--jr-vh, 100dvh);
+      border: 0;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      background: #050607;
     }
-    #panel.ready { opacity:1;visibility:visible;pointer-events:auto; }
-    #loader {
-      position:fixed;inset:0;z-index:20;display:grid;place-items:center;
-      min-height:var(--vh,100dvh);
-      padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right))
-              max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));
-      background:
-        radial-gradient(circle at 18% 18%,rgba(163,172,178,.11),transparent 31rem),
-        radial-gradient(circle at 78% 74%,rgba(221,226,229,.08),transparent 33rem),
-        linear-gradient(145deg,#020304,#0c0e10 52%,#020304);
-      color:#f4f6f7;overflow:hidden;transition:opacity .38s ease,visibility .38s ease;
+
+    /*
+      Não existe tela cheia cobrindo o painel.
+      É apenas uma barra pequena e não bloqueia toques/cliques.
+    */
+    #jr-connection-v49 {
+      position: fixed;
+      top: max(8px, env(safe-area-inset-top));
+      left: 50%;
+      z-index: 30;
+      display: grid;
+      grid-template-columns: 40px minmax(0,1fr);
+      align-items: center;
+      width: min(94vw, 440px);
+      min-height: 56px;
+      padding: 8px 12px 8px 8px;
+      border: 1px solid rgba(218,224,227,.22);
+      border-radius: 16px;
+      color: #eef1f2;
+      background: linear-gradient(150deg, rgba(39,43,46,.94), rgba(9,11,13,.95));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 15px 38px rgba(0,0,0,.46);
+      transform: translate3d(-50%,0,0);
+      transition: opacity .25s ease, visibility .25s ease, transform .25s ease;
+      pointer-events: none;
     }
-    #loader.leave { opacity:0;visibility:hidden;pointer-events:none; }
-    .metal,.metal:before,.metal:after {
-      position:absolute;content:"";pointer-events:none;will-change:transform;
+
+    #jr-connection-v49.hidden {
+      opacity: 0;
+      visibility: hidden;
+      transform: translate3d(-50%,-16px,0);
     }
-    .metal { inset:-18%;z-index:-1;overflow:hidden; }
-    .metal:before,.metal:after {
-      border-radius:50% 46% 53% 47% / 45% 55% 46% 54%;
-      background:
-        radial-gradient(circle at 34% 28%,rgba(255,255,255,.30),transparent 9%),
-        radial-gradient(circle at 62% 48%,rgba(157,164,168,.17),transparent 29%),
-        radial-gradient(circle at 44% 68%,rgba(6,8,9,.92),transparent 49%),
-        linear-gradient(126deg,rgba(239,243,245,.11),rgba(17,20,22,.24) 39%,rgba(214,219,221,.10) 70%,rgba(3,4,5,.07));
-      box-shadow:inset 0 0 80px rgba(255,255,255,.05),0 0 100px rgba(0,0,0,.55);
-      opacity:.56;
+
+    #jr-connection-v49.error {
+      pointer-events: auto;
     }
-    .metal:before { width:min(78vw,940px);height:min(58vw,680px);left:-12%;top:-14%;animation:ma 15s ease-in-out infinite alternate; }
-    .metal:after { width:min(72vw,860px);height:min(62vw,720px);right:-14%;bottom:-22%;animation:mb 18s ease-in-out infinite alternate; }
-    .card {
-      position:relative;width:min(92vw,540px);padding:clamp(24px,4vw,38px);
-      border:1px solid rgba(212,218,221,.19);border-radius:26px;text-align:center;
-      background:linear-gradient(150deg,rgba(31,35,38,.81),rgba(7,9,11,.90));
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 26px 76px rgba(0,0,0,.56);
-      overflow:hidden;
+
+    .jr-logo-v49 {
+      display: block;
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      border-radius: 9px;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.36));
     }
-    .logo-wrap { display:grid;place-items:center;min-height:clamp(130px,24vw,205px);margin:-16px auto -5px;overflow:hidden; }
-    .logo { display:block;width:min(100%,420px);max-height:230px;object-fit:contain;filter:drop-shadow(0 13px 24px rgba(0,0,0,.34)); }
-    h1 { margin:4px 0 7px;font-size:clamp(21px,4.5vw,28px);letter-spacing:.035em; }
-    #message { min-height:24px;margin:0;color:#c0c6c9;font-size:clamp(14px,3.6vw,16px);line-height:1.5; }
-    .bar { position:relative;width:min(100%,390px);height:6px;margin:24px auto 12px;overflow:hidden;border:1px solid rgba(211,217,220,.18);border-radius:999px;background:rgba(0,0,0,.64); }
-    .bar:before {
-      content:"";position:absolute;inset:0 auto 0 0;width:42%;border-radius:inherit;
-      background:linear-gradient(90deg,transparent,rgba(151,158,162,.46),rgba(247,249,250,.95),rgba(161,168,172,.48),transparent);
-      animation:progress 1.45s linear infinite;-webkit-animation:progress 1.45s linear infinite;
-      will-change:transform,opacity;
+
+    .jr-copy-v49 {
+      min-width: 0;
+      padding-left: 9px;
     }
-    #note { display:block;min-height:18px;color:#899196;font-size:12px; }
-    #retry { display:none;width:min(100%,300px);min-height:46px;margin:19px auto 0;padding:11px 18px;border:1px solid rgba(219,224,226,.25);border-radius:13px;color:#f1f3f4;font:inherit;font-weight:760;background:linear-gradient(145deg,rgba(54,60,64,.96),rgba(18,21,23,.98));cursor:pointer; }
-    #retry.show { display:block; }
-    @keyframes progress { 0%{transform:translate3d(-120%,0,0);opacity:.38}44%{opacity:1}100%{transform:translate3d(345%,0,0);opacity:.48} }
-    @keyframes ma { from{transform:translate3d(-3%,-2%,0) rotate(-4deg) scale(.98)}to{transform:translate3d(7%,6%,0) rotate(6deg) scale(1.07)} }
-    @keyframes mb { from{transform:translate3d(3%,7%,0) rotate(7deg) scale(1.04)}to{transform:translate3d(-7%,-3%,0) rotate(-5deg) scale(.97)} }
-    @media(max-width:900px) {
-      .card { width:min(93vw,470px);padding:23px 20px 25px;border-radius:22px; }
-      .logo-wrap { min-height:145px;margin-top:-12px; }
-      .logo { width:min(100%,350px);max-height:185px; }
-      .bar:before { animation:progress 1.35s linear infinite!important;-webkit-animation:progress 1.35s linear infinite!important; }
+
+    #jr-message-v49 {
+      display: block;
+      overflow: hidden;
+      color: #f5f6f7;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.3;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    @media(prefers-reduced-motion:reduce) {
-      .metal:before,.metal:after { animation:none!important; }
-      .bar:before { animation:progress 1.8s linear infinite!important;-webkit-animation:progress 1.8s linear infinite!important; }
+
+    #jr-note-v49 {
+      display: block;
+      margin-top: 3px;
+      overflow: hidden;
+      color: #a1a8ac;
+      font-size: 11px;
+      line-height: 1.25;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .jr-progress-v49 {
+      position: absolute;
+      right: 12px;
+      bottom: 5px;
+      left: 57px;
+      height: 3px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(0,0,0,.52);
+    }
+
+    .jr-progress-v49::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 38%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, transparent, #a7afb3, #f4f6f7, #9aa2a6, transparent);
+      transform: translate3d(-120%,0,0);
+      animation: jr-progress-v49 1.25s linear infinite;
+      -webkit-animation: jr-progress-v49 1.25s linear infinite;
+    }
+
+    #jr-retry-v49,
+    #jr-direct-v49 {
+      display: none;
+      min-height: 36px;
+      margin-top: 8px;
+      border: 1px solid rgba(218,224,227,.24);
+      border-radius: 10px;
+      color: #f2f4f5;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      background: linear-gradient(145deg, #363b3e, #15181a);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    #jr-connection-v49.error {
+      grid-template-columns: 40px minmax(0,1fr);
+    }
+
+    #jr-connection-v49.error #jr-retry-v49,
+    #jr-connection-v49.error #jr-direct-v49 {
+      display: inline-block;
+      pointer-events: auto;
+    }
+
+    .jr-actions-v49 {
+      display: flex;
+      grid-column: 1 / -1;
+      gap: 7px;
+    }
+
+    .jr-actions-v49 button {
+      flex: 1;
+    }
+
+    @keyframes jr-progress-v49 {
+      0%   { transform: translate3d(-120%,0,0); opacity:.42; }
+      45%  { opacity:1; }
+      100% { transform: translate3d(340%,0,0); opacity:.46; }
+    }
+
+    @media (max-width: 600px) {
+      #jr-connection-v49 {
+        width: calc(100vw - 16px);
+      }
     }
   </style>
 </head>
 <body>
-  <iframe id="panel" title="Painel JR Gestão" allow="clipboard-read;clipboard-write;fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-  <section id="loader" role="status" aria-live="polite" aria-label="Carregando JR Gestão">
-    <div class="metal" aria-hidden="true"></div>
-    <main class="card">
-      <div class="logo-wrap"><img class="logo" src="./logo-jr-gestao.png?v=43" alt="JR Gestão" width="1536" height="1024" decoding="async" fetchpriority="high"></div>
-      <h1>JR GESTÃO</h1>
-      <p id="message">Conectando ao painel...</p>
-      <div class="bar" role="progressbar" aria-label="Carregando o painel"></div>
-      <small id="note">Aguarde alguns instantes</small>
-      <button id="retry" type="button">TENTAR NOVAMENTE</button>
-    </main>
-  </section>
-  <script>
-  (() => {
-    'use strict';
-    const panel=document.getElementById('panel');
-    const loader=document.getElementById('loader');
-    const message=document.getElementById('message');
-    const note=document.getElementById('note');
-    const retry=document.getElementById('retry');
-    let currentTarget='', targetOrigin='', released=false, hardTimer=0, loadTimer=0, controller=null;
+  <iframe
+    id="panel"
+    title="Painel JR Gestão"
+    allow="clipboard-read;clipboard-write;fullscreen"
+    referrerpolicy="strict-origin-when-cross-origin"
+  ></iframe>
 
-    function vh(){document.documentElement.style.setProperty('--vh',`${Math.round(window.visualViewport?.height||innerHeight||800)}px`);}
-    function text(a,b='Aguarde alguns instantes'){message.textContent=a;note.textContent=b;}
-    function show(a='Conectando ao painel...'){released=false;loader.classList.remove('leave');retry.classList.remove('show');text(a);}
-    function release(reason){
-      if(released)return;
-      released=true;clearTimeout(hardTimer);clearTimeout(loadTimer);
-      panel.classList.add('ready');loader.classList.add('leave');
-      setTimeout(()=>loader.remove(),430);
-      console.info('[JR Server Pro V46] painel liberado:',reason);
-    }
-    function fail(a){clearTimeout(hardTimer);clearTimeout(loadTimer);released=false;loader.classList.remove('leave');text(a,'O servidor tentará novamente quando você clicar');retry.classList.add('show');}
-    async function getTarget(){
-      controller?.abort();controller=new AbortController();
-      const timer=setTimeout(()=>controller.abort(),8500);
-      try{
-        const r=await fetch(`./target.json?v=${Date.now()}`,{cache:'no-store',signal:controller.signal,headers:{Accept:'application/json'}});
-        if(!r.ok)throw new Error('target');
-        const data=await r.json();const raw=String(data.url||'').trim().replace(/\/+$/,'');
-        const u=new URL(raw);
-        if(u.protocol!=='https:')throw new Error('protocol');
-        return u.href.replace(/\/+$/,'');
-      }finally{clearTimeout(timer);}
-    }
-    async function open(force=false){
-      show(force?'Reconectando ao painel...':'Conectando ao painel...');
-      try{
-        const target=await getTarget();currentTarget=target;targetOrigin=new URL(target).origin;
-        panel.classList.remove('ready');
-        panel.src=`${target}/?jr_server_pro=43&v=${Date.now()}`;
-        hardTimer=setTimeout(()=>release('limite-seguranca-12s'),12000);
-      }catch(e){fail(e?.name==='AbortError'?'O servidor demorou para responder.':'O servidor está desligado ou ainda está iniciando.');}
-    }
-    panel.addEventListener('load',()=>{clearTimeout(loadTimer);loadTimer=setTimeout(()=>release('iframe-load'),1600);});
-    window.addEventListener('message',event=>{
-      if(!targetOrigin||event.origin!==targetOrigin)return;
-      const type=String(event.data?.type||'');
-      if(['JR_PANEL_READY_V46','JR_PANEL_LOGIN_READY_V46','JR_PANEL_APP_READY_V46'].includes(type))release(type);
-    });
-    retry.addEventListener('click',()=>open(true));
-    window.visualViewport?.addEventListener('resize',vh,{passive:true});
-    addEventListener('resize',vh,{passive:true});
-    addEventListener('orientationchange',()=>{setTimeout(vh,120);setTimeout(vh,420);},{passive:true});
-    setInterval(async()=>{try{const t=await getTarget();if(t!==currentTarget){currentTarget=t;targetOrigin=new URL(t).origin;show('Reconectando ao painel...');panel.classList.remove('ready');panel.src=`${t}/?jr_server_pro=43&v=${Date.now()}`;hardTimer=setTimeout(()=>release('reconnect-timeout'),12000);}}catch(_e){}},30000);
-    vh();open();
-  })();
+  <aside id="jr-connection-v49" role="status" aria-live="polite">
+    <img
+      class="jr-logo-v49"
+      src="./logo-jr-gestao.png?v=48"
+      alt=""
+      width="1536"
+      height="1024"
+      decoding="async"
+    >
+
+    <div class="jr-copy-v49">
+      <span id="jr-message-v49">Conectando ao painel...</span>
+      <small id="jr-note-v49">O painel não fica bloqueado durante a conexão</small>
+    </div>
+
+    <div class="jr-actions-v49">
+      <button id="jr-retry-v49" type="button">TENTAR NOVAMENTE</button>
+      <button id="jr-direct-v49" type="button">ABRIR DIRETO</button>
+    </div>
+
+    <div class="jr-progress-v49" aria-hidden="true"></div>
+  </aside>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const panel = document.getElementById('panel');
+      const status = document.getElementById('jr-connection-v49');
+      const message = document.getElementById('jr-message-v49');
+      const note = document.getElementById('jr-note-v49');
+      const retry = document.getElementById('jr-retry-v49');
+      const direct = document.getElementById('jr-direct-v49');
+
+      let currentTarget = '';
+      let abortController = null;
+      let releaseTimer = 0;
+      let loadTimer = 0;
+
+      function updateViewport() {
+        const height = Math.round(
+          window.visualViewport?.height ||
+          window.innerHeight ||
+          document.documentElement.clientHeight ||
+          800
+        );
+
+        document.documentElement.style.setProperty('--jr-vh', `${height}px`);
+      }
+
+      function showStatus(main, secondary) {
+        status.classList.remove('hidden', 'error');
+        message.textContent = main;
+        note.textContent = secondary;
+      }
+
+      function hideStatus(reason) {
+        clearTimeout(releaseTimer);
+        clearTimeout(loadTimer);
+        status.classList.add('hidden');
+        console.info('[JR V49] Aviso removido:', reason);
+      }
+
+      function showError(main) {
+        clearTimeout(releaseTimer);
+        clearTimeout(loadTimer);
+        status.classList.remove('hidden');
+        status.classList.add('error');
+        message.textContent = main;
+        note.textContent = 'Tente novamente ou abra o servidor diretamente';
+      }
+
+      function validTarget(value) {
+        try {
+          const url = new URL(String(value || '').trim());
+          return url.protocol === 'https:' ? url.href.replace(/\/+$/, '') : '';
+        } catch (_error) {
+          return '';
+        }
+      }
+
+      async function fetchTargetOnce() {
+        abortController?.abort();
+        abortController = new AbortController();
+
+        const timeout = window.setTimeout(
+          () => abortController.abort(),
+          6500
+        );
+
+        try {
+          const response = await fetch(
+            `./target.json?v=${Date.now()}`,
+            {
+              cache: 'no-store',
+              signal: abortController.signal,
+              headers: { Accept: 'application/json' },
+            }
+          );
+
+          if (!response.ok) throw new Error('target-http');
+
+          const data = await response.json();
+          const target = validTarget(data.url);
+
+          if (!target) throw new Error('target-invalid');
+          return target;
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+
+      async function fetchTarget() {
+        let lastError = null;
+
+        for (let attempt = 1; attempt <= 3; attempt += 1) {
+          try {
+            return await fetchTargetOnce();
+          } catch (error) {
+            lastError = error;
+            await new Promise((resolve) => setTimeout(resolve, 450 * attempt));
+          }
+        }
+
+        const cached = validTarget(localStorage.getItem('jr-last-target-v49'));
+        if (cached) return cached;
+
+        throw lastError || new Error('target-unavailable');
+      }
+
+      async function openPanel(force = false) {
+        showStatus(
+          force ? 'Buscando o servidor novamente...' : 'Conectando ao painel...',
+          'O painel não fica bloqueado durante a conexão'
+        );
+
+        try {
+          currentTarget = await fetchTarget();
+          localStorage.setItem('jr-last-target-v49', currentTarget);
+
+          /*
+            O iframe já está visível. Nenhuma camada cobre o painel.
+          */
+          panel.src = `${currentTarget}/?jr_fixed_link=48&v=${Date.now()}`;
+
+          clearTimeout(releaseTimer);
+          releaseTimer = window.setTimeout(
+            () => hideStatus('limite máximo de 3 segundos'),
+            3000
+          );
+        } catch (_error) {
+          showError('Não foi possível localizar o servidor.');
+        }
+      }
+
+      panel.addEventListener('load', () => {
+        clearTimeout(loadTimer);
+        loadTimer = window.setTimeout(
+          () => hideStatus('iframe carregado'),
+          250
+        );
+      });
+
+      retry.addEventListener('click', () => openPanel(true));
+
+      direct.addEventListener('click', () => {
+        const target =
+          validTarget(currentTarget) ||
+          validTarget(localStorage.getItem('jr-last-target-v49'));
+
+        if (target) window.open(target, '_blank', 'noopener');
+      });
+
+      window.visualViewport?.addEventListener(
+        'resize',
+        updateViewport,
+        { passive: true }
+      );
+
+      window.addEventListener(
+        'resize',
+        updateViewport,
+        { passive: true }
+      );
+
+      window.addEventListener('orientationchange', () => {
+        window.setTimeout(updateViewport, 100);
+        window.setTimeout(updateViewport, 380);
+      }, { passive: true });
+
+      updateViewport();
+      openPanel();
+    })();
   </script>
 </body>
 </html>
