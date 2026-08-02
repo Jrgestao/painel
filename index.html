@@ -18,8 +18,9 @@
   <link rel="icon" type="image/png" sizes="48x48" href="./favicon-48x48.png?v=jr-full-v11-20260728">
   <link rel="icon" type="image/png" sizes="64x64" href="./favicon-64x64.png?v=jr-full-v11-20260728">
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=jr-full-v11-20260728">
-  <link rel="manifest" href="./site.webmanifest?v=jr-full-v11-20260728">
+  <link rel="manifest" href="./site.webmanifest?v=sem-flash-v8-7-20260802-144500">
   <meta name="apple-mobile-web-app-title" content="JR Gestão">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="msapplication-TileImage" content="./favicon-192x192.png?v=jr-full-v11-20260728">
   
   <!-- JR_GESTAO_FAVICON_LOGO_COMPLETA_V11_FIM -->
@@ -72,8 +73,156 @@
   <link rel="stylesheet" href="./src/estavel-preto-v8-4-20260802-002500.css?v=20260802-002500">
   <!-- JR_GESTAO_LOADING_TEMPO_ESTETICO_V8_6=20260802-142500 -->
   <link rel="stylesheet" href="./src/loading-estetico-v8-6-20260802-142500.css?v=20260802-142500">
+  <!-- JR_GESTAO_SEM_FLASH_AZUL_MOBILE_V8_7=20260802-144500 -->
+  <style id="jr-critical-boot-v87">
+    :root {
+      color-scheme: dark;
+      background: #050505 !important;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: #050505 !important;
+    }
+
+    #jr-safe-loading-v86[data-jr-static-boot-v87="1"] {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483000;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      background:
+        radial-gradient(circle at 50% 37%, rgba(255,255,255,.055), transparent 34%),
+        linear-gradient(145deg, #030303, #0b0b0c 57%, #020202);
+    }
+
+    #jr-safe-loading-v86[data-jr-static-boot-v87="1"] .jr-safe-loading-card-v86 {
+      width: min(360px, 90vw);
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      padding: 28px;
+      box-sizing: border-box;
+      border: 1px solid rgba(255,255,255,.11);
+      border-radius: 24px;
+      color: #f4f4f4;
+      background: linear-gradient(145deg, rgba(17,17,19,.97), rgba(7,7,8,.97));
+      box-shadow: 0 24px 70px rgba(0,0,0,.58);
+    }
+
+    #jr-safe-loading-v86[data-jr-static-boot-v87="1"] .jr-safe-loading-logo-v86 {
+      display: grid;
+      place-items: center;
+      width: 112px;
+      height: 112px;
+    }
+
+    #jr-safe-loading-v86[data-jr-static-boot-v87="1"] img {
+      width: 112px;
+      height: 112px;
+      object-fit: contain;
+    }
+
+    #jr-safe-loading-v86[data-jr-static-boot-v87="1"] strong {
+      font: 700 20px/1.15 Inter, system-ui, sans-serif;
+      letter-spacing: .08em;
+    }
+
+    #jr-safe-loading-v86[data-jr-static-boot-v87="1"] p {
+      min-height: 21px;
+      margin: 0;
+      color: #bfc1c5;
+      font: 400 14px/1.5 Inter, system-ui, sans-serif;
+      text-align: center;
+    }
+
+    #jr-safe-loading-v86[data-jr-static-boot-v87="1"] .jr-safe-loading-track-v86 {
+      position: relative;
+      width: 100%;
+      height: 4px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #202124;
+    }
+
+    #jr-safe-loading-v86[data-jr-static-boot-v87="1"] .jr-safe-loading-track-v86 span {
+      position: absolute;
+      inset: 0 auto 0 0;
+      display: block;
+      width: 44%;
+      height: 100%;
+      border-radius: inherit;
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(180,184,190,.34) 28%,
+          rgba(255,255,255,.95) 50%,
+          rgba(180,184,190,.34) 72%,
+          transparent
+        );
+      transform: translate3d(-125%, 0, 0);
+      animation: jrCriticalSweepV87 1.2s cubic-bezier(.45,0,.2,1) infinite;
+    }
+
+    @keyframes jrCriticalSweepV87 {
+      from { transform: translate3d(-125%, 0, 0); }
+      to { transform: translate3d(230%, 0, 0); }
+    }
+
+    @media (max-width: 520px) {
+      #jr-safe-loading-v86[data-jr-static-boot-v87="1"] {
+        padding: 18px;
+      }
+
+      #jr-safe-loading-v86[data-jr-static-boot-v87="1"] .jr-safe-loading-card-v86 {
+        width: min(360px, calc(100vw - 28px));
+        padding: 26px 24px;
+      }
+    }
+  </style>
+  <script id="jr-critical-boot-script-v87">
+    window.__JR_BOOT_STARTED_AT_V87 = Date.now();
+
+    window.setTimeout(() => {
+      const mask = document.querySelector(
+        '#jr-safe-loading-v86[data-jr-static-boot-v87="1"]'
+      );
+
+      if (!mask) return;
+
+      mask.style.transition = 'opacity .25s ease';
+      mask.style.opacity = '0';
+
+      window.setTimeout(() => mask.remove(), 280);
+    }, 22000);
+  </script>
 </head>
 <body>
+  <div
+    id="jr-safe-loading-v86"
+    class="jr-safe-loading-v86 show"
+    data-jr-static-boot-v87="1"
+    aria-label="Carregando o painel"
+  >
+    <div class="jr-safe-loading-card-v86">
+      <div class="jr-safe-loading-logo-v86">
+        <img src="./assets/logo-metal-liquido-v24.png" alt="JR Gestão">
+      </div>
+      <strong>JR GESTÃO</strong>
+      <p id="jr-safe-loading-message-v86">Conectando ao painel...</p>
+      <div class="jr-safe-loading-track-v86" aria-hidden="true">
+        <span></span>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast" aria-live="polite"></div>
 
   <section id="login-view" class="login-page">
@@ -727,7 +876,7 @@
     </div>
   </dialog>
   <script src="./src/vendor/supabase-js-2.57.4-local-20260801-221649.js?v=20260801-221649"></script>
-  <script type="module" src="./src/main-loading-estetico-v8-6-20260802-142500.js?v=20260802-142500"></script>
+  <script type="module" src="./src/main-sem-flash-mobile-v8-7-20260802-144500.js?v=20260802-144500"></script>
 <script defer src="./src/ajuste-rede-desempenho-v6-20260801-221649.js?v=20260801-221649"></script>
 </body>
 </html>
