@@ -1,0 +1,200 @@
+/* JR GESTAO - FLUIDEZ PONTUACAO E CARREGAMENTO V7 */
+
+.jr-loading-screen-v7[hidden] {
+  display: none !important;
+}
+
+.jr-loading-screen-v7 {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(68, 122, 184, 0.22), transparent 38%),
+    linear-gradient(145deg, #07101d 0%, #0b1727 52%, #050b14 100%);
+  opacity: 1;
+  transition: opacity 180ms ease;
+  isolation: isolate;
+}
+
+.jr-loading-screen-v7::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 30%, rgba(255,255,255,.045) 48%, transparent 66%);
+  transform: translateX(-55%);
+  animation: jr-loading-sheen-v7 2.7s ease-in-out infinite;
+}
+
+.jr-loading-screen-v7.is-leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.jr-loading-card-v7 {
+  position: relative;
+  width: min(92vw, 390px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 30px 28px 26px;
+  border: 1px solid rgba(155, 196, 238, .24);
+  border-radius: 24px;
+  background: rgba(8, 19, 33, .88);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, .38), inset 0 1px 0 rgba(255,255,255,.08);
+  text-align: center;
+}
+
+.jr-loading-logo-shell-v7 {
+  width: 112px;
+  height: 112px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+  border-radius: 28px;
+  background: radial-gradient(circle, rgba(85, 158, 230, .18), transparent 68%);
+}
+
+.jr-loading-logo-v7 {
+  display: block;
+  width: 98px;
+  height: 98px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, .24));
+  animation: jr-loading-breathe-v7 1.9s ease-in-out infinite;
+}
+
+.jr-loading-card-v7 > strong {
+  color: #f5f9ff;
+  font-size: 1.16rem;
+  letter-spacing: .11em;
+}
+
+.jr-loading-card-v7 > p {
+  min-height: 22px;
+  margin: 0;
+  color: #c9d9ea;
+  font-size: .96rem;
+  font-weight: 650;
+}
+
+.jr-loading-card-v7 > small {
+  color: #7f96ad;
+  font-size: .76rem;
+}
+
+.jr-loading-track-v7 {
+  width: min(100%, 270px);
+  height: 5px;
+  margin: 8px 0 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(151, 183, 217, .15);
+}
+
+.jr-loading-track-v7 > span {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #5e9bd3, #d1e7fa, #5e9bd3);
+  animation: jr-loading-track-v7 1.15s ease-in-out infinite;
+}
+
+body.jr-panel-loading-v7 {
+  overflow: hidden !important;
+}
+
+.page-section.hidden,
+.page-section[aria-hidden='true'] {
+  display: none !important;
+}
+
+.page-section:not(.hidden) {
+  animation: jr-page-enter-v7 120ms ease-out both;
+}
+
+#page-photos,
+#page-codes,
+#page-reports,
+#page-orders,
+#page-settings {
+  contain: layout style paint;
+}
+
+.table-wrap,
+.records-table-wrap,
+.photo-grid,
+#photos-grid,
+#codes-preview,
+#reports-preview,
+#orders-table-body {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 540px;
+}
+
+body.jr-switching-page-v7 .page-section:not(.hidden) {
+  pointer-events: none;
+}
+
+@keyframes jr-loading-track-v7 {
+  from { transform: translateX(-120%); }
+  to { transform: translateX(340%); }
+}
+
+@keyframes jr-loading-breathe-v7 {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.018); }
+}
+
+@keyframes jr-loading-sheen-v7 {
+  0%, 22% { transform: translateX(-65%); opacity: 0; }
+  48% { opacity: 1; }
+  78%, 100% { transform: translateX(65%); opacity: 0; }
+}
+
+@keyframes jr-page-enter-v7 {
+  from { opacity: .76; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 900px) {
+  .jr-loading-card-v7 {
+    width: min(92vw, 350px);
+    padding: 25px 22px 22px;
+    border-radius: 21px;
+  }
+
+  .jr-loading-logo-shell-v7 {
+    width: 98px;
+    height: 98px;
+  }
+
+  .jr-loading-logo-v7 {
+    width: 86px;
+    height: 86px;
+  }
+
+  .page-section,
+  .panel,
+  .summary-card,
+  .team-score-row-v30,
+  .team-folder-card {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jr-loading-screen-v7::before,
+  .jr-loading-logo-v7,
+  .jr-loading-track-v7 > span,
+  .page-section:not(.hidden) {
+    animation: none !important;
+  }
+}
