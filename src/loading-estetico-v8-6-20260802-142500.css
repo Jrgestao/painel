@@ -1,0 +1,227 @@
+/* JR_GESTAO_LOADING_TEMPO_ESTETICO_V8_6=20260802-142500 */
+
+/*
+  Mantem o tamanho original.
+  O ajuste principal e o tempo minimo com uma saida suave e estetica.
+*/
+
+.jr-safe-loading-v86 {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 37%, rgba(255, 255, 255, .055), transparent 34%),
+    linear-gradient(145deg, #030303, #0b0b0c 57%, #020202);
+  transition:
+    opacity .26s ease,
+    visibility .26s ease;
+}
+
+.jr-safe-loading-v86.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.jr-safe-loading-card-v86 {
+  position: relative;
+  isolation: isolate;
+  width: min(360px, 90vw);
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 28px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .11);
+  border-radius: 24px;
+  background:
+    linear-gradient(145deg, rgba(17, 17, 19, .96), rgba(7, 7, 8, .96));
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, .58),
+    inset 0 1px 0 rgba(255, 255, 255, .045);
+  backdrop-filter: blur(12px);
+  transition:
+    opacity .32s ease,
+    transform .32s cubic-bezier(.2, .75, .2, 1),
+    filter .32s ease;
+}
+
+.jr-safe-loading-card-v86::before {
+  content: '';
+  position: absolute;
+  inset: -70% -55%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      112deg,
+      transparent 42%,
+      rgba(255, 255, 255, .025) 47%,
+      rgba(255, 255, 255, .07) 50%,
+      rgba(255, 255, 255, .018) 54%,
+      transparent 61%
+    );
+  transform: translate3d(-18%, 0, 0);
+  animation: jrLoadingMetalV86 6.4s ease-in-out infinite;
+}
+
+.jr-safe-loading-logo-v86 {
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  animation: jrLoadingLogoV86 3.2s ease-in-out infinite;
+}
+
+.jr-safe-loading-card-v86 img {
+  width: 112px;
+  height: 112px;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 13px 20px rgba(0, 0, 0, .45))
+    drop-shadow(0 0 9px rgba(255, 255, 255, .045));
+}
+
+.jr-safe-loading-card-v86 strong {
+  color: #f4f4f4;
+  font-size: 20px;
+  line-height: 1.15;
+  letter-spacing: .08em;
+}
+
+.jr-safe-loading-card-v86 p {
+  min-height: 21px;
+  margin: 0;
+  color: #bfc1c5;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+  transition:
+    color .2s ease,
+    opacity .2s ease;
+}
+
+.jr-safe-loading-track-v86 {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, #202124, #111214);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, .75),
+    0 1px 0 rgba(255, 255, 255, .025);
+  contain: paint;
+}
+
+.jr-safe-loading-track-v86 span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: block;
+  width: 44%;
+  height: 100%;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(180, 184, 190, .34) 28%,
+      rgba(255, 255, 255, .95) 50%,
+      rgba(180, 184, 190, .34) 72%,
+      transparent
+    );
+  box-shadow:
+    0 0 9px rgba(255, 255, 255, .2),
+    0 0 2px rgba(255, 255, 255, .65);
+  transform: translate3d(-125%, 0, 0);
+  will-change: transform, opacity;
+  animation: jrLoadingSweepV86 1.2s cubic-bezier(.45, 0, .2, 1) infinite !important;
+  animation-play-state: running !important;
+}
+
+.jr-safe-loading-v86.finishing .jr-safe-loading-card-v86 {
+  opacity: .97;
+  transform: translateY(-2px) scale(.992);
+  filter: brightness(1.06);
+}
+
+.jr-safe-loading-v86.finishing .jr-safe-loading-card-v86 p {
+  color: #f2f2f2;
+}
+
+.jr-safe-loading-v86.finishing .jr-safe-loading-track-v86 span {
+  animation-duration: .72s !important;
+}
+
+@keyframes jrLoadingSweepV86 {
+  0% {
+    transform: translate3d(-125%, 0, 0);
+    opacity: .35;
+  }
+  18% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(230%, 0, 0);
+    opacity: .35;
+  }
+}
+
+@keyframes jrLoadingMetalV86 {
+  0%, 100% {
+    transform: translate3d(-18%, 0, 0);
+    opacity: .45;
+  }
+  50% {
+    transform: translate3d(18%, 0, 0);
+    opacity: .78;
+  }
+}
+
+@keyframes jrLoadingLogoV86 {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+/*
+  Mesmo com reducao de movimento, a barra continua andando.
+  Apenas fica mais lenta e o movimento secundario e reduzido.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .jr-safe-loading-track-v86 span {
+    animation: jrLoadingSweepV86 1.75s linear infinite !important;
+  }
+
+  .jr-safe-loading-card-v86::before {
+    animation-duration: 10s;
+  }
+
+  .jr-safe-loading-logo-v86 {
+    animation: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .jr-safe-loading-v86 {
+    padding: 18px;
+  }
+
+  .jr-safe-loading-card-v86 {
+    width: min(360px, calc(100vw - 28px));
+    padding: 26px 24px;
+  }
+}
