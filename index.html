@@ -203,6 +203,73 @@
       window.setTimeout(() => mask.remove(), 280);
     }, 22000);
   </script>
+  <!-- JR_GESTAO_LOADING_INTERATIVO_PROFISSIONAL_V8_9=20260802-150500 -->
+  <style id="jr-critical-loading-v89">
+    #jr-safe-loading-v86 {
+      --jr-v89-pointer-x: 50%;
+      --jr-v89-pointer-y: 44%;
+      overflow: hidden !important;
+      isolation: isolate;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255,255,255,.08), transparent 34%),
+        radial-gradient(ellipse at 18% 88%, rgba(168,172,181,.04), transparent 42%),
+        linear-gradient(145deg, #020202, #090a0c 50%, #030303) !important;
+    }
+
+    #jr-safe-loading-v86::before {
+      content: '';
+      position: absolute;
+      z-index: -2;
+      width: min(78vw, 940px);
+      aspect-ratio: 1.5;
+      left: 50%;
+      top: 50%;
+      border-radius: 45% 55% 58% 42% / 52% 38% 62% 48%;
+      opacity: .68;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 35% 32%, rgba(255,255,255,.18), rgba(174,179,188,.06) 20%, transparent 65%),
+        conic-gradient(from 214deg, transparent, rgba(255,255,255,.05), transparent 42%, rgba(255,255,255,.025), transparent);
+      filter: blur(34px) saturate(.55);
+      transform: translate3d(-50%, -50%, 0) rotate(-7deg);
+      animation: jrCriticalLiquidV89 8.5s ease-in-out infinite alternate;
+    }
+
+    #jr-safe-loading-v86[data-jr-static-boot-v87="1"] .jr-safe-loading-card-v86 {
+      width: min(360px, 90vw) !important;
+      padding: 0 !important;
+      overflow: visible !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+
+    #jr-safe-loading-v86[data-jr-static-boot-v87="1"] .jr-safe-loading-card-v86::before,
+    #jr-safe-loading-v86[data-jr-static-boot-v87="1"] .jr-safe-loading-card-v86::after {
+      content: none !important;
+      display: none !important;
+    }
+
+    #jr-safe-loading-v86[data-jr-static-boot-v87="1"] .jr-safe-loading-track-v86 {
+      width: min(100%, 320px) !important;
+    }
+
+    @keyframes jrCriticalLiquidV89 {
+      from {
+        border-radius: 45% 55% 58% 42% / 52% 38% 62% 48%;
+        transform: translate3d(-50%, -50%, 0) rotate(-7deg) scale(1.02);
+      }
+      to {
+        border-radius: 40% 60% 54% 46% / 61% 42% 58% 39%;
+        transform: translate3d(-50%, -50%, 0) rotate(8deg) scale(1.09);
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="./src/loading-interativo-v8-9-20260802-150500.css?v=20260802-150500">
+  <script defer src="./src/loading-interativo-v8-9-20260802-150500.js?v=20260802-150500"></script>
 </head>
 <body>
   <div
