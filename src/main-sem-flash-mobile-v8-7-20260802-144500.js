@@ -1,3 +1,4 @@
+// JR_GESTAO_EQUIPE_MES_ATIVOS_SITE_REAL_V8=20260805
 // JR_GESTAO_SEM_FLASH_AZUL_MOBILE_V8_7=20260802-144500
 // JR_GESTAO_LOADING_TEMPO_ESTETICO_V8_6=20260802-142500
 // JR_GESTAO_REPARO_DUPLICIDADE_V8_4=20260802-002500
@@ -68,7 +69,8 @@ let serviceDateScrollFrameV38 = 0
 let serviceDateScrollLockUntilV38 = 0
 let serviceDateObserverV38 = null
 let photoOpenTokenV37 = 0
-const teamSummaryCacheV37 = new Map()function ensureLoadingScreenV7() {
+const teamSummaryCacheV37 = new Map()
+function ensureLoadingScreenV7() {
   let screen = document.getElementById('jr-loading-screen-v7')
   if (screen) return screen
 
@@ -992,7 +994,8 @@ function installMobileSessionFixV32() {
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closeSidebar()
   })
-}async function finishAuthorizedPanelLoadV32(flowVersion) {
+}
+async function finishAuthorizedPanelLoadV32(flowVersion) {
   let panelOpened = false
   try {
     updateLoadingScreenV7('Carregando equipes e pontuações...')
@@ -2071,7 +2074,8 @@ async function handleLogin(event) {
   } finally {
     setButtonLoading(els.loginButton, false, 'ENTRAR')
   }
-}async function authorizeAndOpen(user, flowVersion = authFlowVersionV32) {
+}
+async function authorizeAndOpen(user, flowVersion = authFlowVersionV32) {
   updateLoadingScreenV7('Validando seu acesso...')
   const { data: profile, error } = await supabase
     .from('profiles')
@@ -2124,7 +2128,8 @@ async function handleLogout(event) {
 
     setSessionViewsV32('login')
   }
-}async function loadProfiles(showSuccessToast = false) {
+}
+async function loadProfiles(showSuccessToast = false) {
   const { data, error } = await supabase
     .from('profiles')
     .select('id, username, team_name, active, role')
@@ -2149,8 +2154,32 @@ async function handleLogout(event) {
     renderAccesses()
     state.accessesDirtyV7 = false
   }
+  // JR_REFRESH_HOME_AFTER_PROFILE_CHANGE_V8
+  if (state.page === 'home' && state.summary) {
+    renderDashboard({ renderModules: false, forceHome: true })
+  }
+
   if (showSuccessToast) toast('Lista de acessos atualizada.')
 }
+async function refreshProfilesForDashboardV8() {
+  if (!state.profile) return true
+
+  await loadProfiles(false)
+  const refreshedProfile = state.profiles.find((profile) => profile.id === state.profile?.id)
+
+  if (!refreshedProfile?.active || !['admin', 'viewer'].includes(refreshedProfile.role)) {
+    await supabase.auth.signOut({ scope: 'local' })
+    stopRealtime()
+    showLogin()
+    toast('Seu acesso ao painel foi desativado.', true)
+    return false
+  }
+
+  state.profile = refreshedProfile
+  applyRoleUi()
+  return true
+}
+
 async function loadDashboard(showSuccessToast = false, source = 'user') {
   const automatic = source === 'auto'
   const now = Date.now()
@@ -2168,6 +2197,10 @@ async function loadDashboard(showSuccessToast = false, source = 'user') {
 
   setLoading(true)
   try {
+    const accessStillValidV8 = source === 'initial'
+      ? true
+      : await refreshProfilesForDashboardV8()
+    if (!accessStillValidV8) return
     const date = currentDate()
     const dayNext = addDays(date, 1)
     const month = monthRangeFromValue(currentMonth())
@@ -2855,7 +2888,8 @@ function setRangeLoading(value) {
 function setOrdersRangeLoading(value) {
   if (els.ordersRefreshButton) els.ordersRefreshButton.disabled = value
   document.querySelector('[data-open-period-selector="orders"]')?.toggleAttribute('disabled', value)
-}function renderDashboard(options = {}) {
+}
+function renderDashboard(options = {}) {
   const team = els.teamFilter.value
   const profileMap = profileMapById()
   const records = team === 'all' ? state.records : recordsForTeam(team, profileMap)
@@ -2864,13 +2898,14 @@ function setOrdersRangeLoading(value) {
 
   const homeActive = state.page === 'home' || options.forceHome === true
   if (homeActive || !state.monthSummary) {
-    const monthRecords = team === 'all'
-      ? state.monthRecords
-      : recordsForTeam(team, profileMap, state.monthRecords)
-    const monthManifests = team === 'all'
-      ? state.monthManifests
-      : manifestsForTeam(team, profileMap, state.monthManifests)
-    state.monthSummary = buildSummary(monthRecords, monthManifests, profileMap)
+    // JR_FIX_MONTH_SUMMARY_INDEPENDENT_SITE_REAL_V8
+    // O calendário de mês/ano controla sozinho o resumo mensal.
+    // O seletor diário de equipe não filtra os totais do mês.
+    state.monthSummary = buildSummary(
+      state.monthRecords,
+      state.monthManifests,
+      profileMap,
+    )
   }
 
   if (homeActive) {
@@ -3025,14 +3060,20 @@ function renderTeamScores() {
   applyTeamScoresVisibility()
 
   const selected = els.teamFilter.value
-  const teams = selected === 'all' ? teamsForCurrentDate() : [selected]
+  const activeTeams = configuredTeamNames()
+
+  // JR_FIX_ONLY_ACTIVE_APP_TEAMS_SITE_REAL_V8
+  // Registros antigos continuam preservados, mas equipe arquivada não recebe cartão.
+  const teams = selected === 'all'
+    ? activeTeams
+    : activeTeams.includes(selected) ? [selected] : []
 
   renderDailyScoreTotal()
 
   els.teamScoreGrid.classList.add('team-score-list-v30')
 
   if (teams.length === 0) {
-    els.teamScoreGrid.innerHTML = moduleEmpty('Nenhuma equipe cadastrada ou com dados neste período.')
+    els.teamScoreGrid.innerHTML = moduleEmpty('Nenhuma equipe ativa cadastrada.')
     return
   }
 
@@ -3708,7 +3749,8 @@ function renderGlobalIssueResult(issue) {
     </span>
     <span class="global-result-arrow-v19">${icon('eye')}</span>
   </button>`
-}function renderModulePages() {
+}
+function renderModulePages() {
   moduleRenderCacheV31.clear()
   if (state.page !== 'home' && state.page !== 'settings') {
     scheduleCurrentModuleRenderV31(state.page)
@@ -4561,7 +4603,8 @@ async function adminApiRequest(path, options = {}) {
   } finally {
     window.clearTimeout(timeout)
   }
-}function switchPage(page, silent = false) {
+}
+function switchPage(page, silent = false) {
   let target = page
   if (!canAccessPage(target)) {
     target = 'home'
