@@ -10,6 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./src/styles.css?v=15" />
+  <link rel="stylesheet" href="./src/services-board.css?v=servicos-planilha-v1" />
+  <!-- JR_SERVICOS_EXECUTADOS_PLANILHA_V1 -->
 </head>
 <body>
   <div id="toast" class="toast" aria-live="polite"></div>
@@ -75,6 +77,7 @@
         <button class="nav-item" type="button" data-page="photos"><span data-icon="image"></span><span>Fotos</span></button>
         <button class="nav-item" type="button" data-page="settings"><span data-icon="settings"></span><span>Configurações</span></button>
         <button class="nav-item" type="button" data-page="codes"><span data-icon="table"></span><span>Códigos</span></button>
+        <button class="nav-item" type="button" data-page="services"><span data-icon="table"></span><span>Serviços Executados</span></button>
         <button class="nav-item" type="button" data-page="reports"><span data-icon="file-text"></span><span>Relatórios</span></button>
       </nav>
 
@@ -250,7 +253,7 @@
             <div id="accesses-empty" class="empty-state hidden"><strong>Nenhum acesso encontrado</strong><span>Crie a primeira equipe ou usuário administrativo.</span></div>
           </section>
 
-          <div class="viewer-settings-note viewer-only hidden"><span data-icon="shield"></span><div><strong>Acesso somente leitura</strong><p>Este usuário pode consultar somente as páginas Início, Fotos e Relatórios. As funções administrativas permanecem bloqueadas.</p></div></div>
+          <div class="viewer-settings-note viewer-only hidden"><span data-icon="shield"></span><div><strong>Acesso somente leitura</strong><p>Este usuário pode consultar as páginas Início, Fotos, Serviços Executados e Relatórios. As funções administrativas permanecem bloqueadas.</p></div></div>
         </section>
       </section>
 
@@ -281,27 +284,43 @@
         </section>
       </section>
 
-      <section id="page-reports" class="page-section hidden">
-        <section class="panel module-panel monthly-services-panel">
-          <div class="panel-title-row">
-            <div><span class="panel-kicker"><span data-icon="chart"></span>SERVIÇOS EXECUTADOS</span><p>Resumo mensal por equipe, período e tipo de serviço, usando diretamente os registros recebidos no Supabase.</p></div>
-          </div>
-          <div class="module-toolbar monthly-services-toolbar">
-            <label class="picker-field"><span>Mês e ano</span>
-              <div class="picker-control" data-month-picker-for="reports-month-filter">
-                <button class="picker-trigger" type="button" aria-label="Selecionar mês do relatório" aria-haspopup="dialog" aria-expanded="false">
-                  <span class="picker-trigger-value">Selecione o mês</span>
-                  <span data-icon="calendar"></span>
-                </button>
-                <input id="reports-month-filter" type="hidden" />
-              </div>
-            </label>
-            <button id="reports-month-refresh" class="secondary-button" type="button"><span data-icon="refresh"></span>Atualizar</button>
-            <button id="reports-month-download" class="primary-button" type="button"><span data-icon="download"></span><span class="button-label">BAIXAR RELATÓRIO MENSAL</span></button>
-          </div>
-          <div id="reports-month-preview" class="monthly-services-preview"></div>
-        </section>
 
+      <section id="page-services" class="page-section hidden">
+        <section class="panel module-panel services-board-panel">
+          <div class="panel-title-row services-board-heading">
+            <div>
+              <span class="panel-kicker"><span data-icon="table"></span>SERVIÇOS EXECUTADOS</span>
+              <p>Planilha mensal por equipe, com os dias do mês, pontuação e observações.</p>
+            </div>
+            <div id="services-save-state" class="services-save-state">Somente administradores podem alterar.</div>
+          </div>
+
+          <div class="services-board-toolbar">
+            <label>
+              <span>Mês e ano</span>
+              <input id="services-month-filter" type="month" />
+            </label>
+            <label>
+              <span>Equipe</span>
+              <select id="services-team-filter">
+                <option value="all">Todas as equipes</option>
+              </select>
+            </label>
+            <label class="services-show-hidden">
+              <input id="services-show-hidden" type="checkbox" />
+              <span>Mostrar linhas ocultas</span>
+            </label>
+            <button id="services-refresh" class="secondary-button" type="button"><span data-icon="refresh"></span>Atualizar</button>
+            <button id="services-download" class="primary-button" type="button"><span data-icon="download"></span><span class="button-label">BAIXAR PLANILHA</span></button>
+          </div>
+
+          <div id="services-loading" class="loading-state hidden"><span class="spinner"></span>Montando a planilha mensal...</div>
+          <div id="services-error" class="status-banner hidden"></div>
+          <div id="services-board-root" class="services-board-root"></div>
+        </section>
+      </section>
+
+      <section id="page-reports" class="page-section hidden">
         <section class="panel module-panel reports-daily-panel">
           <div class="panel-title-row"><div><span class="panel-kicker"><span data-icon="file-text"></span>RELATÓRIOS DIÁRIOS POR EQUIPE</span><p>Abra uma equipe para gerar a planilha em nomes somente com os dados dela.</p></div></div>
           <div class="module-toolbar">
@@ -406,5 +425,6 @@
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <script type="module" src="./src/main.js?v=13"></script>
+  <script type="module" src="./src/services-board.js?v=servicos-planilha-v1"></script>
 </body>
 </html>

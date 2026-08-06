@@ -272,6 +272,7 @@ async function loadDashboard(showSuccessToast = false) {
     state.records = dayRecords.filter((row) => serviceDateKey(row) === date)
     state.manifests = dayManifests.filter((manifest) => String(manifest.work_date || '').slice(0, 10) === date)
     state.visibleRows = 10
+    publishServicesMonthCache()
     renderDashboard()
     setConnection(true)
     if (showSuccessToast) toast('Dados atualizados com sucesso.')
@@ -281,6 +282,18 @@ async function loadDashboard(showSuccessToast = false) {
   } finally {
     setLoading(false)
   }
+}
+
+function publishServicesMonthCache() {
+  const detail = {
+    month: currentMonth(),
+    records: state.monthRecords,
+    profiles: state.profiles,
+    profile: state.profile,
+    updatedAt: Date.now(),
+  }
+  window.__JR_SERVICES_MONTH_CACHE__ = detail
+  document.dispatchEvent(new CustomEvent('jr:monthdata', { detail }))
 }
 
 async function fetchAllRows(fetchPage, pageSize = 1000) {
@@ -1148,7 +1161,9 @@ function isAdmin() { return state.profile?.role === 'admin' }
 function asciiJson(value) { return JSON.stringify(value).replace(/[^\x00-\x7F]/g, (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, '0')}`) }
 
 function allowedPages() {
-  return isAdmin() ? new Set(['home', 'photos', 'settings', 'codes', 'reports']) : new Set(['home', 'photos', 'reports'])
+  return isAdmin()
+    ? new Set(['home', 'photos', 'settings', 'codes', 'services', 'reports'])
+    : new Set(['home', 'photos', 'services', 'reports'])
 }
 
 function canAccessPage(page) {
@@ -1374,6 +1389,7 @@ function switchPage(page, silent = false) {
   $$('.nav-item').forEach((button) => button.classList.toggle('active', button.dataset.page === target))
   renderModulePages()
   closeSidebar()
+  document.dispatchEvent(new CustomEvent('jr:pagechange', { detail: { page: target } }))
 }
 
 function openSidebar() { els.sidebar.classList.add('open'); els.sidebarOverlay.classList.add('show') }
