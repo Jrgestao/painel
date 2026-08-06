@@ -1,8 +1,11 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm'
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=2'
-import { hydrateIcons } from './icons.js?v=9'
-import { setUiControlValue } from './ui-controls.js?v=9'
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config-cachefix-20260731-140035.js'
+import { hydrateIcons } from './icons.js?v=20260731'
+import { setUiControlValue } from './ui-controls.js?v=20260731'
 
+const createClient = window.supabase?.createClient
+if (typeof createClient !== 'function') {
+  throw new Error('Cliente local do Supabase não carregou para Serviços Executados.')
+}
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 const $ = (selector) => document.querySelector(selector)
 

@@ -2316,6 +2316,7 @@ async function loadMonthDashboardV6(date, month, token, showSuccessToast, automa
     state.monthLoadedAtV6 = Date.now()
     state.monthLoadedKeyV7 = month.start
     state.monthLoadedAtV7 = Date.now()
+    publishServicesMonthCacheV8()
     moduleRenderCacheV31.clear()
 
     const currentOrdersMonth = currentOrdersMonthRange()
@@ -2348,6 +2349,21 @@ async function loadMonthDashboardV6(date, month, token, showSuccessToast, automa
 
 
 // Cópia antiga de loadMonthDashboardV6 removida pela V8.4.
+
+
+// JR_GESTAO_SERVICOS_EXECUTADOS_SITE_REAL_V10
+function publishServicesMonthCacheV8() {
+  const detail = {
+    month: currentMonth(),
+    records: Array.isArray(state.monthRecords) ? state.monthRecords : [],
+    profiles: Array.isArray(state.profiles) ? state.profiles : [],
+    profile: state.profile || null,
+    updatedAt: Date.now(),
+  }
+
+  window.__JR_SERVICES_MONTH_CACHE__ = detail
+  document.dispatchEvent(new CustomEvent('jr:monthdata', { detail }))
+}
 
 function currentOrdersMonthRange() {
   const month = todayInCampoGrande().slice(0, 7)
@@ -4356,7 +4372,9 @@ function canDownloadPhotos() { return ['admin', 'viewer'].includes(state.profile
 function asciiJson(value) { return JSON.stringify(value).replace(/[^\x00-\x7F]/g, (char) => `\\u${char.charCodeAt(0).toString(16).padStart(4, '0')}`) }
 
 function allowedPages() {
-  return isAdmin() ? new Set(['home', 'search', 'photos', 'settings', 'codes', 'orders', 'reports']) : new Set(['home', 'search', 'photos', 'orders', 'reports'])
+  return isAdmin()
+    ? new Set(['home', 'search', 'photos', 'settings', 'codes', 'orders', 'services', 'reports'])
+    : new Set(['home', 'search', 'photos', 'orders', 'services', 'reports'])
 }
 
 function canAccessPage(page) {
@@ -4626,6 +4644,7 @@ function switchPage(page, silent = false) {
   })
 
   closeSidebar()
+  document.dispatchEvent(new CustomEvent('jr:pagechange', { detail: { page: target } }))
 
   if (target === 'search') {
     requestAnimationFrame(() => els.globalSearchInput?.focus({ preventScroll: true }))
