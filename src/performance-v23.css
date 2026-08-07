@@ -1,0 +1,56 @@
+/* JR GESTAO PERFORMANCE V23
+   Mantém o visual e reduz trabalho desnecessário do Chrome. */
+
+html.jr-performance-v22 {
+  scroll-behavior: auto !important;
+}
+
+html.jr-performance-v22 .page-section.hidden {
+  display: none !important;
+}
+
+html.jr-performance-v22 #page-services.hidden {
+  contain: strict;
+}
+
+html.jr-performance-v22 #page-services:not(.hidden) {
+  contain: style;
+}
+
+html.jr-performance-v22 .services-matrix-scroll {
+  scroll-behavior: auto !important;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+}
+
+html.jr-performance-v22 .services-observation-hover:not(.is-visible) {
+  display: none !important;
+}
+
+html.jr-performance-v22 .services-dirty-actions.hidden {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  html.jr-performance-v22 #page-services .services-board-panel {
+    box-shadow: none;
+  }
+}
+
+
+/* V23 — navegação imediata, sem animação cara entre páginas. */
+html.jr-performance-v23 .page-section {
+  transition-property: none !important;
+}
+
+html.jr-performance-v23 .page-section.hidden {
+  display: none !important;
+}
+
+/* Backdrop blur em matrizes/dialogs grandes custa muito no Chrome. */
+html.jr-performance-v23 #page-services .services-board-panel,
+html.jr-performance-v23 #page-services .services-matrix-scroll,
+html.jr-performance-v23 .services-note-dialog-card {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
