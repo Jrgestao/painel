@@ -22,7 +22,7 @@
   <meta name="apple-mobile-web-app-title" content="JR Gestão">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="msapplication-TileImage" content="./favicon-192x192.png?v=jr-full-v11-20260728">
-  
+
   <!-- JR_GESTAO_FAVICON_LOGO_COMPLETA_V11_FIM -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -270,8 +270,8 @@
   </style>
   <link rel="stylesheet" href="./src/loading-interativo-v8-9-20260802-150500.css?v=20260802-150500">
   <script defer src="./src/loading-interativo-v8-9-20260802-150500.js?v=20260802-150500"></script>
-  <link rel="stylesheet" href="./src/services-board-v20.css?v=matriz-v20-20260807" />
-  <!-- JR_SERVICOS_EXECUTADOS_SITE_REAL_V20 -->
+  <link rel="stylesheet" href="./src/services-board-v21.css?v=matriz-v21-20260807" />
+  <!-- JR_SERVICOS_EXECUTADOS_SITE_REAL_V21 -->
 </head>
 <body>
   <div
@@ -313,7 +313,7 @@
           <span class="eyebrow">ADMINISTRAÇÃO</span>
           <h2><span>PAINEL</span> <span>ADMINISTRATIVO</span></h2>
           <span class="heading-line"></span>
-          
+
         </div>
 
         <form id="login-form" novalidate>
@@ -358,11 +358,11 @@
       <nav class="sidebar-nav" aria-label="Menu principal">
         <button class="nav-item active" type="button" data-page="home"><span data-icon="home"></span><span>Início</span></button>
         <button class="nav-item" type="button" data-page="photos"><span data-icon="image"></span><span>Fotos</span></button>
-        <button class="nav-item" type="button" data-page="settings"><span data-icon="settings"></span><span>Configurações</span></button>
         <button class="nav-item" type="button" data-page="codes"><span data-icon="table"></span><span>Códigos</span></button>
-                <button class="nav-item" type="button" data-page="orders"><span data-icon="file-text"></span><span>Ordens de Serviço</span></button>
-<button class="nav-item" type="button" data-page="services"><span data-icon="table"></span><span>Serviços Executados</span></button>
-<button class="nav-item" type="button" data-page="reports"><span data-icon="file-text"></span><span>Relatórios</span></button>
+        <button class="nav-item" type="button" data-page="reports"><span data-icon="file-text"></span><span>Relatórios</span></button>
+        <button class="nav-item" type="button" data-page="services"><span data-icon="table"></span><span>Serviços Executados</span></button>
+        <button class="nav-item" type="button" data-page="orders"><span data-icon="file-text"></span><span>Ordens de Serviço</span></button>
+        <button class="nav-item" type="button" data-page="settings"><span data-icon="settings"></span><span>Configurações</span></button>
       </nav>
 
       <div class="monitor-card">
@@ -601,7 +601,7 @@
         </section>
       </section>
 
-      
+
       <section id="page-orders" class="page-section hidden">
         <section class="panel module-panel orders-page-panel">
           <div class="panel-title-row">
@@ -898,29 +898,17 @@
               </label>
 
               <div class="services-import-fields">
-                <label class="picker-field">
+                <label class="picker-field services-import-native-field">
                   <span>Equipe</span>
-                  <div class="custom-select-control" data-select-for="services-import-team">
-                    <button class="custom-select-trigger" type="button" aria-label="Selecionar equipe" aria-haspopup="listbox" aria-expanded="false">
-                      <span class="custom-select-value">Selecionar equipe</span>
-                      <span class="custom-select-arrow" data-icon="chevron-down"></span>
-                    </button>
-                    <select id="services-import-team" class="native-control-hidden" tabindex="-1" aria-hidden="true">
-                      <option value="">Selecionar equipe</option>
-                    </select>
-                    <div class="custom-select-menu" role="listbox"></div>
-                  </div>
+                  <select id="services-import-team" class="services-import-native-control">
+                    <option value="">Selecionar equipe</option>
+                  </select>
                 </label>
 
-                <label class="picker-field">
+                <label class="picker-field services-import-native-field">
                   <span>Data de apoio</span>
-                  <div class="picker-control" data-date-picker-for="services-import-date" data-allow-clear="true">
-                    <button class="picker-trigger" type="button" aria-label="Selecionar data de apoio" aria-haspopup="dialog" aria-expanded="false">
-                      <span class="picker-trigger-value">Usar data da planilha</span>
-                      <span data-icon="calendar"></span>
-                    </button>
-                    <input id="services-import-date" type="hidden" />
-                  </div>
+                  <input id="services-import-date" class="services-import-native-control" type="date" />
+                  <small>Preenchida automaticamente quando a planilha possui uma única data.</small>
                 </label>
               </div>
 
@@ -1210,7 +1198,8 @@
   <script src="./src/vendor/supabase-js-2.57.4-local-20260801-221649.js?v=20260801-221649"></script>
   <script type="module" src="./src/main-sem-flash-mobile-v8-7-20260802-144500.js?v=equipe-mes-ativos-v8-20260805"></script>
 <script defer src="./src/ajuste-rede-desempenho-v6-20260801-221649.js?v=20260801-221649"></script>
-  <script type="module" src="./src/services-board-v20.js?v=matriz-v20-20260807"></script>
-  <script type="module" src="./src/services-home-overlay-v20.js?v=import-home-v20-20260807"></script>
+  <script type="module" src="./src/services-import-bridge-v21.js?v=bridge-v21-20260807"></script>
+  <script type="module" src="./src/services-board-v21.js?v=matriz-v21-20260807"></script>
+  <script type="module" src="./src/services-home-overlay-v21.js?v=home-v21-20260807"></script>
 </body>
 </html>

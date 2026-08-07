@@ -478,33 +478,18 @@ function dateTimeFromFileName(row, fileName, fallbackPath) {
 }
 
 function serviceDateKey(row) {
-  const record = row.registro || row
-
-  for (const value of [
-    record.date,
-    record.serviceDate,
-    record.workDate,
-    record.work_date,
-  ]) {
-    const match = text(value).match(/^(\d{4})-(\d{2})-(\d{2})/)
-    if (match) return `${match[1]}-${match[2]}-${match[3]}`
+  const record=row.registro||row
+  for(const value of [record.timePhotoFileName,record.timePhotoPath,record.surveyPhotoFileName,record.surveyPhotoPath]){
+    const match=text(value).match(/(?:^|\D)(\d{4})(\d{2})(\d{2})[_\-\s](?:[01]\d|2[0-3])(?:[0-5]\d)/)
+    if(match)return [match[1],match[2],match[3]].join('-')
   }
-
-  for (const value of [
-    record.timePhotoTakenAt,
-    record.surveyPhotoTakenAt,
-    row.data,
-  ]) {
-    const timestamp = safeDateTimestamp(value)
-    if (!timestamp) continue
-    return new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'America/Campo_Grande',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).format(new Date(timestamp))
+  for(const value of [record.timePhotoTakenAt,record.surveyPhotoTakenAt,row.data]){
+    const timestamp=safeDateTimestamp(value); if(!timestamp)continue
+    return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Campo_Grande',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(timestamp))
   }
-
+  for(const value of [record.date,record.serviceDate,record.workDate,record.work_date]){
+    const match=text(value).match(/^(\d{4})-(\d{2})-(\d{2})/); if(match)return [match[1],match[2],match[3]].join('-')
+  }
   return ''
 }
 

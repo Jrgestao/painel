@@ -3775,13 +3775,41 @@ function renderModulePages() {
 
 
 
-function syncOrdersTeamFilter() {
+
+function importedRecordsForRangeV21(start, end) {
+  try { return window.__JR_IMPORTED_RECORDS_V21__?.recordsForRange?.(start,end) || [] } catch (_error) { return [] }
+}
+function mergeImportedRowsV21(rows, start, end) {
+  const seen=new Set((rows||[]).map(row=>String(row?.id||'')))
+  const imported=importedRecordsForRangeV21(start,end).filter(row=>!seen.has(String(row?.id||'')))
+  return [...(rows||[]),...imported]
+}
+function codesRecordsForTeamV21(team) {
+  const normalized=normalizeText(team)
+  const profileMap=profileMapById()
+  const normal=rangeSummaryForTeam(team).active
+  return mergeImportedRowsV21(normal,state.range.start,state.range.end)
+    .filter(row=>normalizeText(recordTeam(row,profileMap))===normalized)
+    .sort((a,b)=>recordSortTimestamp(a)-recordSortTimestamp(b)||String(a.id||'').localeCompare(String(b.id||'')))
+}
+function codesTeamsForRangeV21(teams) {
+  const profileMap=profileMapById()
+  const names=new Set(teams||[])
+  importedRecordsForRangeV21(state.range.start,state.range.end).forEach(row=>{const team=recordTeam(row,profileMap);if(team)names.add(team)})
+  return [...names].filter(Boolean).sort((a,b)=>a.localeCompare(b,'pt-BR'))
+}
+\nfunction syncOrdersTeamFilter() {
   if (!els.ordersTeamFilter) return
 
   const profileMap = profileMapById()
   const names = new Set(configuredTeamNames())
+  const mergedRecords = mergeImportedRowsV21(
+    state.ordersRange.records,
+    state.ordersRange.start,
+    state.ordersRange.end,
+  )
 
-  state.ordersRange.records.forEach((row) => {
+  mergedRecords.forEach((row) => {
     const team = recordTeam(row, profileMap)
     if (team) names.add(team)
   })
@@ -3789,15 +3817,13 @@ function syncOrdersTeamFilter() {
   const teams = [...names]
     .filter(Boolean)
     .sort((a, b) => a.localeCompare(b, 'pt-BR'))
-
   const previous = state.ordersTeam || els.ordersTeamFilter.value || 'all'
   const nextHtml = '<option value="all">Todas as equipes</option>' +
-    teams.map((team) => `<option value="${escapeHtml(team)}">${escapeHtml(team)}</option>`).join('')
+    teams.map((team) => '<option value="' + escapeHtml(team) + '">' + escapeHtml(team) + '</option>').join('')
 
   if (els.ordersTeamFilter.innerHTML !== nextHtml) {
     els.ordersTeamFilter.innerHTML = nextHtml
   }
-
   const exists = [...els.ordersTeamFilter.options].some((option) => option.value === previous)
   state.ordersTeam = exists ? previous : 'all'
   els.ordersTeamFilter.value = state.ordersTeam
@@ -3809,17 +3835,19 @@ function ordersForSelectedRange() {
   const selectedTeam = normalizeText(state.ordersTeam)
   const search = state.ordersSearch
 
-  return state.ordersRange.records
+  return mergeImportedRowsV21(
+    state.ordersRange.records,
+    state.ordersRange.start,
+    state.ordersRange.end,
+  )
     .filter((row) => {
       if (row.deleted_at) return false
-
       const record = row.registro || {}
       const order = String(record.orderNumber || '').trim()
       if (!order) return false
 
       const team = recordTeam(row, profileMap)
       if (selectedTeam && selectedTeam !== 'all' && normalizeText(team) !== selectedTeam) return false
-
       if (search && !recordSearchText(row, profileMap).includes(search)) return false
       return true
     })
@@ -3930,21 +3958,12 @@ function renderPhotoTeams(teams) {
 
 function renderCodeTeams(teams) {
   if (!els.codesTeamList) return
-  if (teams.length === 0) {
-    els.codesTeamList.innerHTML = moduleEmpty('Nenhuma equipe com pontos neste período.')
-    return
-  }
-  els.codesTeamList.innerHTML = teams.map((team) => {
-    const summary = rangeSummaryForTeam(team)
-    return teamFolderCard({
-      team,
-      action: 'data-open-code-team',
-      iconName: 'table',
-      headline: `${summary.score.total} ponto(s) contabilizado(s)`,
-      detail: `${summary.active.length} registro(s) válido(s) • ${summary.deleted.length} excluído(s)`,
-      badge: summary.active.length > 0 ? 'PRONTO' : 'VAZIO',
-      badgeClass: summary.active.length > 0 ? 'confirmed' : 'pending',
-    })
+  const visibleTeams=codesTeamsForRangeV21(teams)
+  if (visibleTeams.length === 0) { els.codesTeamList.innerHTML=moduleEmpty('Nenhuma equipe com pontos neste período.'); return }
+  els.codesTeamList.innerHTML=visibleTeams.map((team)=>{
+    const records=codesRecordsForTeamV21(team)
+    const score=scoreBreakdown(records)
+    return teamFolderCard({team,action:'data-open-code-team',iconName:'table',headline:String(score.total)+' ponto(s) contabilizado(s)',detail:String(records.length)+' registro(s) válido(s) • importações incluídas',badge:records.length>0?'PRONTO':'VAZIO',badgeClass:records.length>0?'confirmed':'pending'})
   }).join('')
 }
 
@@ -4050,15 +4069,15 @@ function closePhotoFolder() {
 
 function openCodesTeam(team, silent = false) {
   if (!team) return
-  state.moduleTeams.codes = team
+  state.moduleTeams.codes=team
   els.codesTeamList.classList.add('hidden')
   els.codesTeamDetail.classList.remove('hidden')
-  const summary = rangeSummaryForTeam(team)
-  els.codesTeamTitle.textContent = `${team} — ${periodLabel()}`
-  els.codesTeamSummary.textContent = `${summary.active.length} ponto(s) válido(s). ${summary.deleted.length} excluído(s) não entram no arquivo.`
-  els.codesTeamDownload.disabled = summary.active.length === 0
-  els.codesPreview.innerHTML = recordsPreview(summary.active, summary.profileMap, { newestFirst: false, showObservation: true })
-  if (!silent) focusModuleDetailV37(els.codesTeamDetail)
+  const records=codesRecordsForTeamV21(team)
+  els.codesTeamTitle.textContent=String(team)+' — '+periodLabel()
+  els.codesTeamSummary.textContent=String(records.length)+' ponto(s) válido(s). Registros importados também entram na planilha em códigos.'
+  els.codesTeamDownload.disabled=records.length===0
+  els.codesPreview.innerHTML=recordsPreview(records,profileMapById(),{newestFirst:false,showObservation:true})
+  if(!silent)focusModuleDetailV37(els.codesTeamDetail)
 }
 
 function closeCodesTeam() {
@@ -4136,14 +4155,15 @@ function recordObservationText(record) {
 async function downloadCodesForTeam(team) {
   if (!isAdmin()) { toast('Acesso negado. Esta ação exige permissão de administrador.', true); return }
   try {
-    const selected = await ensureExportRangeReady('codes')
-    const normalizedTeam = requireSpecificTeam(team)
-    const records = rangeSummaryForTeam(normalizedTeam).active
-    if (records.length === 0) throw new Error('Nenhum registro válido foi encontrado neste período.')
-    toast('Gerando uma planilha em códigos com todo o período...')
-    await downloadCodesWorkbook(records, rangeExportContextFor(normalizedTeam, records, selected))
+    const selected=await ensureExportRangeReady('codes')
+    const normalizedTeam=requireSpecificTeam(team)
+    await window.__JR_IMPORTED_RECORDS_V21__?.refreshRange?.(selected.start,selected.end)
+    const records=codesRecordsForTeamV21(normalizedTeam)
+    if(records.length===0)throw new Error('Nenhum registro válido foi encontrado neste período.')
+    toast('Gerando uma planilha em códigos com registros do aplicativo e importados...')
+    await downloadCodesWorkbook(records,rangeExportContextFor(normalizedTeam,records,selected))
     toast('Planilha em códigos gerada do horário mais antigo para o mais novo.')
-  } catch (error) { toast(friendlyError(error), true) }
+  } catch(error){toast(friendlyError(error),true)}
 }
 
 async function downloadNamesForTeam(team) {
@@ -4948,7 +4968,7 @@ function recordMinutes(row) {
 
 function isMorningRecord(row) {
   const minutes = recordMinutes(row)
-  return minutes >= (6 * 60) && minutes <= ((17 * 60) + 30)
+  return minutes >= (6 * 60) && minutes < ((17 * 60) + 30)
 }
 
 function recordLabel(row, profileMap) {
@@ -5060,10 +5080,23 @@ function unionJsonArrays(rows, key) {
 }
 
 function serviceDateKey(row) {
-  const recordDate = row?.registro?.date
-  if (hasText(recordDate)) return String(recordDate).slice(0, 10)
-  if (hasText(row?.data)) return String(row.data).slice(0, 10)
-  return ''
+  const record = row?.registro || row || {}
+  for (const value of [record.timePhotoFileName,record.timePhotoPath,record.surveyPhotoFileName,record.surveyPhotoPath]) {
+    const match=String(value||'').match(/(?:^|\D)(\d{4})(\d{2})(\d{2})[_\-\s](?:[01]\d|2[0-3])(?:[0-5]\d)/)
+    if(match)return [match[1],match[2],match[3]].join('-')
+  }
+  for(const value of [record.timePhotoTakenAt,record.surveyPhotoTakenAt]){
+    if(!hasText(value))continue
+    const date=parseStoredDateTime(value)
+    if(!date)continue
+    return new Intl.DateTimeFormat('en-CA',{timeZone:APP_TIME_ZONE,year:'numeric',month:'2-digit',day:'2-digit'}).format(date)
+  }
+  for(const value of [record.date,record.serviceDate,record.workDate,record.work_date]){
+    const match=String(value||'').match(/^(\d{4})-(\d{2})-(\d{2})/)
+    if(match)return [match[1],match[2],match[3]].join('-')
+  }
+  const fallback=String(row?.data||'').match(/^(\d{4})-(\d{2})-(\d{2})/)
+  return fallback?[fallback[1],fallback[2],fallback[3]].join('-'):''
 }
 
 function monthRangeFromValue(monthValue) {
@@ -5192,3 +5225,11 @@ function safeFilePart(value) { return normalizeText(value).replace(/[^a-z0-9]+/g
 function fileDate(value) { const parts = String(value || '').slice(0, 10).split('-'); return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : 'SEM-DATA' }
 function escapeHtml(value) { return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;') }
 function friendlyError(error) { const message = error?.message || String(error || 'Erro desconhecido'); if (/invalid login credentials/i.test(message)) return 'Usuário ou senha incorretos.'; if (isRateLimitError(error)) return 'Muitas solicitações ao painel. A atualização automática será retomada após o intervalo de segurança.'; if (/admin_purge_excluded_record|function .* does not exist|could not find the function/i.test(message)) return 'Execute o SQL 03_EXCLUSAO_DEFINITIVA_ADMIN.sql no Supabase antes de usar a exclusão definitiva.'; if (/failed to fetch|network|fetch/i.test(message)) return 'Não foi possível conectar ao Supabase.'; return message }
+
+document.addEventListener('jr:imported-v21-ready', () => {
+  moduleRenderCacheV31.delete('codes')
+  moduleRenderCacheV31.delete('orders')
+  if (state.page === 'codes' || state.page === 'orders') {
+    scheduleCurrentModuleRenderV31(state.page)
+  }
+})
