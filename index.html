@@ -270,8 +270,8 @@
   </style>
   <link rel="stylesheet" href="./src/loading-interativo-v8-9-20260802-150500.css?v=20260802-150500">
   <script defer src="./src/loading-interativo-v8-9-20260802-150500.js?v=20260802-150500"></script>
-  <link rel="stylesheet" href="./src/services-board-v11.css?v=matriz-v11-20260806" />
-  <!-- JR_SERVICOS_EXECUTADOS_SITE_REAL_V11 -->
+  <link rel="stylesheet" href="./src/services-board-v20.css?v=matriz-v20-20260807" />
+  <!-- JR_SERVICOS_EXECUTADOS_SITE_REAL_V20 -->
 </head>
 <body>
   <div
@@ -713,68 +713,261 @@
           <div class="panel-title-row services-board-heading">
             <div>
               <span class="panel-kicker"><span data-icon="table"></span>SERVIÇOS EXECUTADOS</span>
-              <p>Dias nas linhas, equipes nas colunas e somente serviços importantes nas observações.</p>
+              <p>Matriz mensal com equipes em colunas e observações independentes em cada uma das quatro planilhas.</p>
             </div>
             <div id="services-save-state" class="services-save-state">Carregando permissões...</div>
           </div>
 
-          <div class="services-board-toolbar">
-            <label>
+          <div class="services-board-toolbar services-board-toolbar-site">
+            <label class="picker-field services-toolbar-field">
               <span>Mês e ano</span>
-              <input id="services-month-filter" type="month" />
+              <div class="picker-control" data-month-picker-for="services-month-filter">
+                <button class="picker-trigger" type="button" aria-label="Selecionar mês e ano" aria-haspopup="dialog" aria-expanded="false">
+                  <span class="picker-trigger-value">Selecione o mês</span>
+                  <span data-icon="calendar"></span>
+                </button>
+                <input id="services-month-filter" type="hidden" />
+              </div>
             </label>
-            <label>
+
+            <label class="picker-field services-toolbar-field">
               <span>Planilha exibida</span>
-              <select id="services-metric-filter">
-                <option value="dayPoints">Pontos Manhã/Tarde</option>
-                <option value="daySurveys">Levantamentos Manhã/Tarde</option>
-                <option value="nightPoints">Pontos Noite</option>
-                <option value="nightSurveys">Levantamentos Noite</option>
-              </select>
+              <div class="custom-select-control" data-select-for="services-metric-filter">
+                <button class="custom-select-trigger" type="button" aria-label="Selecionar planilha" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="custom-select-value">Pontos Manhã/Tarde</span>
+                  <span class="custom-select-arrow" data-icon="chevron-down"></span>
+                </button>
+                <select id="services-metric-filter" class="native-control-hidden" tabindex="-1" aria-hidden="true">
+                  <option value="dayPoints">Pontos Manhã/Tarde</option>
+                  <option value="daySurveys">Levantamentos Manhã/Tarde</option>
+                  <option value="nightPoints">Pontos Noite</option>
+                  <option value="nightSurveys">Levantamentos Noite</option>
+                </select>
+                <div class="custom-select-menu" role="listbox"></div>
+              </div>
             </label>
-            <label>
+
+            <label class="picker-field services-toolbar-field">
               <span>Equipes</span>
-              <select id="services-team-filter">
-                <option value="all">Todas as equipes em colunas</option>
-              </select>
+              <div class="custom-select-control" data-select-for="services-team-filter">
+                <button class="custom-select-trigger" type="button" aria-label="Selecionar equipe" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="custom-select-value">Todas as equipes em colunas</span>
+                  <span class="custom-select-arrow" data-icon="chevron-down"></span>
+                </button>
+                <select id="services-team-filter" class="native-control-hidden" tabindex="-1" aria-hidden="true">
+                  <option value="all">Todas as equipes em colunas</option>
+                </select>
+                <div class="custom-select-menu" role="listbox"></div>
+              </div>
             </label>
+
             <label class="services-show-hidden">
               <input id="services-show-hidden" type="checkbox" />
-              <span>Mostrar linhas ocultas</span>
+              <span>Revisar / desocultar dias ocultos</span>
             </label>
+
+            <label class="services-show-hidden">
+              <input id="services-show-hidden-columns" type="checkbox" />
+              <span>Mostrar equipes ocultas</span>
+            </label>
+
             <button id="services-refresh" class="secondary-button" type="button"><span data-icon="refresh"></span>Atualizar</button>
           </div>
 
           <div class="services-board-actions">
-            <button id="services-hide-empty" class="outline-button" type="button">Ocultar dias vazios</button>
-            <button id="services-show-all" class="outline-button" type="button">Mostrar todas as linhas</button>
-            <button id="services-save-all" class="primary-button" type="button"><span data-icon="save"></span><span class="button-label">SALVAR ALTERAÇÕES</span></button>
-            <button id="services-download" class="primary-button" type="button"><span data-icon="download"></span><span class="button-label">BAIXAR 4 PLANILHAS</span></button>
+            <button id="services-hide-empty" class="outline-button services-action-button" type="button">Ocultar dias vazios</button>
+            <button id="services-show-all" class="outline-button services-action-button" type="button">Mostrar todos os dias</button>
+            <button id="services-show-all-columns" class="outline-button services-action-button" type="button">Mostrar todas as equipes desta planilha</button>
+            <button id="services-toggle-observations" class="outline-button services-action-button" type="button"><span data-icon="eye"></span><span class="button-label">Ocultar observações</span></button>
+            <button id="services-import-workbook" class="outline-button services-action-button services-import-button" type="button"><span data-icon="file-spreadsheet"></span><span class="button-label">Importar planilha</span></button>
+            <button id="services-download" class="primary-button services-action-button services-download-button" type="button"><span data-icon="download"></span><span class="button-label">Baixar 4 planilhas</span></button>
+
+            <div id="services-dirty-actions" class="services-dirty-actions hidden" aria-label="Alterações pendentes">
+              <button id="services-save-all"
+                class="services-dirty-icon services-dirty-save"
+                type="button"
+                title="Salvar alterações"
+                aria-label="Salvar alterações">
+                <span data-icon="save"></span>
+              </button>
+
+              <button id="services-discard-all"
+                class="services-dirty-icon services-dirty-discard"
+                type="button"
+                title="Descartar alterações"
+                aria-label="Descartar alterações">
+                <span data-icon="trash"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="services-legend services-legend-single-line">
+            <span class="services-legend-item services-legend-important">
+              <i class="services-legend-symbol">✦</i>
+              <span>Cards dourados indicam serviço importante no dia.</span>
+            </span>
+
+            <span class="services-legend-item">
+              <i class="services-legend-icon" data-icon="eye"></i>
+              <span>Passe o mouse no olho para prévia; clique para abrir o dia.</span>
+            </span>
+
+            <span class="services-legend-item">
+              <i class="services-legend-symbol">−/+</i>
+              <span>Dias ocultos somem das observações e podem ser recuperados.</span>
+            </span>
           </div>
 
           <div class="services-help-line">
-            <span>Valores com “alterado” foram editados manualmente. Apague o número e saia do campo para restaurar o cálculo automático.</span>
+            <span>Pontos e levantamentos têm observações independentes. Um serviço de Pontos não destaca Levantamentos quando não houve levantamento.</span>
           </div>
 
           <div id="services-loading" class="loading-state hidden"><span class="spinner"></span>Montando a matriz mensal...</div>
           <div id="services-error" class="status-banner hidden"></div>
           <div id="services-board-root" class="services-board-root"></div>
+
+          <div id="services-observation-hover"
+            class="services-observation-hover"
+            role="tooltip"
+            aria-hidden="true"></div>
         </section>
 
         <dialog id="services-note-dialog" class="services-note-dialog">
           <form method="dialog" class="services-note-dialog-card" onsubmit="return false">
             <div class="services-note-dialog-header">
               <div>
-                <small>OBSERVAÇÕES POR EQUIPE</small>
+                <small>EDITAR OBSERVAÇÕES POR EQUIPE</small>
                 <h3 id="services-note-dialog-title">Observações do dia</h3>
               </div>
               <button id="services-note-dialog-cancel" type="button" class="services-dialog-close" aria-label="Fechar">×</button>
             </div>
+
             <div id="services-note-dialog-body" class="services-note-dialog-body"></div>
+
             <div class="services-note-dialog-actions">
-              <button id="services-note-dialog-save" type="button" class="primary-button">APLICAR NO RASCUNHO</button>
+              <span>Selecione somente as equipes que deseja editar. Use + para adicionar outra equipe.</span>
+              <button id="services-note-dialog-save" type="button" class="primary-button">Aplicar no rascunho</button>
             </div>
           </form>
+        </dialog>
+
+        <dialog id="services-observation-viewer" class="services-observation-viewer">
+          <section class="services-observation-viewer-card">
+            <header class="services-observation-viewer-header">
+              <button id="services-observation-viewer-prev" class="services-viewer-nav" type="button" aria-label="Dia anterior">‹</button>
+
+              <div class="services-viewer-title">
+                <small>OBSERVAÇÕES DO DIA</small>
+                <h3 id="services-observation-viewer-title">DIA 01</h3>
+                <span id="services-observation-viewer-period">Pontos Manhã/Tarde</span>
+              </div>
+
+              <button id="services-observation-viewer-next" class="services-viewer-nav" type="button" aria-label="Próximo dia">›</button>
+              <button id="services-observation-viewer-close" class="services-dialog-close" type="button" aria-label="Fechar">×</button>
+            </header>
+
+            <div id="services-observation-viewer-days" class="services-viewer-days"></div>
+            <div id="services-observation-viewer-body" class="services-observation-viewer-body"></div>
+
+            <footer class="services-observation-viewer-footer">
+              <span>As informações exibidas pertencem somente à planilha selecionada.</span>
+              <button id="services-observation-viewer-edit" class="outline-button" type="button">EDITAR OBSERVAÇÕES DESTE DIA</button>
+            </footer>
+          </section>
+        </dialog>
+
+        <dialog id="services-import-dialog" class="services-import-dialog">
+          <section class="services-import-card">
+            <header class="services-import-header">
+              <div>
+                <span class="services-dialog-kicker">IMPORTAR PLANILHA</span>
+                <h3>Carregar pontuação do Excel</h3>
+                <p>Compatível com planilha em códigos e relatório normal do JR Gestão.</p>
+              </div>
+              <button id="services-import-close" type="button" class="services-dialog-close" aria-label="Fechar">×</button>
+            </header>
+
+            <div class="services-import-body">
+              <label class="services-import-file-card">
+                <input id="services-import-file" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+                <span class="services-import-file-icon" data-icon="file-spreadsheet"></span>
+                <span class="services-import-file-copy">
+                  <strong>Selecionar planilha .xlsx</strong>
+                  <small id="services-import-file-name">Nenhuma planilha selecionada</small>
+                </span>
+              </label>
+
+              <div class="services-import-fields">
+                <label class="picker-field">
+                  <span>Equipe</span>
+                  <div class="custom-select-control" data-select-for="services-import-team">
+                    <button class="custom-select-trigger" type="button" aria-label="Selecionar equipe" aria-haspopup="listbox" aria-expanded="false">
+                      <span class="custom-select-value">Selecionar equipe</span>
+                      <span class="custom-select-arrow" data-icon="chevron-down"></span>
+                    </button>
+                    <select id="services-import-team" class="native-control-hidden" tabindex="-1" aria-hidden="true">
+                      <option value="">Selecionar equipe</option>
+                    </select>
+                    <div class="custom-select-menu" role="listbox"></div>
+                  </div>
+                </label>
+
+                <label class="picker-field">
+                  <span>Data de apoio</span>
+                  <div class="picker-control" data-date-picker-for="services-import-date" data-allow-clear="true">
+                    <button class="picker-trigger" type="button" aria-label="Selecionar data de apoio" aria-haspopup="dialog" aria-expanded="false">
+                      <span class="picker-trigger-value">Usar data da planilha</span>
+                      <span data-icon="calendar"></span>
+                    </button>
+                    <input id="services-import-date" type="hidden" />
+                  </div>
+                </label>
+              </div>
+
+              <div id="services-import-summary" class="services-import-summary hidden"></div>
+              <div id="services-import-status" class="services-import-status">Selecione uma planilha em códigos ou relatório normal.</div>
+
+              <div class="services-import-safety">
+                <span data-icon="shield-check"></span>
+                <p>A importação grava somente a pontuação consolidada e os destaques desta área. Não cria fotos, não cria pendências e não duplica registros do aplicativo.</p>
+              </div>
+            </div>
+
+            <footer class="services-import-actions">
+              <button id="services-import-cancel" class="outline-button" type="button">Cancelar</button>
+              <button id="services-import-apply" class="primary-button" type="button" disabled>Importar e salvar</button>
+            </footer>
+          </section>
+        </dialog>
+
+        <dialog id="services-action-confirm-dialog" class="services-action-confirm-dialog">
+          <section class="services-action-confirm-card">
+            <div class="services-action-confirm-copy">
+              <h3 id="services-action-confirm-title">Confirmar ação?</h3>
+              <p id="services-action-confirm-text">Confirma esta ação?</p>
+            </div>
+
+            <div class="services-action-confirm-actions">
+              <button id="services-action-confirm-no" class="outline-button" type="button">Não</button>
+              <button id="services-action-confirm-yes" class="primary-button" type="button">Sim</button>
+            </div>
+          </section>
+        </dialog>
+
+        <dialog id="services-unsaved-dialog" class="services-unsaved-dialog">
+          <section class="services-unsaved-card">
+            <div class="services-unsaved-icon"><span data-icon="alert-triangle"></span></div>
+            <div class="services-unsaved-copy">
+              <small>ALTERAÇÕES NÃO SALVAS</small>
+              <h3>Salvar antes de sair?</h3>
+              <p>Existem alterações pendentes em Serviços Executados. Escolha salvar, descartar ou continuar editando.</p>
+            </div>
+            <div class="services-unsaved-actions">
+              <button id="services-unsaved-stay" class="outline-button" type="button">CONTINUAR EDITANDO</button>
+              <button id="services-unsaved-discard" class="danger-outline-button" type="button">DESCARTAR ALTERAÇÕES</button>
+              <button id="services-unsaved-save" class="primary-button" type="button">SALVAR E CONTINUAR</button>
+            </div>
+          </section>
         </dialog>
       </section>
       <section id="page-reports" class="page-section hidden">
@@ -1017,6 +1210,7 @@
   <script src="./src/vendor/supabase-js-2.57.4-local-20260801-221649.js?v=20260801-221649"></script>
   <script type="module" src="./src/main-sem-flash-mobile-v8-7-20260802-144500.js?v=equipe-mes-ativos-v8-20260805"></script>
 <script defer src="./src/ajuste-rede-desempenho-v6-20260801-221649.js?v=20260801-221649"></script>
-  <script type="module" src="./src/services-board-v11.js?v=matriz-v11-20260806"></script>
+  <script type="module" src="./src/services-board-v20.js?v=matriz-v20-20260807"></script>
+  <script type="module" src="./src/services-home-overlay-v20.js?v=import-home-v20-20260807"></script>
 </body>
 </html>
