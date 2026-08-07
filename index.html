@@ -270,8 +270,8 @@
   </style>
   <link rel="stylesheet" href="./src/loading-interativo-v8-9-20260802-150500.css?v=20260802-150500">
   <script defer src="./src/loading-interativo-v8-9-20260802-150500.js?v=20260802-150500"></script>
-  <link rel="stylesheet" href="./src/services-board-v10.css?v=site-real-v10-20260806" />
-  <!-- JR_SERVICOS_EXECUTADOS_SITE_REAL_V10 -->
+  <link rel="stylesheet" href="./src/services-board-v11.css?v=matriz-v11-20260806" />
+  <!-- JR_SERVICOS_EXECUTADOS_SITE_REAL_V11 -->
 </head>
 <body>
   <div
@@ -713,9 +713,9 @@
           <div class="panel-title-row services-board-heading">
             <div>
               <span class="panel-kicker"><span data-icon="table"></span>SERVIÇOS EXECUTADOS</span>
-              <p>Planilha mensal por equipe, com os dias do mês, pontuação e observações.</p>
+              <p>Dias nas linhas, equipes nas colunas e somente serviços importantes nas observações.</p>
             </div>
-            <div id="services-save-state" class="services-save-state">Somente administradores podem alterar.</div>
+            <div id="services-save-state" class="services-save-state">Carregando permissões...</div>
           </div>
 
           <div class="services-board-toolbar">
@@ -724,9 +724,18 @@
               <input id="services-month-filter" type="month" />
             </label>
             <label>
-              <span>Equipe</span>
+              <span>Planilha exibida</span>
+              <select id="services-metric-filter">
+                <option value="dayPoints">Pontos Manhã/Tarde</option>
+                <option value="daySurveys">Levantamentos Manhã/Tarde</option>
+                <option value="nightPoints">Pontos Noite</option>
+                <option value="nightSurveys">Levantamentos Noite</option>
+              </select>
+            </label>
+            <label>
+              <span>Equipes</span>
               <select id="services-team-filter">
-                <option value="all">Todas as equipes</option>
+                <option value="all">Todas as equipes em colunas</option>
               </select>
             </label>
             <label class="services-show-hidden">
@@ -734,13 +743,39 @@
               <span>Mostrar linhas ocultas</span>
             </label>
             <button id="services-refresh" class="secondary-button" type="button"><span data-icon="refresh"></span>Atualizar</button>
-            <button id="services-download" class="primary-button" type="button"><span data-icon="download"></span><span class="button-label">BAIXAR PLANILHA</span></button>
           </div>
 
-          <div id="services-loading" class="loading-state hidden"><span class="spinner"></span>Montando a planilha mensal...</div>
+          <div class="services-board-actions">
+            <button id="services-hide-empty" class="outline-button" type="button">Ocultar dias vazios</button>
+            <button id="services-show-all" class="outline-button" type="button">Mostrar todas as linhas</button>
+            <button id="services-save-all" class="primary-button" type="button"><span data-icon="save"></span><span class="button-label">SALVAR ALTERAÇÕES</span></button>
+            <button id="services-download" class="primary-button" type="button"><span data-icon="download"></span><span class="button-label">BAIXAR 4 PLANILHAS</span></button>
+          </div>
+
+          <div class="services-help-line">
+            <span>Valores com “alterado” foram editados manualmente. Apague o número e saia do campo para restaurar o cálculo automático.</span>
+          </div>
+
+          <div id="services-loading" class="loading-state hidden"><span class="spinner"></span>Montando a matriz mensal...</div>
           <div id="services-error" class="status-banner hidden"></div>
           <div id="services-board-root" class="services-board-root"></div>
         </section>
+
+        <dialog id="services-note-dialog" class="services-note-dialog">
+          <form method="dialog" class="services-note-dialog-card" onsubmit="return false">
+            <div class="services-note-dialog-header">
+              <div>
+                <small>OBSERVAÇÕES POR EQUIPE</small>
+                <h3 id="services-note-dialog-title">Observações do dia</h3>
+              </div>
+              <button id="services-note-dialog-cancel" type="button" class="services-dialog-close" aria-label="Fechar">×</button>
+            </div>
+            <div id="services-note-dialog-body" class="services-note-dialog-body"></div>
+            <div class="services-note-dialog-actions">
+              <button id="services-note-dialog-save" type="button" class="primary-button">APLICAR NO RASCUNHO</button>
+            </div>
+          </form>
+        </dialog>
       </section>
       <section id="page-reports" class="page-section hidden">
         <section class="panel module-panel">
@@ -982,6 +1017,6 @@
   <script src="./src/vendor/supabase-js-2.57.4-local-20260801-221649.js?v=20260801-221649"></script>
   <script type="module" src="./src/main-sem-flash-mobile-v8-7-20260802-144500.js?v=equipe-mes-ativos-v8-20260805"></script>
 <script defer src="./src/ajuste-rede-desempenho-v6-20260801-221649.js?v=20260801-221649"></script>
-  <script type="module" src="./src/services-board-v10.js?v=site-real-v10-20260806"></script>
+  <script type="module" src="./src/services-board-v11.js?v=matriz-v11-20260806"></script>
 </body>
 </html>
