@@ -3798,7 +3798,8 @@ function codesTeamsForRangeV21(teams) {
   importedRecordsForRangeV21(state.range.start,state.range.end).forEach(row=>{const team=recordTeam(row,profileMap);if(team)names.add(team)})
   return [...names].filter(Boolean).sort((a,b)=>a.localeCompare(b,'pt-BR'))
 }
-\nfunction syncOrdersTeamFilter() {
+
+function syncOrdersTeamFilter() {
   if (!els.ordersTeamFilter) return
 
   const profileMap = profileMapById()
