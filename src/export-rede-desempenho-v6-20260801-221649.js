@@ -249,54 +249,233 @@ function fillNamesTemplateRows(sheet, rows, firstRow, columnCount) {
   })
 }
 
+
+function codeTimeFallbackV28(row, kind = 'point') {
+  const record = row.registro || row
+  const directSurvey =
+    serviceCode(row) ===
+    SURVEY_SERVICE_CODE
+
+  const survey =
+    kind === 'survey'
+
+  const fileName = survey
+    ? (
+        text(record.surveyPhotoFileName) ||
+        (
+          directSurvey
+            ? text(record.timePhotoFileName)
+            : ''
+        )
+      )
+    : text(record.timePhotoFileName)
+
+  const fallbackPath = survey
+    ? (
+        text(record.surveyPhotoPath) ||
+        (
+          directSurvey
+            ? text(record.timePhotoPath)
+            : ''
+        )
+      )
+    : text(record.timePhotoPath)
+
+  const fromFile =
+    fileNameWithoutExtension(
+      fileName,
+      fallbackPath,
+    )
+
+  if (fromFile) return fromFile
+
+  const takenAt = survey
+    ? (
+        record.surveyPhotoTakenAt ||
+        (
+          directSurvey
+            ? record.timePhotoTakenAt
+            : ''
+        )
+      )
+    : record.timePhotoTakenAt
+
+  const timestamp =
+    safeDateTimestamp(takenAt)
+
+  if (timestamp) {
+    const parts =
+      new Intl.DateTimeFormat(
+        'en-GB',
+        {
+          timeZone:
+            'America/Campo_Grande',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hourCycle: 'h23',
+        },
+      ).formatToParts(
+        new Date(timestamp),
+      )
+
+    const values =
+      Object.fromEntries(
+        parts.map(
+          (part) => [
+            part.type,
+            part.value,
+          ],
+        ),
+      )
+
+    return (
+      String(
+        values.hour || '00',
+      ) +
+      String(
+        values.minute || '00',
+      ) +
+      String(
+        values.second || '00',
+      )
+    )
+  }
+
+  const clock =
+    normalizeClock(
+      record.stampedTimeText,
+    )
+
+  return clock
+    ? clock.replaceAll(':','')
+    : ''
+}
+
+function surveyObservationV28(row) {
+  const record = row.registro || row
+
+  return (
+    text(record.surveyObservation) ||
+    (
+      serviceCode(row) ===
+        SURVEY_SERVICE_CODE
+        ? text(record.observation)
+        : ''
+    )
+  )
+}
+
 function buildCodesRows(records, context = {}) {
   const entries = []
   let sequence = 0
 
   for (const row of records) {
     const record = row.registro || row
-    const products = normalizeProducts(record.products)
+    const directSurvey =
+      serviceCode(row) ===
+      SURVEY_SERVICE_CODE
 
-    entries.push({
-      timestamp: pointRecordDate(row),
-      sequence: sequence++,
-      values: [
-        formatServiceDate(row, context),
-        codeOrFallback(record.serviceType),
-        codeOrFallback(record.street),
-        safeNumber(record.number),
-        codeOrFallback(record.neighborhood),
-        text(record.orderNumber),
-        fileNameWithoutExtension(record.timePhotoFileName, record.timePhotoPath),
-        ...products.map((item) => item.code),
-        ...products.map((item) => item.quantity),
-        text(record.observation),
-      ],
-    })
+    /*
+      Se o próprio registro é 162,
+      ele já é o levantamento.
+      Portanto NÃO cria uma linha de ponto antes.
+    */
+    if (!directSurvey) {
+      const products =
+        normalizeProducts(
+          record.products,
+        )
+
+      entries.push({
+        timestamp:
+          pointRecordDate(row),
+        sequence:
+          sequence++,
+        values: [
+          formatServiceDate(
+            row,
+            context,
+          ),
+          codeOrFallback(
+            record.serviceType,
+          ),
+          codeOrFallback(
+            record.street,
+          ),
+          safeNumber(
+            record.number,
+          ),
+          codeOrFallback(
+            record.neighborhood,
+          ),
+          text(
+            record.orderNumber,
+          ),
+          codeTimeFallbackV28(
+            row,
+            'point',
+          ),
+          ...products.map(
+            (item) => item.code,
+          ),
+          ...products.map(
+            (item) => item.quantity,
+          ),
+          text(
+            record.observation,
+          ),
+        ],
+      })
+    }
 
     if (hasSurvey(row)) {
       entries.push({
-        timestamp: surveyRecordDate(row),
-        sequence: sequence++,
+        timestamp:
+          surveyRecordDate(row),
+        sequence:
+          sequence++,
         values: [
-          formatServiceDate(row, context),
+          formatServiceDate(
+            row,
+            context,
+          ),
           SURVEY_SERVICE_CODE,
-          codeOrFallback(record.street),
-          safeNumber(record.number),
-          codeOrFallback(record.neighborhood),
-          text(record.orderNumber),
-          fileNameWithoutExtension(record.surveyPhotoFileName, record.surveyPhotoPath),
+          codeOrFallback(
+            record.street,
+          ),
+          safeNumber(
+            record.number,
+          ),
+          codeOrFallback(
+            record.neighborhood,
+          ),
+          text(
+            record.orderNumber,
+          ),
+          codeTimeFallbackV28(
+            row,
+            'survey',
+          ),
           ...Array(10).fill(''),
           ...Array(10).fill(''),
-          text(record.surveyObservation),
+          surveyObservationV28(
+            row,
+          ),
         ],
       })
     }
   }
 
   return entries
-    .sort((a, b) => a.timestamp - b.timestamp || a.sequence - b.sequence)
-    .map((entry) => entry.values)
+    .sort(
+      (a,b) =>
+        a.timestamp-b.timestamp ||
+        a.sequence-b.sequence,
+    )
+    .map(
+      (entry) => entry.values,
+    )
 }
 
 function buildNamesPointRow(row, index) {
@@ -316,24 +495,22 @@ function buildNamesPointRow(row, index) {
   return values
 }
 
+
 function buildNamesSurveyRow(row, index) {
   const record = row.registro || row
-  const directSurvey = serviceCode(row) === SURVEY_SERVICE_CODE
-  const filename = directSurvey
-    ? (text(record.surveyPhotoFileName) || text(record.timePhotoFileName))
-    : text(record.surveyPhotoFileName)
-  const fallbackPath = directSurvey
-    ? (text(record.surveyPhotoPath) || text(record.timePhotoPath))
-    : text(record.surveyPhotoPath)
+
   return [
     index ?? '',
     streetDisplayName(record),
     '',
     safeNumber(record.number),
-    fileNameWithoutExtension(filename, fallbackPath),
+    codeTimeFallbackV28(
+      row,
+      'survey',
+    ),
     text(record.orderNumber),
     neighborhoodDisplayName(record),
-    directSurvey ? text(record.observation) : text(record.surveyObservation),
+    surveyObservationV28(row),
   ]
 }
 

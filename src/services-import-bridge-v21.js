@@ -1,4 +1,4 @@
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config-cachefix-20260731-140035.js'
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=2'
 
 const createClient = window.supabase?.createClient
 if (typeof createClient !== 'function') throw new Error('Supabase indisponível para registros importados.')

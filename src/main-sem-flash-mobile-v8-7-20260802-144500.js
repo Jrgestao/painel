@@ -42,7 +42,7 @@ import {
   downloadCodesWorkbook,
   downloadNamesWorkbook,
   downloadBlob,
-} from './export-rede-desempenho-v6-20260801-221649.js'
+} from './export-rede-desempenho-v6-20260801-221649.js?v=export-v28-20260807'
 
 const KEEP_CONNECTED_KEY = 'jr_keep_connected'
 const SAVED_USERNAME_KEY = 'jr_saved_username'
@@ -4888,20 +4888,55 @@ function recordScore(row) {
   return { normal, levantamento, total: normal + levantamento, label: parts.join(' + ') || 'Sem pontuação' }
 }
 
+
 function scoreBreakdown(records) {
-  const score = { dayPoints: 0, daySurveys: 0, nightPoints: 0, nightSurveys: 0, total: 0 }
+  const score = {
+    dayPoints: 0,
+    daySurveys: 0,
+    nightPoints: 0,
+    nightSurveys: 0,
+    total: 0,
+  }
+
   records.forEach((row) => {
-    const value = recordScore(row)
-    const morning = isMorningRecord(row)
-    if (morning) {
-      score.dayPoints += value.normal
-      score.daySurveys += value.levantamento
-    } else {
-      score.nightPoints += value.normal
-      score.nightSurveys += value.levantamento
+    const value =
+      recordScore(row)
+
+    if (value.normal) {
+      if (
+        isDayMinutesMainV28(
+          pointMinutesMainV28(row),
+        )
+      ) {
+        score.dayPoints +=
+          value.normal
+      } else {
+        score.nightPoints +=
+          value.normal
+      }
+    }
+
+    if (value.levantamento) {
+      if (
+        isDayMinutesMainV28(
+          surveyMinutesMainV28(row),
+        )
+      ) {
+        score.daySurveys +=
+          value.levantamento
+      } else {
+        score.nightSurveys +=
+          value.levantamento
+      }
     }
   })
-  score.total = score.dayPoints + score.daySurveys + score.nightPoints + score.nightSurveys
+
+  score.total =
+    score.dayPoints +
+    score.daySurveys +
+    score.nightPoints +
+    score.nightSurveys
+
   return score
 }
 
@@ -4950,26 +4985,209 @@ function recordSortTimestamp(row) {
   )
 }
 
-function recordMinutes(row) {
-  const record = row?.registro || {}
-  const takenAt = record.timePhotoTakenAt || record.surveyPhotoTakenAt
-  if (hasText(takenAt)) {
-    const date = parseStoredDateTime(takenAt)
-    if (date) {
-      const parts = new Intl.DateTimeFormat('en-GB', { timeZone: APP_TIME_ZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(date)
-      const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
-      return (Number(values.hour) * 60) + Number(values.minute)
+
+function clockMinutesMainV28(value) {
+  const raw =
+    String(value || '')
+      .trim()
+      .replaceAll('.', ':')
+      .replaceAll('_', ':')
+      .replaceAll('-', ':')
+
+  if (!raw) return null
+
+  const photo =
+    raw.match(
+      /(?:^|\D)\d{8}[\s:_-]?(\d{2})(\d{2})(\d{2})?(?:\D|$)/,
+    )
+
+  if (photo) {
+    const hour =
+      Number(photo[1])
+    const minute =
+      Number(photo[2])
+
+    if (
+      hour <= 23 &&
+      minute <= 59
+    ) {
+      return (
+        hour * 60 +
+        minute
+      )
     }
   }
-  const raw = String(record.stampedTimeText || '').trim().replaceAll('.', ':').replaceAll('H', ':').replaceAll('h', ':')
-  const match = raw.match(/(\d{1,2}):(\d{2})/)
-  if (match) return (Number(match[1]) * 60) + Number(match[2])
-  return 0
+
+  const separated =
+    raw.match(
+      /(?:^|\D)([01]?\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?(?:\D|$)/,
+    )
+
+  if (separated) {
+    return (
+      Number(separated[1]) * 60 +
+      Number(separated[2])
+    )
+  }
+
+  const compact =
+    raw.match(
+      /(?:^|\D)([01]\d|2[0-3])([0-5]\d)(?:[0-5]\d)?(?:\D|$)/,
+    )
+
+  if (compact) {
+    return (
+      Number(compact[1]) * 60 +
+      Number(compact[2])
+    )
+  }
+
+  return null
+}
+
+function storedMinutesMainV28(value) {
+  if (!value) return null
+
+  const date =
+    parseStoredDateTime(value)
+
+  if (!date) return null
+
+  const parts =
+    new Intl.DateTimeFormat(
+      'en-GB',
+      {
+        timeZone:
+          APP_TIME_ZONE,
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+      },
+    ).formatToParts(date)
+
+  const values =
+    Object.fromEntries(
+      parts.map(
+        (part) => [
+          part.type,
+          part.value,
+        ],
+      ),
+    )
+
+  return (
+    Number(values.hour) * 60 +
+    Number(values.minute)
+  )
+}
+
+function pointMinutesMainV28(row) {
+  const record =
+    row?.registro || row || {}
+
+  for (const value of [
+    record.timePhotoTakenAt,
+  ]) {
+    const result =
+      storedMinutesMainV28(value)
+
+    if (
+      Number.isFinite(result)
+    ) {
+      return result
+    }
+  }
+
+  for (const value of [
+    record.timePhotoFileName,
+    record.timePhotoPath,
+    record.stampedTimeText,
+  ]) {
+    const result =
+      clockMinutesMainV28(value)
+
+    if (
+      Number.isFinite(result)
+    ) {
+      return result
+    }
+  }
+
+  return null
+}
+
+function surveyMinutesMainV28(row) {
+  const record =
+    row?.registro || row || {}
+
+  for (const value of [
+    record.surveyPhotoTakenAt,
+  ]) {
+    const result =
+      storedMinutesMainV28(value)
+
+    if (
+      Number.isFinite(result)
+    ) {
+      return result
+    }
+  }
+
+  for (const value of [
+    record.surveyPhotoFileName,
+    record.surveyPhotoPath,
+  ]) {
+    const result =
+      clockMinutesMainV28(value)
+
+    if (
+      Number.isFinite(result)
+    ) {
+      return result
+    }
+  }
+
+  if (
+    isServiceLevantamento(
+      record,
+    )
+  ) {
+    return pointMinutesMainV28(
+      row,
+    )
+  }
+
+  return null
+}
+
+function isDayMinutesMainV28(minutes) {
+  return (
+    Number.isFinite(minutes) &&
+    minutes >= 360 &&
+    minutes < 1050
+  )
+}
+
+function recordMinutes(row) {
+  const record =
+    row?.registro || row || {}
+
+  const minutes =
+    isServiceLevantamento(
+      record,
+    )
+      ? surveyMinutesMainV28(row)
+      : pointMinutesMainV28(row)
+
+  return Number.isFinite(minutes)
+    ? minutes
+    : 0
 }
 
 function isMorningRecord(row) {
-  const minutes = recordMinutes(row)
-  return minutes >= (6 * 60) && minutes < ((17 * 60) + 30)
+  return isDayMinutesMainV28(
+    recordMinutes(row),
+  )
 }
 
 function recordLabel(row, profileMap) {
