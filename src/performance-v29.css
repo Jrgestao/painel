@@ -1,0 +1,149 @@
+/* JR GESTAO PERFORMANCE V25
+   Mantém o visual e reduz trabalho desnecessário do Chrome. */
+
+html.jr-performance-v22 {
+  scroll-behavior: auto !important;
+}
+
+html.jr-performance-v22 .page-section.hidden {
+  display: none !important;
+}
+
+html.jr-performance-v22 #page-services.hidden {
+  contain: strict;
+}
+
+html.jr-performance-v22 #page-services:not(.hidden) {
+  contain: style;
+}
+
+html.jr-performance-v22 .services-matrix-scroll {
+  scroll-behavior: auto !important;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+}
+
+html.jr-performance-v22 .services-observation-hover:not(.is-visible) {
+  display: none !important;
+}
+
+html.jr-performance-v22 .services-dirty-actions.hidden {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  html.jr-performance-v22 #page-services .services-board-panel {
+    box-shadow: none;
+  }
+}
+
+
+/* V25 — navegação imediata, sem animação cara entre páginas. */
+html.jr-performance-v25 .page-section {
+  transition-property: none !important;
+}
+
+html.jr-performance-v25 .page-section.hidden {
+  display: none !important;
+}
+
+/* Backdrop blur em matrizes/dialogs grandes custa muito no Chrome. */
+html.jr-performance-v25 #page-services .services-board-panel,
+html.jr-performance-v25 #page-services .services-matrix-scroll,
+html.jr-performance-v25 .services-note-dialog-card {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+
+/* ================================================================
+   V26 — OBSERVAÇÃO IMPORTADA VISÍVEL
+   ================================================================ */
+
+.services-viewer-imported {
+  display: grid;
+  gap: 7px;
+  padding: 12px 13px;
+  border: 1px solid rgba(205, 167, 76, .34);
+  border-radius: 12px;
+  background: rgba(205, 167, 76, .07);
+}
+
+.services-viewer-imported small {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  opacity: .78;
+}
+
+.services-viewer-imported p {
+  margin: 0;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.services-hover-imported {
+  display: block;
+  line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.services-hover-imported b {
+  font-weight: 800;
+}
+
+
+/* V28 — fonte do texto importado no olhinho igual ao padrão. */
+.services-observation-hover .services-hover-imported {
+  display: block;
+  margin: 0;
+  padding-left: 7px;
+  border-left: 2px solid rgba(226,188,87,.44);
+  color: #cfc29d;
+  font-family: inherit !important;
+  font-size: .62rem !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.services-observation-hover .services-hover-imported b {
+  color: #e1c36c;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  font-weight: 700 !important;
+  letter-spacing: inherit !important;
+  text-transform: none !important;
+}
+
+
+/* ================================================================
+   V29 — TOTAL MENSAL ATÔMICO
+   ================================================================ */
+html.jr-home-month-pending-v29 #page-home .monthly-summary-block #top-total,
+html.jr-home-month-pending-v29 #page-home .monthly-summary-block #top-points,
+html.jr-home-month-pending-v29 #page-home .monthly-summary-block #top-points-day,
+html.jr-home-month-pending-v29 #page-home .monthly-summary-block #top-points-night,
+html.jr-home-month-pending-v29 #page-home .monthly-summary-block #top-surveys,
+html.jr-home-month-pending-v29 #page-home .monthly-summary-block #top-surveys-day,
+html.jr-home-month-pending-v29 #page-home .monthly-summary-block #top-surveys-night {
+  visibility: hidden !important;
+}
+
+#page-home .monthly-summary-block #top-total,
+#page-home .monthly-summary-block #top-points,
+#page-home .monthly-summary-block #top-points-day,
+#page-home .monthly-summary-block #top-points-night,
+#page-home .monthly-summary-block #top-surveys,
+#page-home .monthly-summary-block #top-surveys-day,
+#page-home .monthly-summary-block #top-surveys-night {
+  transition: none !important;
+  animation: none !important;
+}
