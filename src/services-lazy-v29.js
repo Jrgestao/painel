@@ -113,7 +113,7 @@ function loadHomeV25() {
   if (!loaded.home) {
     loaded.home =
       import(
-        './services-home-overlay-v29.js?v=home-atomic-v29-20260810'
+        './services-home-overlay-v29.js?v=module-repair-v29-2-20260810'
       ).catch((error) => {
         loaded.home = null
 
@@ -185,7 +185,7 @@ function prepareModulesV25() {
     './src/services-board-v28.js?v=period-export-v28-20260807',
   )
   modulePreloadV25(
-    './src/services-home-overlay-v29.js?v=home-atomic-v29-20260810',
+    './src/services-home-overlay-v29.js?v=module-repair-v29-2-20260810',
   )
   modulePreloadV25(
     './src/services-import-bridge-v21.js?v=bridge-v21-20260807',
