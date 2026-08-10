@@ -20,6 +20,10 @@ import {
   SERVICE_PERIOD_LABELS,
 } from './services-board-core-v21.mjs?v=1'
 import {
+  appendAddressContextV30,
+  getCesipSmartResolverV30,
+} from './cesip-smart-resolver-v31.mjs?v=31'
+import {
   aggregateImportEntries,
   importReplacementKeys,
   importantObservationLinesV28,
@@ -4110,6 +4114,18 @@ function normalSheetKind(sheet, index) {
 async function parseNormalWorkbook(workbook) {
   if (!workbook.worksheets.length) throw new Error('A planilha normal não possui abas.')
 
+  /*
+    V30: a tabela CESIP só é carregada quando uma planilha NORMAL realmente
+    precisa ser convertida. Nada disso entra no boot do painel. Se os arquivos
+    auxiliares falharem, a importação antiga continua funcionando em letras.
+  */
+  let cesipResolverV30 = null
+  try {
+    cesipResolverV30 = await getCesipSmartResolverV30()
+  } catch (error) {
+    console.warn('[JR V30] Base CESIP indisponível durante a importação.', error)
+  }
+
   const entries = []
   let recognizedSheets = 0
 
@@ -4141,16 +4157,45 @@ async function parseNormalWorkbook(workbook) {
       const orderNumber = String(importCellValue(row.getCell(orderColumn || 6)) || '').trim()
       if (!time && !orderNumber) continue
 
-      const streetName = String(importCellValue(row.getCell(streetColumn || 2)) || '').trim()
+      const rawStreetName = String(importCellValue(row.getCell(streetColumn || 2)) || '').trim()
       const number = String(importCellValue(row.getCell(numberColumn)) ?? '').trim()
-      const neighborhoodName = String(importCellValue(row.getCell(neighborhoodColumn || 7)) || '').trim()
-      const observation = String(importCellValue(row.getCell(observationColumn)) || '').trim()
+      const rawNeighborhoodName = String(importCellValue(row.getCell(neighborhoodColumn || 7)) || '').trim()
+      const rawObservation = String(importCellValue(row.getCell(observationColumn)) || '').trim()
+
+      const streetResolutionV30 =
+        rawStreetName && cesipResolverV30
+          ? cesipResolverV30.resolveStreetWithContext(rawStreetName)
+          : null
+      const neighborhoodResolutionV30 =
+        rawNeighborhoodName && cesipResolverV30
+          ? cesipResolverV30.resolveNeighborhood(rawNeighborhoodName)
+          : null
+
+      const streetCode = streetResolutionV30?.matched
+        ? String(streetResolutionV30.code || '')
+        : ''
+      const streetName = streetResolutionV30?.matched
+        ? String(streetResolutionV30.name || rawStreetName)
+        : rawStreetName
+      const neighborhoodCode = neighborhoodResolutionV30?.matched
+        ? String(neighborhoodResolutionV30.code || '')
+        : ''
+      const neighborhoodName = neighborhoodResolutionV30?.matched
+        ? String(neighborhoodResolutionV30.name || rawNeighborhoodName)
+        : rawNeighborhoodName
+      const observation = appendAddressContextV30(
+        rawObservation,
+        streetResolutionV30?.matched
+          ? String(streetResolutionV30.context || '')
+          : '',
+      )
+
       const date = dateFromTimeText(time) || headerDate
       const products = kind === 'point' ? importProductsFromNormal(row) : []
       const record = {
         serviceType: { code: kind === 'survey' ? '162' : '', name: kind === 'survey' ? 'Levantamento' : '' },
-        street: { code: '', name: streetName },
-        neighborhood: { code: '', name: neighborhoodName },
+        street: { code: streetCode, name: streetName },
+        neighborhood: { code: neighborhoodCode, name: neighborhoodName },
         number,
         orderNumber,
         observation,
@@ -4163,10 +4208,10 @@ async function parseNormalWorkbook(workbook) {
         kind,
         serviceCode: kind === 'survey' ? '162' : '',
         serviceName: kind === 'survey' ? 'Levantamento' : '',
-        streetCode: '',
+        streetCode,
         streetName,
         number,
-        neighborhoodCode: '',
+        neighborhoodCode,
         neighborhoodName,
         orderNumber,
         observation:
@@ -4193,7 +4238,7 @@ async function parseNormalWorkbook(workbook) {
 
       entries.push(entry)
 
-      if (rowNumber % 250 === 0) {
+      if (rowNumber % 45 === 0) {
         await new Promise((resolve) => requestAnimationFrame(resolve))
       }
     }

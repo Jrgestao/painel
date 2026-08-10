@@ -2,6 +2,8 @@
 // JR_GESTAO_CORRECAO_DATA_RELATORIO_DIA_ATUAL_V12
 // JR_GESTAO_CORRECAO_DATA_PLANILHA_CODIGOS_V13
 // Datas de serviço sem deslocamento UTC e planilhas em ordem antiga -> nova.
+import { canonicalizeCodesRecordsV30 } from './cesip-smart-resolver-v31.mjs?v=31'
+
 const CODES_TEMPLATE = new URL('../assets/templates/PLANILHA EM CODIGOS.xlsx', import.meta.url).href
 const NAMES_TEMPLATE = new URL('../assets/templates/PLANILHA EM NOMES.xlsx', import.meta.url).href
 const SURVEY_SERVICE_CODE = '162'
@@ -16,7 +18,8 @@ export async function downloadCodesWorkbook(records, context) {
   const codeHeaders = ['data','tipo_servico','logradouro','numero','bairro','ordem_servico','horario', ...Array.from({ length: 10 }, (_, index) => `produto${index + 1}`), ...Array.from({ length: 10 }, (_, index) => `qtd${index + 1}`), 'observacao']
   codeHeaders.forEach((value, index) => { sheet.getRow(1).getCell(index + 1).value = value })
   clearRows(sheet, 2, Math.max(sheet.rowCount, 2), 28)
-  const rows = buildCodesRows(records, context)
+  const cesipRecordsV30 = await canonicalizeCodesRecordsV30(records)
+  const rows = buildCodesRows(cesipRecordsV30, context)
   const selectedDay = singleDayContextDate(context)
   const selectedDayLabel = selectedDay ? formatDate(selectedDay) : ''
   ensureStyledRows(sheet, 2, rows.length, 28)
@@ -248,6 +251,7 @@ function fillNamesTemplateRows(sheet, rows, firstRow, columnCount) {
     row.commit?.()
   })
 }
+
 
 
 
@@ -495,6 +499,7 @@ function buildNamesPointRow(row, index) {
   values.push(text(record.observation))
   return values
 }
+
 
 
 
