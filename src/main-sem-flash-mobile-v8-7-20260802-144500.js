@@ -1,3 +1,4 @@
+// JR_GESTAO_FOTOS_DOWNLOAD_ROBUSTO_V35_4=20260810
 // JR_GESTAO_HOTFIX_FOTOS_V30_1=20260810
 // JR_GESTAO_EQUIPE_MES_ATIVOS_SITE_REAL_V8=20260805
 // JR_GESTAO_SEM_FLASH_AZUL_MOBILE_V8_7=20260802-144500
@@ -4013,8 +4014,8 @@ async function openPhotoFolder(team, silent = false) {
   els.photosFolderTitle.textContent = `${team} — ${periodLabel()}`
   const summary = rangeSummaryForTeam(team)
   els.photosFolderSummary.textContent = `${summary.receivedPhotos} foto(s) recebida(s) de ${summary.expectedPhotos} esperada(s).`
-  const downloadablePhotoCountV301 = photoEntries(summary.active).length
-  els.photosTeamDownload.disabled = downloadablePhotoCountV301 === 0
+  const downloadablePhotoCountV354 = photoEntries(summary.active).length
+  els.photosTeamDownload.disabled = downloadablePhotoCountV354 === 0
   els.photosGrid.innerHTML = `<div class="loading-state"><span class="spinner"></span>Carregando fotos da equipe...</div>`
 
   const entries = photoEntries(summary.active)
@@ -4251,90 +4252,116 @@ async function downloadNamesForTeam(team) {
   } catch (error) { toast(friendlyError(error), true) }
 }
 
+// JR_GESTAO_FOTOS_V35_4_BEGIN
+let photosDownloadBusyV354 = false
+const photoDownloadButtonHtmlV354 = new WeakMap()
+
+function setPhotoDownloadBusyV354(button, busy, idleLabel) {
+  if (!button) return
+  if (!photoDownloadButtonHtmlV354.has(button)) photoDownloadButtonHtmlV354.set(button, button.innerHTML)
+  button.disabled = Boolean(busy)
+  button.setAttribute('aria-busy', String(Boolean(busy)))
+  if (busy) {
+    button.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>GERANDO ZIP...</span>'
+  } else {
+    button.removeAttribute('aria-busy')
+    const original = photoDownloadButtonHtmlV354.get(button)
+    if (original) button.innerHTML = original
+    else button.textContent = idleLabel
+    if (button === els.photosTeamDownload) {
+      const team = state.moduleTeams.photos
+      button.disabled = !team || photoEntryCountForDownloadV354(team) <= 0
+    } else {
+      button.disabled = false
+    }
+  }
+}
+function paintPhotoDownloadV354() {
+  return new Promise((resolve) => {
+    let done = false
+    const finish = () => { if (done) return; done = true; setTimeout(resolve, 0) }
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => requestAnimationFrame(finish))
+      setTimeout(finish, 120)
+    } else setTimeout(finish, 32)
+  })
+}
+function photoRowsForDownloadV354(team = 'all') {
+  if (team === 'all') return (state.range.records || []).filter((row) => !row.deleted_at)
+  const summary = rangeSummaryForTeam(team)
+  return Array.isArray(summary?.active) ? summary.active : []
+}
+function photoEntryCountForDownloadV354(team = 'all') {
+  return photoEntries(photoRowsForDownloadV354(team)).length
+}
+function triggerPhotoZipDownloadV354(rawUrl) {
+  const value = String(rawUrl || '').trim()
+  if (!value) throw new Error('O servidor nao retornou o endereco do ZIP.')
+  const url = /^https?:\/\//i.test(value)
+    ? value
+    : `${ADMIN_API_BASE_URL}${value.startsWith('/') ? value : `/${value}`}`
+
+  // Iframe evita bloqueio de popup/download depois de uma geracao assincrona demorada.
+  const frame = document.createElement('iframe')
+  frame.style.display = 'none'
+  frame.setAttribute('aria-hidden', 'true')
+  frame.src = url
+  document.body.appendChild(frame)
+  window.setTimeout(() => frame.remove(), 120000)
+  return url
+}
 async function downloadPhotosZipForTeam(team) {
   try {
-    const normalizedTeam = requireSpecificTeam(team)
-    await downloadPhotosZipForRange(normalizedTeam)
+    await downloadPhotosZipForRange(requireSpecificTeam(team))
   } catch (error) {
     toast(friendlyError(error), true)
   }
-}
-function photoRowsForDownloadV301(team = 'all') {
-  const profileMap = profileMapById()
-  const source = team === 'all'
-    ? state.range.records
-    : recordsForTeam(team, profileMap, state.range.records)
-  return source.filter((row) => !row.deleted_at)
-}
-function photoEntryCountForDownloadV301(team = 'all') {
-  return photoEntries(photoRowsForDownloadV301(team)).length
-}
-function setPhotoDownloadButtonLoadingV301(button, loading, label) {
-  if (!button) return
-  button.disabled = loading
-  button.setAttribute('aria-busy', String(loading))
-  if (!loading) button.removeAttribute('aria-busy')
-
-  let labelNode = button.querySelector('.button-label')
-  if (!labelNode) {
-    const iconNode = button.querySelector('svg, [data-icon]')
-    const iconHtml = iconNode?.outerHTML || ''
-    button.innerHTML = `${iconHtml}<span class="button-label">${escapeHtml(label)}</span>`
-    labelNode = button.querySelector('.button-label')
-  }
-  if (labelNode) labelNode.textContent = label
 }
 async function downloadPhotosZipForRange(team = 'all') {
   if (!canDownloadPhotos()) {
     toast('Acesso negado. Este usuario nao pode baixar fotos.', true)
     return
   }
+  if (photosDownloadBusyV354) {
+    toast('Ja existe um ZIP de fotos sendo preparado. Aguarde terminar.')
+    return
+  }
 
-  let normalizedTeam = 'all'
-  let button = els.photosAllDownload
-  let idleLabel = 'BAIXAR TODAS AS FOTOS'
+  const normalizedTeam = team === 'all' ? 'all' : requireSpecificTeam(team)
+  const button = normalizedTeam === 'all' ? els.photosAllDownload : els.photosTeamDownload
+  const idleLabel = normalizedTeam === 'all' ? 'BAIXAR TODAS AS FOTOS' : 'BAIXAR PASTA ZIP'
+  photosDownloadBusyV354 = true
+  setPhotoDownloadBusyV354(button, true, idleLabel)
+  toast('Preparando as fotos para download...')
+  await paintPhotoDownloadV354()
 
   try {
-    normalizedTeam = team === 'all' ? 'all' : requireSpecificTeam(team)
-    button = normalizedTeam === 'all' ? els.photosAllDownload : els.photosTeamDownload
-    idleLabel = normalizedTeam === 'all' ? 'BAIXAR TODAS AS FOTOS' : 'BAIXAR PASTA ZIP'
-    setPhotoDownloadButtonLoadingV301(button, true, 'GERANDO ZIP...')
-
     const { start, end } = await ensureExportRangeReady('photos')
     validateRange(start, end)
+    const photoCount = photoEntryCountForDownloadV354(normalizedTeam)
+    if (photoCount <= 0) throw new Error('Nenhuma foto original foi encontrada neste periodo.')
 
-    const photoCount = photoEntryCountForDownloadV301(normalizedTeam)
-    if (photoCount <= 0) {
-      throw new Error('Nenhuma foto original foi encontrada no Storage para este periodo.')
-    }
-
-    const teamLabelValue = normalizedTeam === 'all' ? 'todas as equipes' : normalizedTeam
-    toast(`Gerando ZIP de ${teamLabelValue} com ${photoCount} foto(s). Pode demorar sem travar o painel.`)
+    const teamLabel = normalizedTeam === 'all' ? 'todas as equipes' : normalizedTeam
+    toast(`Gerando ZIP de ${teamLabel} com ${photoCount} foto(s). Aguarde, pode demorar alguns minutos.`)
+    await paintPhotoDownloadV354()
 
     const result = await adminApiRequest('/api/admin/photo-exports', {
       method: 'POST',
       body: { start, end, team: normalizedTeam },
       timeoutMs: 600000,
     })
-
     if (!result?.downloadUrl) throw new Error('O servidor nao retornou o endereco do ZIP.')
-
-    const link = document.createElement('a')
-    link.href = `${ADMIN_API_BASE_URL}${String(result.downloadUrl).startsWith('/') ? result.downloadUrl : `/${result.downloadUrl}`}`
-    link.download = ''
-    link.style.display = 'none'
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-
-    toast(`${result.photoCount || photoCount} foto(s) organizadas por equipe e dia. Download iniciado.`)
+    triggerPhotoZipDownloadV354(result.downloadUrl)
+    toast(`${result.photoCount || photoCount} foto(s) organizadas. Download solicitado ao navegador.`)
   } catch (error) {
+    console.error('[JR V35.4] Falha ao gerar ZIP de fotos:', error)
     toast(friendlyError(error), true)
   } finally {
-    setPhotoDownloadButtonLoadingV301(button, false, idleLabel)
+    photosDownloadBusyV354 = false
+    setPhotoDownloadBusyV354(button, false, idleLabel)
   }
 }
-
+// JR_GESTAO_FOTOS_V35_4_END
 function requireSpecificTeam(team) {
   const normalized = String(team || '').trim()
   if (!normalized || normalized === 'all' || normalizeText(normalized) === 'todas as equipes') {
