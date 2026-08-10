@@ -43,7 +43,7 @@ import {
   downloadCodesWorkbook,
   downloadNamesWorkbook,
   downloadBlob,
-} from './export-rede-desempenho-v6-20260801-221649.js?v=cesip-smart-v31-20260810'
+} from './export-rede-desempenho-v6-20260801-221649.js?v=cesip-smart-v32-20260810'
 
 const KEEP_CONNECTED_KEY = 'jr_keep_connected'
 const SAVED_USERNAME_KEY = 'jr_saved_username'
@@ -4954,6 +4954,7 @@ function recordScore(row) {
 
 
 
+
 function scoreBreakdown(records) {
   const score = {
     dayPoints: 0,
@@ -5049,6 +5050,7 @@ function recordSortTimestamp(row) {
     0
   )
 }
+
 
 
 

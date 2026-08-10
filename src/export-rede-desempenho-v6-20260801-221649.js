@@ -2,7 +2,7 @@
 // JR_GESTAO_CORRECAO_DATA_RELATORIO_DIA_ATUAL_V12
 // JR_GESTAO_CORRECAO_DATA_PLANILHA_CODIGOS_V13
 // Datas de serviço sem deslocamento UTC e planilhas em ordem antiga -> nova.
-import { canonicalizeCodesRecordsV30 } from './cesip-smart-resolver-v31.mjs?v=31'
+import { canonicalizeCodesRecordsV30 } from './cesip-smart-resolver-v32.mjs?v=32'
 
 const CODES_TEMPLATE = new URL('../assets/templates/PLANILHA EM CODIGOS.xlsx', import.meta.url).href
 const NAMES_TEMPLATE = new URL('../assets/templates/PLANILHA EM NOMES.xlsx', import.meta.url).href
@@ -255,6 +255,7 @@ function fillNamesTemplateRows(sheet, rows, firstRow, columnCount) {
 
 
 
+
 function codeTimeFallbackV28(row, kind = 'point') {
   const record = row.registro || row
   const directSurvey =
@@ -499,6 +500,7 @@ function buildNamesPointRow(row, index) {
   values.push(text(record.observation))
   return values
 }
+
 
 
 

@@ -22,7 +22,7 @@ import {
 import {
   appendAddressContextV30,
   getCesipSmartResolverV30,
-} from './cesip-smart-resolver-v31.mjs?v=31'
+} from './cesip-smart-resolver-v32.mjs?v=32'
 import {
   aggregateImportEntries,
   importReplacementKeys,
