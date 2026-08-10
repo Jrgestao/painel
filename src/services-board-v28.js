@@ -18,11 +18,11 @@ import {
   normalizeText,
   serializeReportSetting,
   SERVICE_PERIOD_LABELS,
-} from './services-board-core-v21.mjs?v=1'
+} from './services-board-core-v21.mjs?v=33'
 import {
   appendAddressContextV30,
   getCesipSmartResolverV30,
-} from './cesip-smart-resolver-v32.mjs?v=32'
+} from './cesip-smart-resolver-v33.mjs?v=33'
 import {
   aggregateImportEntries,
   importReplacementKeys,
@@ -37,7 +37,7 @@ import {
   rebuildImportedNotesByMetricV28,
   rebuildImportedScoresByMetricV28,
   shouldKeepImportedRow,
-} from './services-import-core-v28.mjs?v=28'
+} from './services-import-core-v28.mjs?v=33'
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 const $ = (selector) => document.querySelector(selector)
@@ -1496,11 +1496,15 @@ function detectImportantServicesExpandedV28(record) {
       )
       .join(' ')
 
+  /*
+    V33: produtos comuns nao entram no detector textual. O codigo 16 continua
+    sendo tratado por detectImportantServices(record), sem fazer RELE/FIO/LED
+    virarem servico importante por acidente.
+  */
   const source = [
     record?.serviceType?.name,
     record?.observation,
     record?.surveyObservation,
-    productText,
   ]
     .filter(Boolean)
     .join('\n')

@@ -458,8 +458,8 @@ export function effectiveObservation(dayData, draft, metricKey = 'dayPoints') {
 function productItems(record) {
   return Array.isArray(record?.products)
     ? record.products.map((entry) => ({
-        code: String(entry?.product?.code || '').trim(),
-        name: String(entry?.product?.name || '').trim(),
+        code: String(entry?.product?.code || entry?.code || '').trim(),
+        name: String(entry?.product?.name || entry?.name || '').trim(),
       }))
     : []
 }
@@ -487,80 +487,116 @@ function addDetected(result, label, rawObservation, patterns) {
 export function detectImportantServices(record = {}) {
   const serviceCode = String(record?.serviceType?.code || '').trim()
   const serviceName = String(record?.serviceType?.name || '')
-  const observationRaw = String(record?.observation || '')
+  const observationRaw = [record?.observation, record?.surveyObservation]
+    .map((item) => String(item || '').trim())
+    .filter(Boolean)
+    .join('\n')
   const products = productItems(record)
-  const productText = products.map((item) => `${item.code} ${item.name}`).join(' ')
-  const searchable = normalizeText(`${serviceName} ${observationRaw} ${productText}`)
+  const productText = normalizeText(products.map((item) => `${item.code} ${item.name}`).join(' '))
+
+  /*
+    V33: o texto de PRODUTOS nao entra no gatilho geral. Assim material comum
+    como RELE, FIO ou LED nao transforma uma observacao inteira em importante.
+    A excecao deliberada e o codigo CESIP 16/contactora.
+  */
+  const searchable = normalizeText(`${serviceName} ${observationRaw}`)
   const result = new Set()
 
-  const excavation = [/escav/, /valeta/, /\bvala\b/, /buraco/, /cavacao/, /cavar/, /coveamento/, /perfuracao/, /abertura de vala/, /trincheira/]
+  const excavation = [/\bescav\w*/, /\bvaleta\b/, /\bvala\b/, /\bburaco\b/, /\bcavac\w*/, /\bcavar\b/, /\btrincheira\b/]
   if (serviceCode === '42' || excavation.some((pattern) => pattern.test(searchable))) {
     addDetected(result, 'ESCAVAÇÃO / VALETA / BURACO', observationRaw, excavation)
   }
 
-  const cable = [/lancamento de cabo/, /lancar cabo/, /lanc cabo/, /cabo aereo/, /cabo subterraneo/, /cabo duplex/, /cabo triplex/, /cabo quadriplex/]
-  if (serviceCode === '134' || cable.some((pattern) => pattern.test(searchable))) {
-    const label = /cabo aereo/.test(searchable)
-      ? 'LANÇAMENTO DE CABO AÉREO'
-      : /cabo subterraneo/.test(searchable)
-        ? 'LANÇAMENTO DE CABO SUBTERRÂNEO'
-        : 'LANÇAMENTO DE CABO'
-    addDetected(result, label, observationRaw, cable)
+  const prune = [/\bpoda\w*/, /\bpodar\w*/, /\bdesgalh\w*/, /\bcorte\w*.{0,50}\bgalho\w*/]
+  if (prune.some((pattern) => pattern.test(searchable))) {
+    addDetected(result, 'PODA / CORTE DE GALHOS', observationRaw, prune)
   }
 
-  const reflector = [/refletor/, /refletores/, /implt de refletor/, /implantacao de refletor/, /instalacao de refletor/]
-  if (reflector.some((pattern) => pattern.test(searchable))) {
-    const label = /troca|substituicao|substituir/.test(searchable)
-      ? 'TROCA DE REFLETOR'
-      : 'IMPLANTAÇÃO / INSTALAÇÃO DE REFLETOR'
-    addDetected(result, label, observationRaw, reflector)
+  const cableObject = /\b(?:cabo\w*|fiacao\w*|rede\w*|fio\w*)\b/
+  const cableAction = /\b(?:lanc\w*|pux\w*|pass\w*|estic\w*|enterr\w*|subterr\w*|aere\w*|terrest\w*)\b/
+  const cableContext = cableObject.test(searchable) && (
+    cableAction.test(searchable) ||
+    /\b(?:subterraneo|subterranea|aereo|aerea|terrestre|chao)\b/.test(searchable)
+  )
+  const cablePatterns = [/\blanc\w*/, /\bpux\w*/, /\bpass\w*/, /\benterr\w*/, /\bcabo\w*/, /\bfiacao\w*/, /\brede\w*/]
+  if (serviceCode === '134' || cableContext) {
+    const label = /subterr|terrest|\bchao\b/.test(searchable)
+      ? 'LANÇAMENTO DE CABO SUBTERRÂNEO / TERRESTRE'
+      : /aere/.test(searchable)
+        ? 'LANÇAMENTO DE CABO AÉREO'
+        : 'LANÇAMENTO / PASSAGEM DE CABO'
+    addDetected(result, label, observationRaw, cablePatterns)
   }
 
-  const outlet = [/tomada/, /tomadas/]
-  if (outlet.some((pattern) => pattern.test(searchable))) {
-    addDetected(result, 'INSTALAÇÃO / TROCA DE TOMADA', observationRaw, outlet)
+  const extension = [/\bextens\w*/]
+  if (extension.some((pattern) => pattern.test(searchable))) {
+    addDetected(result, 'EXTENSÃO DE REDE', observationRaw, extension)
   }
 
-  const lamp = [/lampada/, /lampadas/, /lamp led/, /bulbo led/, /modulo led/]
-  if (lamp.some((pattern) => pattern.test(searchable))) {
-    addDetected(result, 'INSTALAÇÃO / TROCA DE LÂMPADAS OU LED', observationRaw, lamp)
+  const truckHelp = [
+    /\b(?:ajud\w*|apoio\w*|auxil\w*|suporte\w*)\b.{0,80}\bcami(?:nh)?(?:ao|oes)\b/,
+    /\bcami(?:nh)?(?:ao|oes)\b.{0,80}\b(?:ajud\w*|apoio\w*|auxil\w*|suporte\w*)\b/,
+  ]
+  if (truckHelp.some((pattern) => pattern.test(searchable))) {
+    addDetected(result, 'AJUDA / APOIO AO CAMINHÃO', observationRaw, truckHelp)
   }
 
-  const contactor = [/contactora/, /contatora/, /contator/, /contact/]
-  if (products.some((item) => item.code === '16') || contactor.some((pattern) => pattern.test(searchable))) {
-    const label = /troca|substituicao|substituir/.test(searchable)
-      ? 'TROCA DE CONTACTORA'
-      : /instalacao|instalar|implantacao|implt/.test(searchable)
+  const contactor = [/\bcontact\w*/, /\bcontator\w*/, /\bcontactor\w*/]
+  const product16 = products.some((item) => item.code === '16')
+  if (serviceCode === '16' || product16 || contactor.some((pattern) => pattern.test(searchable)) || contactor.some((pattern) => pattern.test(productText))) {
+    const label = /retir|remov/.test(searchable)
+      ? 'RETIRADA DE CONTACTORA'
+      : /instal|implant|coloc|mont/.test(searchable)
         ? 'INSTALAÇÃO DE CONTACTORA'
-        : 'CONTACTORA'
+        : 'CONTACTORA / CÓDIGO 16'
     addDetected(result, label, observationRaw, contactor)
   }
 
-  const post = [/implantacao de poste/, /implt de poste/, /implantar poste/, /poste novo/, /poste implantado/]
-  if (post.some((pattern) => pattern.test(searchable))) {
-    addDetected(result, 'IMPLANTAÇÃO DE POSTE', observationRaw, post)
+  const command = [/\bcomando\b/, /caixa.{0,50}comando/, /quadro.{0,50}comando/, /painel.{0,50}comando/]
+  if (command.some((pattern) => pattern.test(searchable))) {
+    addDetected(result, 'CAIXA / SISTEMA DE COMANDO', observationRaw, command)
   }
 
-  const commandBox = [/caixa de comando/, /quadro de comando/, /painel de comando/]
-  if (commandBox.some((pattern) => pattern.test(searchable))) {
-    addDetected(result, 'CAIXA / QUADRO DE COMANDO', observationRaw, commandBox)
+  const installAction = /\b(?:implant\w*|instal\w*|coloc\w*|mont\w*|fix\w*|ergu\w*|assent\w*)\b/
+  const superPost = [/\bsuper\s*poste\b/]
+  const post = [/\bposte\w*/]
+  if (superPost.some((pattern) => pattern.test(searchable))) {
+    addDetected(result, 'SUPER POSTE', observationRaw, superPost)
+  } else if (post.some((pattern) => pattern.test(searchable)) && installAction.test(searchable)) {
+    addDetected(result, 'IMPLANTAÇÃO / INSTALAÇÃO DE POSTE', observationRaw, post)
   }
 
-  const standard = [/implantacao de padrao/, /instalacao de padrao/, /padrao novo/, /troca de padrao/]
-  if (standard.some((pattern) => pattern.test(searchable))) {
-    addDetected(result, 'PADRÃO ELÉTRICO', observationRaw, standard)
+  const arm = [/\bbraco\w*/]
+  if (arm.some((pattern) => pattern.test(searchable)) && /\bled\b/.test(searchable) && installAction.test(searchable)) {
+    addDetected(result, 'IMPLANTAÇÃO DE BRAÇO + LED', observationRaw, arm)
+  }
+
+  const reflector = [/\brefletor\w*/, /\bholofote\w*/]
+  if (reflector.some((pattern) => pattern.test(searchable))) {
+    addDetected(result, 'REFLETOR', observationRaw, reflector)
+  }
+
+  const outlet = [/\btomad\w*/]
+  if (outlet.some((pattern) => pattern.test(searchable))) {
+    addDetected(result, 'TOMADA', observationRaw, outlet)
+  }
+
+  const socket = [/\bsoquet\w*/]
+  if (socket.some((pattern) => pattern.test(searchable))) {
+    addDetected(result, 'SOQUETE', observationRaw, socket)
+  }
+
+  /* LED sozinho NAO e importante. Lampada escrita como lampada continua sendo. */
+  const lamp = [/\blampad\w*/]
+  if (lamp.some((pattern) => pattern.test(searchable))) {
+    addDetected(result, 'LÂMPADA', observationRaw, lamp)
   }
 
   const importantPlaces = [
-    ['EVENTO', [/evento/, /festa/, /feira/, /festival/, /exposicao/]],
-    ['PRAÇA', [/praca/]],
-    ['CAMPO / ESTÁDIO', [/campo de futebol/, /\bcampo\b/, /estadio/]],
-    ['ESCOLA / CRECHE', [/escola/, /creche/, /ceinf/, /cmei/, /colegio/]],
-    ['QUADRA / GINÁSIO', [/quadra/, /ginasio/]],
-    ['PARQUE', [/parque/]],
-    ['UNIDADE DE SAÚDE', [/posto de saude/, /ubs/, /hospital/, /unidade de saude/]],
-    ['CENTRO COMUNITÁRIO', [/centro comunitario/, /associacao de moradores/]],
-    ['IGREJA', [/igreja/, /templo/]],
+    ['EVENTO', [/\bevento\w*/, /\bfesta\b/, /\bfeira\b/, /\bfestival\b/, /\bshow\b/]],
+    ['PRAÇA', [/\bpraca\b/]],
+    ['CAMPO / ESTÁDIO', [/\bcampo\b/, /\bestadio\b/]],
+    ['AVENIDA', [/\bavenida\b/, /\bav\b/]],
   ]
 
   importantPlaces.forEach(([label, patterns]) => {

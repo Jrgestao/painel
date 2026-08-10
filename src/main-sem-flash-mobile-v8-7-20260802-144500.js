@@ -43,7 +43,7 @@ import {
   downloadCodesWorkbook,
   downloadNamesWorkbook,
   downloadBlob,
-} from './export-rede-desempenho-v6-20260801-221649.js?v=cesip-smart-v32-20260810'
+} from './export-rede-desempenho-v6-20260801-221649.js?v=cesip-smart-v33-20260810'
 
 const KEEP_CONNECTED_KEY = 'jr_keep_connected'
 const SAVED_USERNAME_KEY = 'jr_saved_username'
@@ -4078,7 +4078,7 @@ function openCodesTeam(team, silent = false) {
   const records=codesRecordsForTeamV21(team)
   els.codesTeamTitle.textContent=String(team)+' — '+periodLabel()
   els.codesTeamSummary.textContent=String(records.length)+' ponto(s) válido(s). Registros importados também entram na planilha em códigos.'
-  els.codesTeamDownload.disabled=records.length===0
+  els.codesTeamDownload.disabled=codesWorkbookBusyV33 || records.length===0
   els.codesPreview.innerHTML=recordsPreview(records,profileMapById(),{newestFirst:false,showObservation:true})
   if(!silent)focusModuleDetailV37(els.codesTeamDetail)
 }
@@ -4155,8 +4155,37 @@ function recordObservationText(record) {
   return normal || survey
 }
 
+// JR_GESTAO_CODES_GENERATION_BUSY_V33_BEGIN
+let codesWorkbookBusyV33 = false
+
+function setCodesWorkbookBusyV33(value) {
+  codesWorkbookBusyV33 = Boolean(value)
+  const button = els.codesTeamDownload
+  const status = document.getElementById('codes-generation-status-v33')
+
+  if (button) {
+    button.classList.toggle('is-generating-v33', codesWorkbookBusyV33)
+    button.setAttribute('aria-busy', String(codesWorkbookBusyV33))
+    if (codesWorkbookBusyV33) {
+      button.disabled = true
+    } else {
+      const team = state.moduleTeams.codes
+      const hasRecords = Boolean(team) && codesRecordsForTeamV21(team).length > 0
+      button.disabled = !hasRecords
+    }
+  }
+
+  if (status) {
+    status.classList.toggle('hidden', !codesWorkbookBusyV33)
+    status.setAttribute('aria-hidden', String(!codesWorkbookBusyV33))
+  }
+}
+
 async function downloadCodesForTeam(team) {
   if (!isAdmin()) { toast('Acesso negado. Esta ação exige permissão de administrador.', true); return }
+  if (codesWorkbookBusyV33) return
+
+  setCodesWorkbookBusyV33(true)
   try {
     const selected=await ensureExportRangeReady('codes')
     const normalizedTeam=requireSpecificTeam(team)
@@ -4167,8 +4196,9 @@ async function downloadCodesForTeam(team) {
     await downloadCodesWorkbook(records,rangeExportContextFor(normalizedTeam,records,selected))
     toast('Planilha em códigos gerada do horário mais antigo para o mais novo.')
   } catch(error){toast(friendlyError(error),true)}
+  finally { setCodesWorkbookBusyV33(false) }
 }
-
+// JR_GESTAO_CODES_GENERATION_BUSY_V33_END
 async function downloadNamesForTeam(team) {
   try {
     const selected = await ensureExportRangeReady('reports')
@@ -4955,6 +4985,7 @@ function recordScore(row) {
 
 
 
+
 function scoreBreakdown(records) {
   const score = {
     dayPoints: 0,
@@ -5050,6 +5081,7 @@ function recordSortTimestamp(row) {
     0
   )
 }
+
 
 
 

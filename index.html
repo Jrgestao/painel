@@ -277,6 +277,45 @@
   <!-- JR_GESTAO_HOME_ATOMICO_V29 -->
   <!-- JR_GESTAO_BOOT_MODULE_REPAIR_V29_2 -->
   <!-- JR_GESTAO_CESIP_LETTERS_FIRST_V32 -->
+  <style id="jr-codes-generation-style-v33">
+    #codes-team-download.is-generating-v33,
+    #codes-team-download:disabled.is-generating-v33 {
+      opacity: .48 !important;
+      filter: saturate(.35) grayscale(.28) !important;
+      cursor: wait !important;
+      pointer-events: none !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    .codes-generation-status-v33 {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-sizing: border-box;
+      margin: 10px 0 4px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      color: rgba(255,255,255,.78);
+      background: rgba(255,255,255,.035);
+      font-size: .82rem;
+      font-weight: 600;
+    }
+    .codes-generation-status-v33 .spinner {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 auto;
+      border: 2px solid rgba(255,255,255,.20);
+      border-top-color: currentColor;
+      border-radius: 999px;
+      animation: codes-generation-spin-v33 .75s linear infinite;
+    }
+    .codes-generation-status-v33.hidden { display: none !important; }
+    @keyframes codes-generation-spin-v33 { to { transform: rotate(360deg); } }
+  </style>
+  <!-- JR_GESTAO_CESIP_SOUND_IMPORTANT_LOADING_V33 -->
 </head>
 <body>
   <div
@@ -601,6 +640,7 @@
               <div><span class="eyebrow">PLANILHA EM CÓDIGOS</span><h2 id="codes-team-title">Equipe</h2><p id="codes-team-summary"></p></div>
               <button id="codes-team-download" class="primary-button" type="button"><span data-icon="download"></span>GERAR PLANILHA</button>
             </div>
+             <div id="codes-generation-status-v33" class="codes-generation-status-v33 hidden" role="status" aria-live="polite" aria-hidden="true"><span class="spinner" aria-hidden="true"></span><span>Gerando a planilha em códigos... aguarde.</span></div>
             <div id="codes-preview" class="module-preview"></div>
           </div>
         </section>
@@ -1201,8 +1241,8 @@
     </div>
   </dialog>
   <script src="./src/vendor/supabase-js-2.57.4-local-20260801-221649.js?v=20260801-221649"></script>
-  <script type="module" src="./src/main-sem-flash-mobile-v8-7-20260802-144500.js?v=photo-hotfix-v30-1-20260810"></script>
+  <script type="module" src="./src/main-sem-flash-mobile-v8-7-20260802-144500.js?v=cesip-smart-v33-20260810"></script>
 <script defer src="./src/ajuste-rede-desempenho-v6-20260801-221649.js?v=20260801-221649"></script>
-  <script type="module" src="./src/services-lazy-v29.js?v=cesip-smart-v32-20260810"></script>
+  <script type="module" src="./src/services-lazy-v29.js?v=cesip-smart-v33-20260810"></script>
 </body>
 </html>

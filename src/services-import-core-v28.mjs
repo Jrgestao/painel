@@ -216,125 +216,150 @@ export function shouldKeepImportedRow(
 }
 
 
-const IMPORT_IMPORTANT_PATTERNS_V28 = [
-  /\blanc\w*.{0,180}\b(?:cabo|fio|fiacao|rede)\b/,
-  /\b(?:cabo|fio|fiacao|rede)\b.{0,180}\blanc\w*/,
-  /\bpux\w*.{0,160}\b(?:cabo|fio|fiacao|rede)\b/,
-  /\b(?:cabo|fio|fiacao|rede)\b.{0,160}\bpux\w*/,
-  /\bpass\w*.{0,160}\b(?:cabo|fio|fiacao|rede)\b/,
-  /\b(?:cabo|fio|fiacao|rede)\b.{0,160}\bpass\w*/,
-  /\bestic\w*.{0,160}\b(?:cabo|fio|fiacao|rede)\b/,
-  /\bextens\w*.{0,160}\b(?:cabo|fio|fiacao|rede)\b/,
-  /\bimplant\w*.{0,160}\b(?:cabo|fio|fiacao|rede)\b/,
-  /\binstal\w*.{0,160}\b(?:cabo|fio|fiacao|rede)\b/,
-  /\bsubstit\w*.{0,160}\b(?:cabo|fio|fiacao|rede)\b/,
-  /\btroc\w*.{0,160}\b(?:cabo|fio|fiacao|rede)\b/,
-  /\bremov\w*.{0,160}\b(?:cabo|fio|fiacao|rede)\b/,
-  /\bretir\w*.{0,160}\b(?:cabo|fio|fiacao|rede)\b/,
-  /\bremanej\w*.{0,160}\b(?:cabo|fio|fiacao|rede)\b/,
-  /\b(?:cabo|fio|fiacao|rede)\b.{0,120}\bcortad\w*/,
-  /\b(?:cabo|fio|fiacao|rede)\b.{0,120}\brompid\w*/,
-  /\b(?:cabo|fio|fiacao|rede)\b.{0,120}\bfurtad\w*/,
-  /\b(?:cabo|fio|fiacao|rede)\b.{0,120}\bqueimad\w*/,
-  /cabo aereo/,
-  /cabo subterraneo/,
-  /cabo duplex/,
-  /cabo triplex/,
-  /cabo quadriplex/,
-  /fiacao aerea/,
-  /rede aerea/,
-  /rede subterranea/,
+/*
+  V33 — Servico importante conservador.
+  Nao marca material comum por existir na linha: RELE, FIO e LED sozinho
+  deixaram de ser gatilhos. A intencao do servico precisa bater com as regras
+  definidas no JR Gestao.
+*/
+function damerauDistanceV33(a, b) {
+  const left = String(a || '')
+  const right = String(b || '')
+  const rows = left.length + 1
+  const cols = right.length + 1
+  const matrix = Array.from({ length: rows }, () => new Array(cols).fill(0))
+  for (let i = 0; i < rows; i += 1) matrix[i][0] = i
+  for (let j = 0; j < cols; j += 1) matrix[0][j] = j
+  for (let i = 1; i < rows; i += 1) {
+    for (let j = 1; j < cols; j += 1) {
+      const cost = left[i - 1] === right[j - 1] ? 0 : 1
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost,
+      )
+      if (
+        i > 1 &&
+        j > 1 &&
+        left[i - 1] === right[j - 2] &&
+        left[i - 2] === right[j - 1]
+      ) {
+        matrix[i][j] = Math.min(matrix[i][j], matrix[i - 2][j - 2] + 1)
+      }
+    }
+  }
+  return matrix[left.length][right.length]
+}
 
-  /contactora/,
-  /contatora/,
-  /contator/,
-  /contact/,
-  /caixa.{0,50}comando/,
-  /quadro.{0,50}comando/,
-  /painel.{0,50}comando/,
-  /comando eletrico/,
-  /comando de iluminacao/,
-  /chave de comando/,
+function fuzzyWordV33(text, canonical, options = {}) {
+  const source = normalizeImportText(text)
+  const target = normalizeImportText(canonical)
+  if (!source || !target) return false
+  const targetFirst = target.slice(0, 1)
+  const targetSecond = target.slice(0, 2)
+  const tokens = source.split(' ').filter(Boolean)
+  const maxDistance = Number.isFinite(options.maxDistance)
+    ? Number(options.maxDistance)
+    : target.length >= 9
+      ? 2
+      : 1
 
-  /escav/,
-  /valeta/,
-  /\bvala\b/,
-  /buraco/,
-  /cavacao/,
-  /cavar/,
-  /coveamento/,
-  /perfuracao/,
-  /trincheira/,
+  return tokens.some((token) => {
+    if (token === target) return true
+    if (token.length < 4 || target.length < 4) return false
+    if (token.slice(0, 1) !== targetFirst) return false
+    if (target.length <= 6 && token.slice(0, 2) !== targetSecond) return false
+    if (Math.abs(token.length - target.length) > maxDistance) return false
+    const distance = damerauDistanceV33(token, target)
+    if (distance > maxDistance) return false
 
-  /\bpoda\b/,
-  /\bpodar\b/,
-  /\bpodando\b/,
-  /galho/,
-  /galhos/,
-  /\barvore\b/,
-  /vegetacao/,
+    // Palavras curtas geram muito falso positivo por uma simples substituicao
+    // (ex.: PODA x PODE, CAMPO x CANTO). Nelas aceitamos 1 erro apenas quando
+    // parece tecla a mais/a menos ou troca de duas letras vizinhas.
+    if (target.length <= 5 && distance === 1) {
+      if (token.length !== target.length) return true
+      let mismatch = -1
+      for (let i = 0; i < target.length; i += 1) {
+        if (token[i] !== target[i]) { mismatch = i; break }
+      }
+      return mismatch >= 0 && mismatch < target.length - 1 &&
+        token[mismatch] === target[mismatch + 1] &&
+        token[mismatch + 1] === target[mismatch] &&
+        token.slice(0, mismatch) === target.slice(0, mismatch) &&
+        token.slice(mismatch + 2) === target.slice(mismatch + 2)
+    }
+    return true
+  })
+}
 
-  /refletor/,
-  /refletores/,
-  /luminaria/,
-  /luminarias/,
-  /holofote/,
-  /projetor/,
-  /tomada/,
-  /tomadas/,
-  /ponto de energia/,
-  /ponto eletrico/,
-  /lampada/,
-  /lampadas/,
-  /lamp led/,
-  /bulbo led/,
-  /modulo led/,
-  /\bled\b/,
-  /\bposte\b/,
-  /\bpadrao\b/,
-  /caixa de medicao/,
-  /\bmedidor\b/,
-  /fotocelula/,
-  /foto celula/,
-  /\brele\b/,
-  /disjuntor/,
-  /aterramento/,
-  /haste de terra/,
-  /transformador/,
-  /reator/,
-  /driver led/,
-  /fonte led/,
-  /braco de luminaria/,
-  /braco de iluminacao/,
+function fuzzyAnyWordV33(text, words) {
+  return words.some((word) => fuzzyWordV33(text, word))
+}
 
-  /\bevento\b/,
-  /\bfesta\b/,
-  /\bfeira\b/,
-  /\bfestival\b/,
-  /\bexposicao\b/,
-  /\bshow\b/,
-  /\bpraca\b/,
-  /\bparque\b/,
-  /area de lazer/,
-  /campo de futebol/,
-  /\bcampo\b/,
-  /\bestadio\b/,
-  /\bescola\b/,
-  /\bcreche\b/,
-  /\bceinf\b/,
-  /\bcmei\b/,
-  /\bcolegio\b/,
-  /\bquadra\b/,
-  /\bginasio\b/,
-  /posto de saude/,
-  /\bubs\b/,
-  /\bhospital\b/,
-  /unidade de saude/,
-  /centro comunitario/,
-  /associacao de moradores/,
-  /\bigreja\b/,
-  /\btemplo\b/,
+const IMPORTANT_FUZZY_WORDS_V33 = [
+  'contactora', 'contatora', 'contator', 'comando',
+  'escavacao', 'valeta', 'buraco', 'poda',
+  'refletor', 'tomada', 'soquete', 'lampada', 'extensao',
+  'evento', 'praca', 'campo', 'avenida',
 ]
+
+const IMPORTANT_FUZZY_INSTALL_ACTIONS_V33 = [
+  'implantacao', 'instalacao', 'colocacao', 'montagem',
+]
+
+const IMPORTANT_FUZZY_CABLE_ACTIONS_V33 = [
+  'lancamento', 'passagem', 'enterrar', 'subterraneo',
+  'aereo', 'terrestre',
+]
+
+const IMPORTANT_SIMPLE_PATTERNS_V33 = [
+  /\bcontact\w*/, /\bcontator\w*/, /\bcontactor\w*/,
+  /\bcomando\b/,
+  /\bescav\w*/, /\bvaleta\b/, /\bvala\b/, /\bburaco\b/, /\bcavac\w*/, /\bcavar\b/, /\btrincheira\b/,
+  /\bpoda\w*/, /\bpodar\w*/, /\bdesgalh\w*/, /\bcorte\w*.{0,50}\bgalho\w*/,
+  /\brefletor\w*/, /\bholofote\w*/,
+  /\btomad\w*/, /\bsoquet\w*/,
+  /\blampad\w*/,
+  /\bextens\w*/,
+  /\bevento\w*/, /\bfesta\b/, /\bfeira\b/, /\bfestival\b/, /\bshow\b/,
+  /\bpraca\b/,
+  /\bcampo\b/, /\bestadio\b/,
+  /\bavenida\b/, /\bav\b/,
+  /\bsuper\s*poste\b/,
+]
+
+const IMPORTANT_INSTALL_ACTION_V33 = /\b(?:implant\w*|instal\w*|coloc\w*|mont\w*|fix\w*|ergu\w*|assent\w*)\b/
+const IMPORTANT_CABLE_ACTION_V33 = /\b(?:lanc\w*|pux\w*|pass\w*|estic\w*|enterr\w*|subterr\w*|aere\w*|terrest\w*)\b/
+const IMPORTANT_CABLE_OBJECT_V33 = /\b(?:cabo\w*|fiacao\w*|rede\w*|fio\w*)\b/
+const IMPORTANT_TRUCK_HELP_V33 = /(?:\b(?:ajud\w*|apoio\w*|auxil\w*|suporte\w*)\b.{0,80}\bcami(?:nh)?(?:ao|oes)\b|\bcami(?:nh)?(?:ao|oes)\b.{0,80}\b(?:ajud\w*|apoio\w*|auxil\w*|suporte\w*)\b)/
+
+export function isImportantObservationV33(value) {
+  const text = normalizeImportText(value)
+  if (!text) return false
+
+  if (IMPORTANT_SIMPLE_PATTERNS_V33.some((pattern) => pattern.test(text))) return true
+  if (fuzzyAnyWordV33(text, IMPORTANT_FUZZY_WORDS_V33)) return true
+
+  const fuzzyInstall = fuzzyAnyWordV33(text, IMPORTANT_FUZZY_INSTALL_ACTIONS_V33)
+  const fuzzyCableAction = fuzzyAnyWordV33(text, IMPORTANT_FUZZY_CABLE_ACTIONS_V33)
+
+  const cableContext = IMPORTANT_CABLE_OBJECT_V33.test(text) && (
+    IMPORTANT_CABLE_ACTION_V33.test(text) ||
+    fuzzyCableAction ||
+    /\b(?:subterraneo|subterranea|aereo|aerea|terrestre|chao)\b/.test(text)
+  )
+  if (cableContext) return true
+
+  if (IMPORTANT_TRUCK_HELP_V33.test(text)) return true
+
+  const postInstall = /\bposte\w*\b/.test(text) && (IMPORTANT_INSTALL_ACTION_V33.test(text) || fuzzyInstall)
+  if (postInstall) return true
+
+  const armLedInstall = /\bbraco\w*\b/.test(text) && /\bled\b/.test(text) && (IMPORTANT_INSTALL_ACTION_V33.test(text) || fuzzyInstall)
+  if (armLedInstall) return true
+
+  return false
+}
 
 export function splitImportedObservationV28(value) {
   return String(value || '')
@@ -361,13 +386,7 @@ export function importantObservationLinesV28(value) {
     const normalized =
       normalizeImportText(line)
 
-    const important =
-      IMPORT_IMPORTANT_PATTERNS_V28
-        .some((pattern) =>
-          pattern.test(normalized),
-        )
-
-    if (!important) continue
+    if (!isImportantObservationV33(normalized)) continue
 
     const key =
       normalizeImportText(line)
