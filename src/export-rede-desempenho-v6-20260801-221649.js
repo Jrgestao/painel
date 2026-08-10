@@ -600,6 +600,123 @@ function surveyObservationV28(row) {
   )
 }
 
+
+function codeTimeFallbackV28(row, kind = 'point') {
+  const record = row.registro || row
+  const directSurvey =
+    serviceCode(row) ===
+    SURVEY_SERVICE_CODE
+
+  const survey =
+    kind === 'survey'
+
+  const fileName = survey
+    ? (
+        text(record.surveyPhotoFileName) ||
+        (
+          directSurvey
+            ? text(record.timePhotoFileName)
+            : ''
+        )
+      )
+    : text(record.timePhotoFileName)
+
+  const fallbackPath = survey
+    ? (
+        text(record.surveyPhotoPath) ||
+        (
+          directSurvey
+            ? text(record.timePhotoPath)
+            : ''
+        )
+      )
+    : text(record.timePhotoPath)
+
+  const fromFile =
+    fileNameWithoutExtension(
+      fileName,
+      fallbackPath,
+    )
+
+  if (fromFile) return fromFile
+
+  const takenAt = survey
+    ? (
+        record.surveyPhotoTakenAt ||
+        (
+          directSurvey
+            ? record.timePhotoTakenAt
+            : ''
+        )
+      )
+    : record.timePhotoTakenAt
+
+  const timestamp =
+    safeDateTimestamp(takenAt)
+
+  if (timestamp) {
+    const parts =
+      new Intl.DateTimeFormat(
+        'en-GB',
+        {
+          timeZone:
+            'America/Campo_Grande',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hourCycle: 'h23',
+        },
+      ).formatToParts(
+        new Date(timestamp),
+      )
+
+    const values =
+      Object.fromEntries(
+        parts.map(
+          (part) => [
+            part.type,
+            part.value,
+          ],
+        ),
+      )
+
+    return (
+      String(
+        values.hour || '00',
+      ) +
+      String(
+        values.minute || '00',
+      ) +
+      String(
+        values.second || '00',
+      )
+    )
+  }
+
+  const clock =
+    normalizeClock(
+      record.stampedTimeText,
+    )
+
+  return clock
+    ? clock.replaceAll(':','')
+    : ''
+}
+
+function surveyObservationV28(row) {
+  const record = row.registro || row
+
+  return (
+    text(record.surveyObservation) ||
+    (
+      serviceCode(row) ===
+        SURVEY_SERVICE_CODE
+        ? text(record.observation)
+        : ''
+    )
+  )
+}
+
 function buildCodesRows(records, context = {}) {
   const entries = []
   let sequence = 0
@@ -728,6 +845,7 @@ function buildNamesPointRow(row, index) {
   values.push(text(record.observation))
   return values
 }
+
 
 
 
