@@ -4890,6 +4890,7 @@ function recordScore(row) {
 
 
 
+
 function scoreBreakdown(records) {
   const score = {
     dayPoints: 0,
@@ -4983,6 +4984,189 @@ function recordSortTimestamp(row) {
     dateTimestamp(row?.data) ||
     dateTimestamp(row?.updated_at) ||
     0
+  )
+}
+
+
+function clockMinutesMainV28(value) {
+  const raw =
+    String(value || '')
+      .trim()
+      .replaceAll('.', ':')
+      .replaceAll('_', ':')
+      .replaceAll('-', ':')
+
+  if (!raw) return null
+
+  const photo =
+    raw.match(
+      /(?:^|\D)\d{8}[\s:_-]?(\d{2})(\d{2})(\d{2})?(?:\D|$)/,
+    )
+
+  if (photo) {
+    const hour =
+      Number(photo[1])
+    const minute =
+      Number(photo[2])
+
+    if (
+      hour <= 23 &&
+      minute <= 59
+    ) {
+      return (
+        hour * 60 +
+        minute
+      )
+    }
+  }
+
+  const separated =
+    raw.match(
+      /(?:^|\D)([01]?\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?(?:\D|$)/,
+    )
+
+  if (separated) {
+    return (
+      Number(separated[1]) * 60 +
+      Number(separated[2])
+    )
+  }
+
+  const compact =
+    raw.match(
+      /(?:^|\D)([01]\d|2[0-3])([0-5]\d)(?:[0-5]\d)?(?:\D|$)/,
+    )
+
+  if (compact) {
+    return (
+      Number(compact[1]) * 60 +
+      Number(compact[2])
+    )
+  }
+
+  return null
+}
+
+function storedMinutesMainV28(value) {
+  if (!value) return null
+
+  const date =
+    parseStoredDateTime(value)
+
+  if (!date) return null
+
+  const parts =
+    new Intl.DateTimeFormat(
+      'en-GB',
+      {
+        timeZone:
+          APP_TIME_ZONE,
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
+      },
+    ).formatToParts(date)
+
+  const values =
+    Object.fromEntries(
+      parts.map(
+        (part) => [
+          part.type,
+          part.value,
+        ],
+      ),
+    )
+
+  return (
+    Number(values.hour) * 60 +
+    Number(values.minute)
+  )
+}
+
+function pointMinutesMainV28(row) {
+  const record =
+    row?.registro || row || {}
+
+  for (const value of [
+    record.timePhotoTakenAt,
+  ]) {
+    const result =
+      storedMinutesMainV28(value)
+
+    if (
+      Number.isFinite(result)
+    ) {
+      return result
+    }
+  }
+
+  for (const value of [
+    record.timePhotoFileName,
+    record.timePhotoPath,
+    record.stampedTimeText,
+  ]) {
+    const result =
+      clockMinutesMainV28(value)
+
+    if (
+      Number.isFinite(result)
+    ) {
+      return result
+    }
+  }
+
+  return null
+}
+
+function surveyMinutesMainV28(row) {
+  const record =
+    row?.registro || row || {}
+
+  for (const value of [
+    record.surveyPhotoTakenAt,
+  ]) {
+    const result =
+      storedMinutesMainV28(value)
+
+    if (
+      Number.isFinite(result)
+    ) {
+      return result
+    }
+  }
+
+  for (const value of [
+    record.surveyPhotoFileName,
+    record.surveyPhotoPath,
+  ]) {
+    const result =
+      clockMinutesMainV28(value)
+
+    if (
+      Number.isFinite(result)
+    ) {
+      return result
+    }
+  }
+
+  if (
+    isServiceLevantamento(
+      record,
+    )
+  ) {
+    return pointMinutesMainV28(
+      row,
+    )
+  }
+
+  return null
+}
+
+function isDayMinutesMainV28(minutes) {
+  return (
+    Number.isFinite(minutes) &&
+    minutes >= 360 &&
+    minutes < 1050
   )
 }
 
