@@ -273,11 +273,7 @@
   <link rel="stylesheet" href="./src/services-board-v21.css?v=matriz-v21-20260807" />
   <!-- JR_SERVICOS_EXECUTADOS_SITE_REAL_V21 -->
   <!-- JR_GESTAO_HOTFIX_V21_4 -->
-<link rel="stylesheet" href="./src/performance-v29.css?v=module-repair-v29-2-20260810" />
-  <!-- JR_GESTAO_HOME_ATOMICO_V29 -->
-  <!-- JR_GESTAO_BOOT_MODULE_REPAIR_V29_2 -->
-  <!-- JR_GESTAO_CESIP_LETTERS_FIRST_V32 -->
-  <style id="jr-codes-generation-style-v33">
+<style id="jr-codes-generation-style-v33">
     #codes-team-download.is-generating-v33,
     #codes-team-download:disabled.is-generating-v33 {
       opacity: .48 !important;
@@ -315,7 +311,65 @@
     .codes-generation-status-v33.hidden { display: none !important; }
     @keyframes codes-generation-spin-v33 { to { transform: rotate(360deg); } }
   </style>
+<link rel="stylesheet" href="./src/performance-v29.css?v=module-repair-v29-2-20260810" />
+  <!-- JR_GESTAO_HOME_ATOMICO_V29 -->
+  <!-- JR_GESTAO_BOOT_MODULE_REPAIR_V29_2 -->
+  <!-- JR_GESTAO_CESIP_LETTERS_FIRST_V32 -->
   <!-- JR_GESTAO_CESIP_SOUND_IMPORTANT_LOADING_V33 -->
+  <!-- JR_GESTAO_IMPORTANT_CONTEXT_V34 -->
+  <style id="jr-codes-generation-style-v35">
+    #codes-team-download.is-generating-v35,
+    #codes-team-download:disabled.is-generating-v35 {
+      opacity: .50 !important;
+      filter: saturate(.28) grayscale(.38) !important;
+      cursor: wait !important;
+      pointer-events: none !important;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    #codes-team-download.is-generating-v35 {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 9px !important;
+    }
+    .codes-button-spinner-v35,
+    .codes-generation-status-v35 .spinner-v35 {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      box-sizing: border-box;
+      border: 2px solid rgba(255,255,255,.25);
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: codes-generation-spin-v35 .72s linear infinite;
+    }
+    .codes-generation-status-v35 {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-sizing: border-box;
+      margin: 10px 0 5px;
+      padding: 11px 14px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 12px;
+      color: rgba(255,255,255,.86);
+      background: rgba(255,255,255,.045);
+      font-size: .84rem;
+      font-weight: 650;
+      min-height: 42px;
+    }
+    .codes-generation-status-v35.hidden,
+    .codes-generation-status-v35[hidden] { display: none !important; }
+    @keyframes codes-generation-spin-v35 { to { transform: rotate(360deg); } }
+    @media (max-width: 700px) {
+      .codes-generation-status-v35 { font-size: .78rem; padding: 10px 11px; }
+    }
+  </style>
+  <!-- JR_GESTAO_CODES_LOADING_RENDER_V35 -->
 </head>
 <body>
   <div
@@ -640,7 +694,7 @@
               <div><span class="eyebrow">PLANILHA EM CÓDIGOS</span><h2 id="codes-team-title">Equipe</h2><p id="codes-team-summary"></p></div>
               <button id="codes-team-download" class="primary-button" type="button"><span data-icon="download"></span>GERAR PLANILHA</button>
             </div>
-             <div id="codes-generation-status-v33" class="codes-generation-status-v33 hidden" role="status" aria-live="polite" aria-hidden="true"><span class="spinner" aria-hidden="true"></span><span>Gerando a planilha em códigos... aguarde.</span></div>
+             <div id="codes-generation-status-v35" class="codes-generation-status-v35 hidden" role="status" aria-live="polite" aria-hidden="true" hidden><span class="spinner-v35" aria-hidden="true"></span><span data-codes-generation-text-v35>Preparando a planilha... aguarde.</span></div>
             <div id="codes-preview" class="module-preview"></div>
           </div>
         </section>
@@ -1241,8 +1295,8 @@
     </div>
   </dialog>
   <script src="./src/vendor/supabase-js-2.57.4-local-20260801-221649.js?v=20260801-221649"></script>
-  <script type="module" src="./src/main-sem-flash-mobile-v8-7-20260802-144500.js?v=cesip-smart-v33-20260810"></script>
+  <script type="module" src="./src/main-sem-flash-mobile-v8-7-20260802-144500.js?v=codes-loading-v35-20260810"></script>
 <script defer src="./src/ajuste-rede-desempenho-v6-20260801-221649.js?v=20260801-221649"></script>
-  <script type="module" src="./src/services-lazy-v29.js?v=cesip-smart-v33-20260810"></script>
+  <script type="module" src="./src/services-lazy-v29.js?v=services-important-v34-20260810"></script>
 </body>
 </html>

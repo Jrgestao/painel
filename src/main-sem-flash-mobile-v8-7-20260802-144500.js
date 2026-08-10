@@ -4078,7 +4078,7 @@ function openCodesTeam(team, silent = false) {
   const records=codesRecordsForTeamV21(team)
   els.codesTeamTitle.textContent=String(team)+' — '+periodLabel()
   els.codesTeamSummary.textContent=String(records.length)+' ponto(s) válido(s). Registros importados também entram na planilha em códigos.'
-  els.codesTeamDownload.disabled=codesWorkbookBusyV33 || records.length===0
+  els.codesTeamDownload.disabled=codesWorkbookBusyV35 || records.length===0
   els.codesPreview.innerHTML=recordsPreview(records,profileMapById(),{newestFirst:false,showObservation:true})
   if(!silent)focusModuleDetailV37(els.codesTeamDetail)
 }
@@ -4155,20 +4155,30 @@ function recordObservationText(record) {
   return normal || survey
 }
 
-// JR_GESTAO_CODES_GENERATION_BUSY_V33_BEGIN
-let codesWorkbookBusyV33 = false
+// JR_GESTAO_CODES_GENERATION_BUSY_V35_BEGIN
+let codesWorkbookBusyV35 = false
+let codesWorkbookButtonHtmlV35 = ''
 
-function setCodesWorkbookBusyV33(value) {
-  codesWorkbookBusyV33 = Boolean(value)
+function setCodesWorkbookPhaseV35(message) {
+  const status = document.getElementById('codes-generation-status-v35')
+  const text = status?.querySelector?.('[data-codes-generation-text-v35]')
+  if (text) text.textContent = String(message || 'Gerando a planilha em códigos... aguarde.')
+}
+
+function setCodesWorkbookBusyV35(value) {
+  codesWorkbookBusyV35 = Boolean(value)
   const button = els.codesTeamDownload
-  const status = document.getElementById('codes-generation-status-v33')
+  const status = document.getElementById('codes-generation-status-v35')
 
   if (button) {
-    button.classList.toggle('is-generating-v33', codesWorkbookBusyV33)
-    button.setAttribute('aria-busy', String(codesWorkbookBusyV33))
-    if (codesWorkbookBusyV33) {
+    if (!codesWorkbookButtonHtmlV35) codesWorkbookButtonHtmlV35 = button.innerHTML
+    button.classList.toggle('is-generating-v35', codesWorkbookBusyV35)
+    button.setAttribute('aria-busy', String(codesWorkbookBusyV35))
+    if (codesWorkbookBusyV35) {
       button.disabled = true
+      button.innerHTML = '<span class="codes-button-spinner-v35" aria-hidden="true"></span><span>GERANDO...</span>'
     } else {
+      button.innerHTML = codesWorkbookButtonHtmlV35
       const team = state.moduleTeams.codes
       const hasRecords = Boolean(team) && codesRecordsForTeamV21(team).length > 0
       button.disabled = !hasRecords
@@ -4176,29 +4186,59 @@ function setCodesWorkbookBusyV33(value) {
   }
 
   if (status) {
-    status.classList.toggle('hidden', !codesWorkbookBusyV33)
-    status.setAttribute('aria-hidden', String(!codesWorkbookBusyV33))
+    status.hidden = !codesWorkbookBusyV35
+    status.classList.toggle('hidden', !codesWorkbookBusyV35)
+    status.setAttribute('aria-hidden', String(!codesWorkbookBusyV35))
+    status.style.display = codesWorkbookBusyV35 ? 'flex' : 'none'
   }
+  if (codesWorkbookBusyV35) setCodesWorkbookPhaseV35('Preparando a planilha... aguarde.')
+}
+
+function paintCodesWorkbookBusyV35() {
+  return new Promise((resolve) => {
+    let finished = false
+    const done = () => {
+      if (finished) return
+      finished = true
+      setTimeout(resolve, 0)
+    }
+    // Dois frames garantem que botao + mensagem + spinner aparecam ANTES do trabalho pesado.
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => requestAnimationFrame(done))
+      setTimeout(done, 120)
+    } else {
+      setTimeout(done, 32)
+    }
+  })
 }
 
 async function downloadCodesForTeam(team) {
   if (!isAdmin()) { toast('Acesso negado. Esta ação exige permissão de administrador.', true); return }
-  if (codesWorkbookBusyV33) return
+  if (codesWorkbookBusyV35) return
 
-  setCodesWorkbookBusyV33(true)
+  setCodesWorkbookBusyV35(true)
+  await paintCodesWorkbookBusyV35()
   try {
-    const selected=await ensureExportRangeReady('codes')
-    const normalizedTeam=requireSpecificTeam(team)
-    await window.__JR_IMPORTED_RECORDS_V21__?.refreshRange?.(selected.start,selected.end)
-    const records=codesRecordsForTeamV21(normalizedTeam)
-    if(records.length===0)throw new Error('Nenhum registro válido foi encontrado neste período.')
-    toast('Gerando uma planilha em códigos com registros do aplicativo e importados...')
-    await downloadCodesWorkbook(records,rangeExportContextFor(normalizedTeam,records,selected))
+    setCodesWorkbookPhaseV35('Carregando registros do período...')
+    const selected = await ensureExportRangeReady('codes')
+    const normalizedTeam = requireSpecificTeam(team)
+
+    setCodesWorkbookPhaseV35('Conferindo registros importados...')
+    await window.__JR_IMPORTED_RECORDS_V21__?.refreshRange?.(selected.start, selected.end)
+    const records = codesRecordsForTeamV21(normalizedTeam)
+    if (records.length === 0) throw new Error('Nenhum registro válido foi encontrado neste período.')
+
+    setCodesWorkbookPhaseV35('Identificando códigos CESIP e montando o Excel...')
+    await paintCodesWorkbookBusyV35()
+    await downloadCodesWorkbook(records, rangeExportContextFor(normalizedTeam, records, selected))
     toast('Planilha em códigos gerada do horário mais antigo para o mais novo.')
-  } catch(error){toast(friendlyError(error),true)}
-  finally { setCodesWorkbookBusyV33(false) }
+  } catch (error) {
+    toast(friendlyError(error), true)
+  } finally {
+    setCodesWorkbookBusyV35(false)
+  }
 }
-// JR_GESTAO_CODES_GENERATION_BUSY_V33_END
+// JR_GESTAO_CODES_GENERATION_BUSY_V35_END
 async function downloadNamesForTeam(team) {
   try {
     const selected = await ensureExportRangeReady('reports')
@@ -4986,6 +5026,7 @@ function recordScore(row) {
 
 
 
+
 function scoreBreakdown(records) {
   const score = {
     dayPoints: 0,
@@ -5081,6 +5122,7 @@ function recordSortTimestamp(row) {
     0
   )
 }
+
 
 
 

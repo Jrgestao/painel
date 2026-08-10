@@ -52,7 +52,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v28.js?v=cesip-smart-v33-20260810'
+        './services-board-v28.js?v=services-important-v34-20260810'
       )
         .then((module) => {
           const first =
@@ -182,7 +182,7 @@ function modulePreloadV25(href) {
 
 function prepareModulesV25() {
   modulePreloadV25(
-    './src/services-board-v28.js?v=cesip-smart-v33-20260810',
+    './src/services-board-v28.js?v=services-important-v34-20260810',
   )
   modulePreloadV25(
     './src/services-home-overlay-v29.js?v=module-repair-v29-2-20260810',

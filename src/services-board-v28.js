@@ -18,7 +18,7 @@ import {
   normalizeText,
   serializeReportSetting,
   SERVICE_PERIOD_LABELS,
-} from './services-board-core-v21.mjs?v=33'
+} from './services-board-core-v21.mjs?v=34'
 import {
   appendAddressContextV30,
   getCesipSmartResolverV30,
@@ -37,7 +37,7 @@ import {
   rebuildImportedNotesByMetricV28,
   rebuildImportedScoresByMetricV28,
   shouldKeepImportedRow,
-} from './services-import-core-v28.mjs?v=33'
+} from './services-import-core-v28.mjs?v=34'
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 const $ = (selector) => document.querySelector(selector)

@@ -257,6 +257,7 @@ function fillNamesTemplateRows(sheet, rows, firstRow, columnCount) {
 
 
 
+
 function codeTimeFallbackV28(row, kind = 'point') {
   const record = row.registro || row
   const directSurvey =
@@ -501,6 +502,7 @@ function buildNamesPointRow(row, index) {
   values.push(text(record.observation))
   return values
 }
+
 
 
 

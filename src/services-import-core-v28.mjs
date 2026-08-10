@@ -217,7 +217,7 @@ export function shouldKeepImportedRow(
 
 
 /*
-  V33 — Servico importante conservador.
+  V34 — Servico importante conservador + contexto de endereco.
   Nao marca material comum por existir na linha: RELE, FIO e LED sozinho
   deixaram de ser gatilhos. A intencao do servico precisa bater com as regras
   definidas no JR Gestao.
@@ -300,7 +300,7 @@ const IMPORTANT_FUZZY_WORDS_V33 = [
   'contactora', 'contatora', 'contator', 'comando',
   'escavacao', 'valeta', 'buraco', 'poda',
   'refletor', 'tomada', 'soquete', 'lampada', 'extensao',
-  'evento', 'praca', 'campo', 'avenida',
+  'evento', 'praca', 'campo',
 ]
 
 const IMPORTANT_FUZZY_INSTALL_ACTIONS_V33 = [
@@ -324,7 +324,6 @@ const IMPORTANT_SIMPLE_PATTERNS_V33 = [
   /\bevento\w*/, /\bfesta\b/, /\bfeira\b/, /\bfestival\b/, /\bshow\b/,
   /\bpraca\b/,
   /\bcampo\b/, /\bestadio\b/,
-  /\bavenida\b/, /\bav\b/,
   /\bsuper\s*poste\b/,
 ]
 
@@ -333,12 +332,24 @@ const IMPORTANT_CABLE_ACTION_V33 = /\b(?:lanc\w*|pux\w*|pass\w*|estic\w*|enterr\
 const IMPORTANT_CABLE_OBJECT_V33 = /\b(?:cabo\w*|fiacao\w*|rede\w*|fio\w*)\b/
 const IMPORTANT_TRUCK_HELP_V33 = /(?:\b(?:ajud\w*|apoio\w*|auxil\w*|suporte\w*)\b.{0,80}\bcami(?:nh)?(?:ao|oes)\b|\bcami(?:nh)?(?:ao|oes)\b.{0,80}\b(?:ajud\w*|apoio\w*|auxil\w*|suporte\w*)\b)/
 
+const IMPORTANT_AVENUE_WORD_V34 = /\b(?:avenida|av)\b/
+const ADDRESS_CONTEXT_BEFORE_AVENUE_V34 = /\b(?:esq(?:uina)?|cruz(?:amento)?|cruzamento)\b.{0,70}\b(?:avenida|av)\b/
+
+function hasImportantAvenueContextV34(text) {
+  if (!IMPORTANT_AVENUE_WORD_V34.test(text)) return false
+  // Avenida continua podendo ser servico/local importante quando escrita como
+  // "servico na avenida". Mas "esquina/cruzamento com avenida" e apenas
+  // referencia de endereco e deve permanecer somente na observacao.
+  return !ADDRESS_CONTEXT_BEFORE_AVENUE_V34.test(text)
+}
+
 export function isImportantObservationV33(value) {
   const text = normalizeImportText(value)
   if (!text) return false
 
   if (IMPORTANT_SIMPLE_PATTERNS_V33.some((pattern) => pattern.test(text))) return true
   if (fuzzyAnyWordV33(text, IMPORTANT_FUZZY_WORDS_V33)) return true
+  if (hasImportantAvenueContextV34(text)) return true
 
   const fuzzyInstall = fuzzyAnyWordV33(text, IMPORTANT_FUZZY_INSTALL_ACTIONS_V33)
   const fuzzyCableAction = fuzzyAnyWordV33(text, IMPORTANT_FUZZY_CABLE_ACTIONS_V33)
@@ -354,9 +365,6 @@ export function isImportantObservationV33(value) {
 
   const postInstall = /\bposte\w*\b/.test(text) && (IMPORTANT_INSTALL_ACTION_V33.test(text) || fuzzyInstall)
   if (postInstall) return true
-
-  const armLedInstall = /\bbraco\w*\b/.test(text) && /\bled\b/.test(text) && (IMPORTANT_INSTALL_ACTION_V33.test(text) || fuzzyInstall)
-  if (armLedInstall) return true
 
   return false
 }

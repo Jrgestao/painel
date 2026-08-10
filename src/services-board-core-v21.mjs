@@ -566,11 +566,6 @@ export function detectImportantServices(record = {}) {
     addDetected(result, 'IMPLANTAÇÃO / INSTALAÇÃO DE POSTE', observationRaw, post)
   }
 
-  const arm = [/\bbraco\w*/]
-  if (arm.some((pattern) => pattern.test(searchable)) && /\bled\b/.test(searchable) && installAction.test(searchable)) {
-    addDetected(result, 'IMPLANTAÇÃO DE BRAÇO + LED', observationRaw, arm)
-  }
-
   const reflector = [/\brefletor\w*/, /\bholofote\w*/]
   if (reflector.some((pattern) => pattern.test(searchable))) {
     addDetected(result, 'REFLETOR', observationRaw, reflector)
@@ -596,7 +591,6 @@ export function detectImportantServices(record = {}) {
     ['EVENTO', [/\bevento\w*/, /\bfesta\b/, /\bfeira\b/, /\bfestival\b/, /\bshow\b/]],
     ['PRAÇA', [/\bpraca\b/]],
     ['CAMPO / ESTÁDIO', [/\bcampo\b/, /\bestadio\b/]],
-    ['AVENIDA', [/\bavenida\b/, /\bav\b/]],
   ]
 
   importantPlaces.forEach(([label, patterns]) => {
@@ -604,6 +598,12 @@ export function detectImportantServices(record = {}) {
       addDetected(result, label, observationRaw, patterns)
     }
   })
+
+  const avenue = [/\bavenida\b/, /\bav\b/]
+  const avenueAddressContext = /\b(?:esq(?:uina)?|cruz(?:amento)?|cruzamento)\b.{0,70}\b(?:avenida|av)\b/
+  if (avenue.some((pattern) => pattern.test(searchable)) && !avenueAddressContext.test(searchable)) {
+    addDetected(result, 'AVENIDA', observationRaw, avenue)
+  }
 
   return [...result]
 }
