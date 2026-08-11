@@ -72,6 +72,53 @@ let serviceDateScrollLockUntilV38 = 0
 let serviceDateObserverV38 = null
 let photoOpenTokenV37 = 0
 const teamSummaryCacheV37 = new Map()
+// JR_GESTAO_CONTAGEM_PLANILHA_UNIFICADA_V36_BEGIN
+const IMPORTED_BRIDGE_URL_V36 = './services-import-bridge-v21.js?v=bridge-v21-20260807'
+let importedDashboardRefreshTimerV36 = 0
+
+async function ensureImportedScoresV36(start, end, force = false) {
+  try {
+    if (!window.__JR_IMPORTED_RECORDS_V21__) {
+      await import(IMPORTED_BRIDGE_URL_V36)
+    }
+    await window.__JR_IMPORTED_RECORDS_V21__?.refreshRange?.(start, end, force)
+    return true
+  } catch (error) {
+    console.warn('[JR V36] Registros importados indisponiveis para a pontuacao do Home.', error)
+    return false
+  }
+}
+function scoreRowsWithImportedV36(nativeActive, start, end, profileMap, team = '') {
+  const selectedTeam = normalizeText(team)
+  const merged = mergeImportedRowsV21(nativeActive || [], start, end)
+    .filter((row) => !row?.deleted_at)
+  if (!selectedTeam || selectedTeam === 'all' || selectedTeam === 'todas as equipes') return merged
+  return merged.filter((row) => normalizeText(recordTeam(row, profileMap)) === selectedTeam)
+}
+function buildSummaryWithExportScoreV36(records, manifests, profileMap, start, end, team = '') {
+  // Fotos, pendencias e excluidos continuam 100% nativos. So a pontuacao recebe
+  // as linhas importadas, igual ao arquivo de Codigos.
+  const summary = buildSummary(records, manifests, profileMap)
+  const scoreRows = scoreRowsWithImportedV36(summary.active, start, end, profileMap, team)
+  summary.score = scoreBreakdown(scoreRows)
+  summary.scoreRecordCountV36 = scoreRows.length
+  summary.importedScoreRowsV36 = Math.max(0, scoreRows.length - summary.active.length)
+  return summary
+}
+function scheduleImportedDashboardRefreshV36() {
+  if (!state.profile) return
+  window.clearTimeout(importedDashboardRefreshTimerV36)
+  importedDashboardRefreshTimerV36 = window.setTimeout(async () => {
+    const month = monthRangeFromValue(currentMonth())
+    const end = addDays(month.next, -1)
+    await ensureImportedScoresV36(month.start, end, true)
+    teamSummaryCacheV37.clear()
+    renderDashboard({ renderModules: false, forceHome: state.page === 'home' })
+  }, 140)
+}
+document.addEventListener('jr:services-settings-updated', scheduleImportedDashboardRefreshV36)
+document.addEventListener('jr:imported-records-v21', scheduleImportedDashboardRefreshV36)
+// JR_GESTAO_CONTAGEM_PLANILHA_UNIFICADA_V36_END
 function ensureLoadingScreenV7() {
   let screen = document.getElementById('jr-loading-screen-v7')
   if (screen) return screen
@@ -2206,6 +2253,9 @@ async function loadDashboard(showSuccessToast = false, source = 'user') {
     const date = currentDate()
     const dayNext = addDays(date, 1)
     const month = monthRangeFromValue(currentMonth())
+    // JR_GESTAO_IMPORTED_SCORE_LOAD_V36_BEGIN
+    const importedScoresPromiseV36 = ensureImportedScoresV36(month.start, addDays(month.next, -1))
+    // JR_GESTAO_IMPORTED_SCORE_LOAD_V36_END
     const dayFetchStart = `${addDays(date, -1)}T00:00:00.000Z`
     const dayFetchEnd = `${addDays(dayNext, 1)}T00:00:00.000Z`
 
@@ -2230,6 +2280,14 @@ async function loadDashboard(showSuccessToast = false, source = 'user') {
         .order('sent_at', { ascending: false })
         .range(from, to)),
     ])
+
+    // JR_GESTAO_IMPORTED_SCORE_READY_V36_BEGIN
+
+    await importedScoresPromiseV36
+
+    teamSummaryCacheV37.clear()
+
+    // JR_GESTAO_IMPORTED_SCORE_READY_V36_END
 
     state.records = dayRecords.filter((row) => serviceDateKey(row) === date)
     state.manifests = dayManifests.filter((manifest) => String(manifest.work_date || '').slice(0, 10) === date)
@@ -2912,20 +2970,23 @@ function renderDashboard(options = {}) {
   const profileMap = profileMapById()
   const records = team === 'all' ? state.records : recordsForTeam(team, profileMap)
   const manifests = team === 'all' ? state.manifests : manifestsForTeam(team, profileMap)
-  state.summary = buildSummary(records, manifests, profileMap)
-
+  const day = currentDate()
+  state.summary = buildSummaryWithExportScoreV36(records, manifests, profileMap, day, day, team)
   const homeActive = state.page === 'home' || options.forceHome === true
   if (homeActive || !state.monthSummary) {
     // JR_FIX_MONTH_SUMMARY_INDEPENDENT_SITE_REAL_V8
-    // O calendário de mês/ano controla sozinho o resumo mensal.
-    // O seletor diário de equipe não filtra os totais do mês.
-    state.monthSummary = buildSummary(
+    // O calendario de mes/ano controla sozinho o resumo mensal.
+    // O seletor diario de equipe nao filtra os totais do mes.
+    const monthRangeV36 = monthRangeFromValue(currentMonth())
+    state.monthSummary = buildSummaryWithExportScoreV36(
       state.monthRecords,
       state.monthManifests,
       profileMap,
+      monthRangeV36.start,
+      addDays(monthRangeV36.next, -1),
+      '',
     )
   }
-
   if (homeActive) {
     renderMetrics()
     renderStatus()
@@ -2938,7 +2999,6 @@ function renderDashboard(options = {}) {
     scheduleCurrentModuleRenderV31(state.page)
   }
 }
-
 
 function buildSummary(records, manifests, profileMap) {
   const manifestSnapshots = latestManifestSnapshots(manifests)
@@ -3123,7 +3183,7 @@ function renderTeamScores() {
       <div class="team-score-row-name-v30">
         <small>EQUIPE</small>
         <strong>${escapeHtml(team)}</strong>
-        <em>${summary.active.length} registro(s) válido(s)</em>
+        <em>${summary.scoreRecordCountV36 ?? summary.active.length} registro(s) válido(s)</em>
       </div>
 
       <div class="team-score-row-values-v30">
@@ -4371,35 +4431,35 @@ function requireSpecificTeam(team) {
 }
 
 function summaryForTeam(team) {
+  const day = currentDate()
+  const importedCountV36 = importedRecordsForRangeV21(day, day).length
   const key = [
-    currentDate(),
+    day,
     state.lastDashboardLoadAt,
     state.records.length,
     state.manifests.length,
+    importedCountV36,
     normalizeText(team),
   ].join('|')
-
-  if (teamSummaryCacheV37.has(key)) {
-    return teamSummaryCacheV37.get(key)
-  }
+  if (teamSummaryCacheV37.has(key)) return teamSummaryCacheV37.get(key)
 
   const profileMap = profileMapById()
-  const summary = buildSummary(
+  const summary = buildSummaryWithExportScoreV36(
     recordsForTeam(team, profileMap),
     manifestsForTeam(team, profileMap),
-    profileMap
+    profileMap,
+    day,
+    day,
+    team,
   )
 
   teamSummaryCacheV37.set(key, summary)
-
   if (teamSummaryCacheV37.size > 80) {
     const oldestKey = teamSummaryCacheV37.keys().next().value
     teamSummaryCacheV37.delete(oldestKey)
   }
-
   return summary
 }
-
 
 function rangeSummaryForTeam(team) {
   const profileMap = profileMapById()

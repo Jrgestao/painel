@@ -113,7 +113,7 @@ function loadHomeV25() {
   if (!loaded.home) {
     loaded.home =
       import(
-        './services-home-overlay-v29.js?v=module-repair-v29-2-20260810'
+        './services-home-overlay-v29.js?v=home-score-v36-20260811'
       ).catch((error) => {
         loaded.home = null
 

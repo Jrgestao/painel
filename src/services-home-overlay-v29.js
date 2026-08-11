@@ -1,3 +1,4 @@
+// JR_GESTAO_HOME_SCORE_IGUAL_EXPORT_V36=20260811
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=2'
 import { normalizeReportSetting } from './services-board-core-v21.mjs?v=1'
 import {
@@ -37,7 +38,7 @@ const state = {
   schedule: 0,
   modelFingerprintV22: '',
   teamRowsCacheV22: null,
-
+  importedRowsV36: [],
   afterMainFrameV25: 0,
   afterMainSecondFrameV25: 0,
   lastAppliedHomeSignatureV25: '',
@@ -251,6 +252,38 @@ function teamKeyForRow(row, profileMap) {
   return `legacy:${norm(name)}`
 }
 
+
+
+
+// JR_GESTAO_HOME_IMPORTED_ROWS_V36_BEGIN
+function monthBoundsV36(month) {
+  const match = String(month || '').match(/^(\d{4})-(\d{2})$/)
+  if (!match) return null
+  const year = Number(match[1])
+  const monthIndex = Number(match[2]) - 1
+  const next = new Date(Date.UTC(year, monthIndex + 1, 1))
+  const nextKey = `${next.getUTCFullYear()}-${String(next.getUTCMonth() + 1).padStart(2, '0')}-01`
+  const endDate = new Date(next.getTime() - 86400000)
+  const end = `${endDate.getUTCFullYear()}-${String(endDate.getUTCMonth() + 1).padStart(2, '0')}-${String(endDate.getUTCDate()).padStart(2, '0')}`
+  return { start: `${month}-01`, end, next: nextKey }
+}
+async function refreshImportedRowsV36(month, force = false) {
+  const bounds = monthBoundsV36(month)
+  if (!bounds) { state.importedRowsV36 = []; return [] }
+  try {
+    if (!window.__JR_IMPORTED_RECORDS_V21__) {
+      await import('./services-import-bridge-v21.js?v=bridge-v21-20260807')
+    }
+    await window.__JR_IMPORTED_RECORDS_V21__?.refreshRange?.(bounds.start, bounds.end, force)
+    state.importedRowsV36 = window.__JR_IMPORTED_RECORDS_V21__?.recordsForRange?.(bounds.start, bounds.end) || []
+  } catch (error) {
+    console.warn('[JR V36] Nao foi possivel carregar linhas importadas no Home.', error)
+    state.importedRowsV36 = []
+  }
+  return state.importedRowsV36
+}
+// JR_GESTAO_HOME_IMPORTED_ROWS_V36_END
+
 function buildModel() {
   const cache = state.cache
   if (!cache) return null
@@ -275,6 +308,20 @@ function buildModel() {
     addScore(raw.get(key).get(day), rowMetrics(row))
   }
 
+  // JR_GESTAO_HOME_ADD_IMPORTED_V36_BEGIN
+  // MESMA fonte da planilha em Codigos: soma as virtual rows importadas aos nativos.
+  for (const row of Array.isArray(state.importedRowsV36) ? state.importedRowsV36 : []) {
+    if (row?.deleted_at) continue
+    const date = serviceDateKey(row)
+    if (!date || !date.startsWith(`${cache.month}-`)) continue
+    const key = teamKeyForRow(row, profileMap)
+    if (!raw.has(key)) raw.set(key, new Map())
+    const day = Number(date.slice(8, 10))
+    if (!raw.get(key).has(day)) raw.get(key).set(day, blankScore())
+    addScore(raw.get(key).get(day), rowMetrics(row))
+  }
+  // JR_GESTAO_HOME_ADD_IMPORTED_V36_END
+
   const final = new Map()
   const nameToKey = new Map()
 
@@ -285,17 +332,12 @@ function buildModel() {
     const rawDays = raw.get(key) || new Map()
 
     for (let day = 1; day <= 31; day += 1) {
+      // JR_GESTAO_HOME_SCORE_DECISION_V36: Home segue os registros que entram na planilha.
+      // Edicoes/overrides da matriz continuam existindo em Servicos Executados,
+      // mas nao podem reescrever a contagem real do Home.
       const base = rawDays.get(day) || blankScore()
       const score = blankScore()
-      for (const metric of METRICS) {
-        const manual = setting.scoreOverrides?.[metric]?.[String(day)]
-        const imported = setting.importedScoresByMetric?.[metric]?.[String(day)]
-        score[metric] = Number.isFinite(Number(manual))
-          ? Number(manual)
-          : Number.isFinite(Number(imported))
-            ? Number(imported)
-            : Number(base[metric] || 0)
-      }
+      for (const metric of METRICS) score[metric] = Number(base[metric] || 0)
       dayMap.set(day, score)
     }
 
@@ -957,8 +999,9 @@ async function refreshFromCache(detail) {
       incomingMonth,
     )
 
-    state.model =
-      buildModel()
+    await refreshImportedRowsV36(incomingMonth)
+
+    state.model = buildModel();
 
     state.teamRowsCacheV22 = null
 
