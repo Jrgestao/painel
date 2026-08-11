@@ -177,6 +177,22 @@ function cleanImportedRows(value) {
     .filter((item) => /^\d{4}-\d{2}-\d{2}$/.test(item.date))
 }
 
+
+
+
+function cleanDisplayNamesByMetricV38(value, legacyName = '') {
+  /* JR_GESTAO_V38_NOME_POR_PLANILHA: cada uma das 4 planilhas possui seu proprio nome. */
+  const source = value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+  const legacy = String(legacyName || '').trim().slice(0, 80)
+  const result = {}
+  SERVICE_METRIC_KEYS.forEach((metric) => {
+    const hasOwn = Object.prototype.hasOwnProperty.call(source, metric)
+    const text = String(hasOwn ? source[metric] : legacy).trim().slice(0, 80)
+    if (text) result[metric] = text
+  })
+  return result
+}
+
 function cleanMatrixCacheV21(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null
   const fingerprint = String(value.fingerprint || '').trim().slice(0, 240)
@@ -292,6 +308,10 @@ export function normalizeReportSetting(item = {}) {
 
   return {
     displayName: String(item?.display_name || '').trim().slice(0, 80),
+    displayNamesByMetric: cleanDisplayNamesByMetricV38(
+      raw.display_names_by_metric,
+      String(item?.display_name || '').trim().slice(0, 80),
+    ),
     hiddenDays: new Set(
       Array.isArray(item?.hidden_days)
         ? item.hidden_days
@@ -346,7 +366,11 @@ export function serializeReportSetting(draft) {
   })
 
   return {
-    _version: 7,
+    _version: 8,
+    display_names_by_metric: cleanDisplayNamesByMetricV38(
+      draft?.displayNamesByMetric || {},
+      draft?.displayName || '',
+    ),
     notes_by_metric: cleanNotesByMetric(draft?.manualNotesByMetric || {}, true),
     suppressed_notes_by_metric: suppressed,
     score_overrides: cleanScoreOverrides(draft?.scoreOverrides || {}),

@@ -18,7 +18,7 @@ import {
   normalizeText,
   serializeReportSetting,
   SERVICE_PERIOD_LABELS,
-} from './services-board-core-v21.mjs?v=34'
+} from './services-board-core-v21.mjs?v=nomes-por-planilha-v38-20260811'
 import {
   appendAddressContextV30,
   getCesipSmartResolverV30,
@@ -650,8 +650,11 @@ function bindEvents() {
       const teamKey =
         alias.dataset.servicesAlias
 
-      draftFor(teamKey).displayName =
-        alias.value.slice(0, 80)
+      const metricKey = alias.dataset.servicesAliasMetric || state.metric
+      if (!SERVICE_METRIC_KEYS.includes(metricKey)) return
+      const aliasDraft = draftFor(teamKey)
+      if (!aliasDraft.displayNamesByMetric) aliasDraft.displayNamesByMetric = {}
+      aliasDraft.displayNamesByMetric[metricKey] = alias.value.slice(0, 80)
 
       markDirty(teamKey)
       return
@@ -1952,7 +1955,7 @@ function renderBoard() {
       <div class="services-matrix-team-name">
         ${
           admin
-            ? `<input data-services-alias="${escapeHtml(sheet.key)}" maxlength="80" value="${escapeHtml(displayName)}" aria-label="Nome da equipe nesta área" />`
+            ? `<input data-services-alias="${escapeHtml(sheet.key)}" data-services-alias-metric="${escapeHtml(state.metric)}" maxlength="80" value="${escapeHtml(displayName)}" aria-label="Nome da equipe nesta área" />`
             : `<strong>${escapeHtml(displayName)}</strong>`
         }
         ${
@@ -2189,7 +2192,7 @@ function observationItemsForDay(
       )
 
       return {
-        team: displayNameFor(sheet),
+        team: displayNameFor(sheet, metricKey),
         automatic: parts.automatic,
         imported: parts.imported,
         manual: parts.manual,
@@ -2269,7 +2272,7 @@ function showObservationHover(dayNumber, anchor) {
       if (!parts.text && !parts.hasImportant) return null
 
       return {
-        team: displayNameFor(sheet),
+        team: displayNameFor(sheet, metricKey),
         automatic: parts.automatic,
         imported: parts.imported,
         manual: parts.manual,
@@ -3073,6 +3076,7 @@ function draftFor(teamKey) {
 
   const draft = {
     displayName: setting.displayName,
+    displayNamesByMetric: { ...(setting.displayNamesByMetric || {}) },
     hiddenDays: new Set(setting.hiddenDays),
     manualNotesByMetric,
     suppressedNotesByMetric,
@@ -3124,8 +3128,44 @@ function draftFor(teamKey) {
   return draft
 }
 
-function displayNameFor(sheet) {
-  return draftFor(sheet.key).displayName.trim() || sheet.originalName
+/* JR_GESTAO_V38_ALIAS_ISOLADO_POR_METRICA */
+function displayNameFor(sheet, metricKey = state.metric) {
+  /* JR_GESTAO_V38_NOME_POR_PLANILHA: nome editado vale somente na planilha/metrica atual. */
+  const draft = draftFor(sheet.key)
+  const metric = SERVICE_METRIC_KEYS.includes(metricKey) ? metricKey : state.metric
+  return (
+    String(draft.displayNamesByMetric?.[metric] || '').trim() ||
+    draft.displayName.trim() ||
+    sheet.originalName
+  )
+}
+
+function allDisplayNamesForSheetV38(sheet) {
+  return [...new Set(
+    SERVICE_METRIC_KEYS
+      .map((metric) => displayNameFor(sheet, metric))
+      .map((name) => String(name || '').trim())
+      .filter(Boolean),
+  )]
+}
+
+function importTeamLabelV38(sheet) {
+  if (!state.importMeta || !(state.importEntries || []).length) {
+    return displayNameFor(sheet, state.metric)
+  }
+  const aggregate = currentImportAggregate()
+  const present = [
+    ['dayPoints', Number(aggregate.totals.dayPoints || 0), 'Pontos M/T'],
+    ['daySurveys', Number(aggregate.totals.daySurveys || 0), 'Lev. M/T'],
+    ['nightPoints', Number(aggregate.totals.nightPoints || 0), 'Pontos Noite'],
+    ['nightSurveys', Number(aggregate.totals.nightSurveys || 0), 'Lev. Noite'],
+  ].filter((item) => item[1] > 0)
+  if (!present.length) return displayNameFor(sheet, state.metric)
+  const names = [...new Set(present.map(([metric]) => displayNameFor(sheet, metric)))]
+  if (names.length === 1) return names[0]
+  return present
+    .map(([metric, _count, label]) => `${displayNameFor(sheet, metric)} (${label})`)
+    .join(' / ')
 }
 
 function markDirty(teamKey) {
@@ -3688,7 +3728,7 @@ function fillImportTeamSelect() {
     sheets
       .map(
         (sheet) =>
-          `<option value="${escapeHtml(sheet.key)}">${escapeHtml(displayNameFor(sheet))}</option>`,
+          `<option value="${escapeHtml(sheet.key)}">${escapeHtml(importTeamLabelV38(sheet))}</option>`,
       )
       .join('')
 }
@@ -3992,25 +4032,17 @@ function detectTeamHint(workbook, fileName) {
   for (const hint of candidates) {
     const normalized = normalizeImportText(hint)
 
-    const exact = sheets.find(
-      (sheet) =>
-        normalizeImportText(
-          displayNameFor(sheet),
-        ) === normalized,
+    const exact = sheets.find((sheet) =>
+      allDisplayNamesForSheetV38(sheet).some((name) => normalizeImportText(name) === normalized)
     )
 
     if (exact) return exact.key
 
-    const contained = sheets.find(
-      (sheet) => {
-        const team = normalizeImportText(
-          displayNameFor(sheet),
-        )
-        return (
-          normalized.includes(team) ||
-          team.includes(normalized)
-        )
-      },
+    const contained = sheets.find((sheet) =>
+      allDisplayNamesForSheetV38(sheet).some((name) => {
+        const team = normalizeImportText(name)
+        return normalized.includes(team) || team.includes(normalized)
+      })
     )
 
     if (contained) return contained.key
@@ -4370,6 +4402,10 @@ async function handleImportFile() {
       label: parsed.label,
       fileName: parsed.fileName,
     }
+
+
+    /* JR_GESTAO_V38_REFRESH_IMPORT_TEAM_LABELS */
+    fillImportTeamSelect()
 
     if (parsed.teamHint && els.importTeam) {
       els.importTeam.value = parsed.teamHint
@@ -4859,7 +4895,7 @@ async function downloadWorkbook() {
 
       worksheet.addRow([
         'Dia',
-        ...sheets.map(displayNameFor),
+        ...sheets.map((sheet) => displayNameFor(sheet, metric.key)),
         `Observações — ${metric.label}`,
       ])
 
