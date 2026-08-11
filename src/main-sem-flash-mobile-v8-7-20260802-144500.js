@@ -5312,81 +5312,33 @@ function storedMinutesMainV28(value) {
 }
 
 function pointMinutesMainV28(row) {
-  const record =
-    row?.registro || row || {}
-
-  for (const value of [
-    record.timePhotoTakenAt,
-  ]) {
-    const result =
-      storedMinutesMainV28(value)
-
-    if (
-      Number.isFinite(result)
-    ) {
-      return result
-    }
-  }
-
+  /* JR_GESTAO_PERIODO_FOTO_V37_1: hora gravada no arquivo/foto antes de TakenAt. */
+  const record = row?.registro || row || {}
   for (const value of [
     record.timePhotoFileName,
     record.timePhotoPath,
     record.stampedTimeText,
   ]) {
-    const result =
-      clockMinutesMainV28(value)
-
-    if (
-      Number.isFinite(result)
-    ) {
-      return result
-    }
+    const result = clockMinutesMainV28(value)
+    if (Number.isFinite(result)) return result
   }
-
-  return null
+  const fallback = storedMinutesMainV28(record.timePhotoTakenAt)
+  return Number.isFinite(fallback) ? fallback : null
 }
 
 function surveyMinutesMainV28(row) {
-  const record =
-    row?.registro || row || {}
-
-  for (const value of [
-    record.surveyPhotoTakenAt,
-  ]) {
-    const result =
-      storedMinutesMainV28(value)
-
-    if (
-      Number.isFinite(result)
-    ) {
-      return result
-    }
-  }
-
+  /* JR_GESTAO_PERIODO_FOTO_V37_1: levantamento segue a hora da propria foto. */
+  const record = row?.registro || row || {}
   for (const value of [
     record.surveyPhotoFileName,
     record.surveyPhotoPath,
   ]) {
-    const result =
-      clockMinutesMainV28(value)
-
-    if (
-      Number.isFinite(result)
-    ) {
-      return result
-    }
+    const result = clockMinutesMainV28(value)
+    if (Number.isFinite(result)) return result
   }
-
-  if (
-    isServiceLevantamento(
-      record,
-    )
-  ) {
-    return pointMinutesMainV28(
-      row,
-    )
-  }
-
+  const fallback = storedMinutesMainV28(record.surveyPhotoTakenAt)
+  if (Number.isFinite(fallback)) return fallback
+  if (isServiceLevantamento(record)) return pointMinutesMainV28(row)
   return null
 }
 

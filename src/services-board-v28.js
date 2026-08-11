@@ -1659,12 +1659,11 @@ function buildTeamSheets() {
         )
 
       if (Number(score.normal) > 0) {
-        const pointDay =
-          isDayMinutesV28(
-            pointMinutesV28(row),
-          )
-
-        if (pointDay) {
+        const pointMinutesV371 = pointMinutesV28(row)
+        /* JR_GESTAO_V37_1_NAO_CLASSIFICA_HORARIO_AUSENTE */
+        if (!Number.isFinite(pointMinutesV371)) {
+          // Sem horario confiavel: nao inventar M/T nem Noite.
+        } else if (isDayMinutesV28(pointMinutesV371)) {
           day.dayPoints += score.normal
 
           detected.forEach(
@@ -1684,12 +1683,11 @@ function buildTeamSheets() {
       }
 
       if (Number(score.levantamento) > 0) {
-        const surveyDay =
-          isDayMinutesV28(
-            surveyMinutesV28(row),
-          )
-
-        if (surveyDay) {
+        const surveyMinutesV371 = surveyMinutesV28(row)
+        /* JR_GESTAO_V37_1_NAO_CLASSIFICA_LEVANTAMENTO_SEM_HORARIO */
+        if (!Number.isFinite(surveyMinutesV371)) {
+          // Sem horario confiavel: nao inventar M/T nem Noite.
+        } else if (isDayMinutesV28(surveyMinutesV371)) {
           day.daySurveys +=
             score.levantamento
 
@@ -5101,44 +5099,37 @@ function minutesFromDateValueV28(value) {
 }
 
 function pointMinutesV28(row) {
+  /* JR_GESTAO_PERIODO_FOTO_V37_1_SERVICOS: mesma regra exata do Home/planilha. */
   const record = row?.registro || row || {}
-
   for (const value of [
-    record.timePhotoTakenAt,
     record.timePhotoFileName,
     record.timePhotoPath,
     record.stampedTimeText,
   ]) {
-    const fromDate = minutesFromDateValueV28(value)
-    if (Number.isFinite(fromDate)) return fromDate
-
     const parsed = parseImportMinutes(value)
     if (Number.isFinite(parsed)) return parsed
   }
-
-  return null
+  const fromDate = minutesFromDateValueV28(record.timePhotoTakenAt)
+  if (Number.isFinite(fromDate)) return fromDate
+  const parsed = parseImportMinutes(record.timePhotoTakenAt)
+  return Number.isFinite(parsed) ? parsed : null
 }
 
 function surveyMinutesV28(row) {
+  /* JR_GESTAO_PERIODO_FOTO_V37_1_SERVICOS: levantamento separado pelo horario da propria foto. */
   const record = row?.registro || row || {}
-
   for (const value of [
-    record.surveyPhotoTakenAt,
     record.surveyPhotoFileName,
     record.surveyPhotoPath,
   ]) {
-    const fromDate = minutesFromDateValueV28(value)
-    if (Number.isFinite(fromDate)) return fromDate
-
     const parsed = parseImportMinutes(value)
     if (Number.isFinite(parsed)) return parsed
   }
-
-  if (isServiceLevantamento(record)) {
-    const direct = pointMinutesV28(row)
-    if (Number.isFinite(direct)) return direct
-  }
-
+  const fromDate = minutesFromDateValueV28(record.surveyPhotoTakenAt)
+  if (Number.isFinite(fromDate)) return fromDate
+  const parsed = parseImportMinutes(record.surveyPhotoTakenAt)
+  if (Number.isFinite(parsed)) return parsed
+  if (isServiceLevantamento(record)) return pointMinutesV28(row)
   return null
 }
 

@@ -52,7 +52,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v28.js?v=services-important-v34-20260810'
+        './services-board-v28.js?v=periodo-foto-v37-1-20260811'
       )
         .then((module) => {
           const first =
@@ -113,7 +113,7 @@ function loadHomeV25() {
   if (!loaded.home) {
     loaded.home =
       import(
-        './services-home-overlay-v29.js?v=home-score-v36-20260811'
+        './services-home-overlay-v29.js?v=periodo-foto-v37-1-20260811'
       ).catch((error) => {
         loaded.home = null
 
@@ -182,10 +182,10 @@ function modulePreloadV25(href) {
 
 function prepareModulesV25() {
   modulePreloadV25(
-    './src/services-board-v28.js?v=services-important-v34-20260810',
+    './src/services-board-v28.js?v=periodo-foto-v37-1-20260811',
   )
   modulePreloadV25(
-    './src/services-home-overlay-v29.js?v=module-repair-v29-2-20260810',
+    './src/services-home-overlay-v29.js?v=periodo-foto-v37-1-20260811',
   )
   modulePreloadV25(
     './src/services-import-bridge-v21.js?v=bridge-v21-20260807',

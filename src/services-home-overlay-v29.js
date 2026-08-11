@@ -144,43 +144,37 @@ function homeMinutesFromDateV28(value) {
 }
 
 function homePointMinutesV28(row) {
+  /* JR_GESTAO_PERIODO_FOTO_V37_1: Home usa a mesma hora visivel da planilha/foto. */
   const record = row?.registro || row || {}
-
   for (const value of [
-    record.timePhotoTakenAt,
     record.timePhotoFileName,
     record.timePhotoPath,
     record.stampedTimeText,
   ]) {
-    const dateMinutes = homeMinutesFromDateV28(value)
-    if (Number.isFinite(dateMinutes)) return dateMinutes
-
     const parsed = parseImportMinutes(value)
     if (Number.isFinite(parsed)) return parsed
   }
-
-  return null
+  const dateMinutes = homeMinutesFromDateV28(record.timePhotoTakenAt)
+  if (Number.isFinite(dateMinutes)) return dateMinutes
+  const parsed = parseImportMinutes(record.timePhotoTakenAt)
+  return Number.isFinite(parsed) ? parsed : null
 }
 
 function homeSurveyMinutesV28(row) {
+  /* JR_GESTAO_PERIODO_FOTO_V37_1: levantamento do Home usa a propria foto. */
   const record = row?.registro || row || {}
-
   for (const value of [
-    record.surveyPhotoTakenAt,
     record.surveyPhotoFileName,
     record.surveyPhotoPath,
   ]) {
-    const dateMinutes = homeMinutesFromDateV28(value)
-    if (Number.isFinite(dateMinutes)) return dateMinutes
-
     const parsed = parseImportMinutes(value)
     if (Number.isFinite(parsed)) return parsed
   }
-
-  if (isSurvey(record)) {
-    return homePointMinutesV28(row)
-  }
-
+  const dateMinutes = homeMinutesFromDateV28(record.surveyPhotoTakenAt)
+  if (Number.isFinite(dateMinutes)) return dateMinutes
+  const parsed = parseImportMinutes(record.surveyPhotoTakenAt)
+  if (Number.isFinite(parsed)) return parsed
+  if (isSurvey(record)) return homePointMinutesV28(row)
   return null
 }
 
