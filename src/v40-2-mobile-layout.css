@@ -1,0 +1,253 @@
+/* JR_GESTAO_V40_2_MOBILE_OBSERVACOES_CALENDARIO */
+/* Somente layout/UX mobile. Nenhuma regra de negocio e alterada. */
+
+@media (max-width: 768px) {
+  /* O dialog de periodo fica sempre dentro da viewport do celular. */
+  .period-selector-dialog[open],
+  .period-selector-dialog {
+    box-sizing: border-box !important;
+    position: fixed !important;
+    inset: max(4px, env(safe-area-inset-top)) 4px max(4px, env(safe-area-inset-bottom)) 4px !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+  .period-selector-dialog form,
+  .period-selector-dialog .period-selector-body {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+  }
+  .period-selector-dialog .period-selector-body {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Calendario: nunca usa top/left herdado que o joga para fora da tela. */
+  .date-picker-popover.mobile-fixed,
+  .date-picker-popover.jr-mobile-calendar-v40,
+  .month-picker-popover.mobile-fixed,
+  .month-picker-popover.jr-mobile-calendar-v40 {
+    box-sizing: border-box !important;
+    position: fixed !important;
+    z-index: 2147483600 !important;
+    inset: max(6px, env(safe-area-inset-top)) 5px auto 5px !important;
+    left: 5px !important;
+    right: 5px !important;
+    top: max(6px, env(safe-area-inset-top)) !important;
+    bottom: auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    max-height: calc(100dvh - max(12px, env(safe-area-inset-top)) - max(12px, env(safe-area-inset-bottom))) !important;
+    margin: 0 auto !important;
+    padding: 7px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    transform: none !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .date-picker-popover .picker-header,
+  .date-picker-popover .picker-footer {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  .date-picker-popover .weekday-grid,
+  .date-picker-popover .calendar-grid {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    gap: 2px !important;
+  }
+  .date-picker-popover .calendar-day {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    height: clamp(26px, 5dvh, 32px) !important;
+    min-height: 26px !important;
+    padding: 0 !important;
+  }
+
+  /* Observacoes: nenhum descendente pode forcar o card para fora da largura. */
+  #services-observation-viewer,
+  .services-observation-viewer {
+    box-sizing: border-box !important;
+    width: calc(100dvw - 6px) !important;
+    max-width: calc(100dvw - 6px) !important;
+    max-height: calc(100dvh - 6px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    overflow: hidden !important;
+  }
+  #services-observation-viewer .services-viewer-body,
+  .services-observation-viewer .services-viewer-body,
+  .services-viewer-body {
+    box-sizing: border-box !important;
+    display: block !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+  }
+
+  .services-viewer-team,
+  .services-viewer-team > header,
+  .services-viewer-team > header > div,
+  .services-viewer-team-content,
+  .services-viewer-team-content > *,
+  .services-viewer-service,
+  .services-viewer-imported,
+  .services-viewer-manual,
+  .services-viewer-manual-important,
+  .services-viewer-empty {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .services-viewer-team {
+    display: block !important;
+    position: relative !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: hidden !important;
+    contain: layout paint !important;
+  }
+  .services-viewer-team > header {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex-wrap: wrap !important;
+    overflow: hidden !important;
+  }
+  .services-viewer-team > header > div {
+    flex: 1 1 100% !important;
+  }
+  .services-viewer-team-content {
+    display: block !important;
+    position: static !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: hidden !important;
+  }
+  .services-viewer-team-content > *,
+  .services-viewer-service,
+  .services-viewer-imported,
+  .services-viewer-manual,
+  .services-viewer-manual-important,
+  .services-viewer-empty {
+    position: static !important;
+    inset: auto !important;
+    float: none !important;
+    clear: both !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: hidden !important;
+  }
+
+  .services-viewer-team p,
+  .services-viewer-team small,
+  .services-viewer-team strong,
+  .services-viewer-team span,
+  .services-viewer-service p,
+  .services-viewer-imported p,
+  .services-viewer-manual p {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    text-overflow: clip !important;
+  }
+  .services-viewer-service p,
+  .services-viewer-imported p,
+  .services-viewer-manual p {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    font-size: 11.5px !important;
+    line-height: 1.42 !important;
+  }
+  .services-viewer-important-badge {
+    display: inline-flex !important;
+    width: auto !important;
+    max-width: 100% !important;
+    flex: 0 1 auto !important;
+  }
+
+  /* Hover/olhinho: fica dentro da tela mesmo com observacao enorme. */
+  .services-observation-hover {
+    box-sizing: border-box !important;
+    width: calc(100dvw - 12px) !important;
+    max-width: calc(100dvw - 12px) !important;
+    max-height: min(76dvh, 560px) !important;
+    overflow: hidden !important;
+  }
+  .services-observation-hover .services-hover-list {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    max-height: min(64dvh, 470px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .services-hover-team,
+  .services-hover-service,
+  .services-hover-imported,
+  .services-hover-manual {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .services-viewer-service p,
+  .services-viewer-imported p,
+  .services-viewer-manual p {
+    font-size: 11px !important;
+    line-height: 1.38 !important;
+  }
+  .date-picker-popover.mobile-fixed,
+  .date-picker-popover.jr-mobile-calendar-v40 {
+    left: 3px !important;
+    right: 3px !important;
+    padding: 5px !important;
+  }
+  .date-picker-popover .calendar-day {
+    height: 25px !important;
+    min-height: 25px !important;
+    font-size: 10.5px !important;
+  }
+}
