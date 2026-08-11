@@ -1,0 +1,92 @@
+/* JR_GESTAO_V40_UI_FIXES */
+/* Calendario mobile: fica no top-layer do dialog, centralizado e compacto, sem cortar semanas. */
+@media (max-width: 768px) {
+  .period-selector-dialog,
+  .period-selector-dialog[open],
+  .period-selector-dialog form {
+    overflow: visible !important;
+  }
+  .period-selector-dialog .period-selector-body {
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+  }
+  .date-picker-popover.mobile-fixed.jr-mobile-portal-v40,
+  .month-picker-popover.mobile-fixed.jr-mobile-portal-v40 {
+    position: fixed !important;
+    z-index: 2147483600 !important;
+    left: 50% !important;
+    right: auto !important;
+    top: 50% !important;
+    bottom: auto !important;
+    width: min(340px, calc(100vw - 10px)) !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 10px) !important;
+    max-height: min(calc(100dvh - 8px), calc(var(--jr-v40-visual-height, 100dvh) - 8px)) !important;
+    padding: 8px !important;
+    overflow: auto !important;
+    transform: translate(-50%, -50%) !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .date-picker-popover.jr-mobile-calendar-v40 .picker-header {
+    min-height: 31px !important;
+    margin-bottom: 3px !important;
+  }
+  .date-picker-popover.jr-mobile-calendar-v40 .picker-nav {
+    width: 30px !important;
+    height: 30px !important;
+  }
+  .date-picker-popover.jr-mobile-calendar-v40 .weekday-grid {
+    margin-bottom: 2px !important;
+  }
+  .date-picker-popover.jr-mobile-calendar-v40 .weekday-grid,
+  .date-picker-popover.jr-mobile-calendar-v40 .calendar-grid {
+    gap: 2px !important;
+  }
+  .date-picker-popover.jr-mobile-calendar-v40 .weekday-grid span {
+    height: 19px !important;
+    font-size: 10px !important;
+  }
+  .date-picker-popover.jr-mobile-calendar-v40 .calendar-day {
+    width: 100% !important;
+    height: clamp(25px, 4.9dvh, 30px) !important;
+    min-height: 25px !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+  }
+  .date-picker-popover.jr-mobile-calendar-v40 .picker-footer {
+    min-height: 30px !important;
+    margin-top: 4px !important;
+  }
+}
+
+@media (max-width: 380px), (max-height: 520px) {
+  .date-picker-popover.mobile-fixed.jr-mobile-portal-v40 {
+    width: calc(100vw - 6px) !important;
+    max-width: calc(100vw - 6px) !important;
+    padding: 6px !important;
+  }
+  .date-picker-popover.jr-mobile-calendar-v40 .calendar-day {
+    height: 24px !important;
+    min-height: 24px !important;
+    font-size: 10.5px !important;
+  }
+  .date-picker-popover.jr-mobile-calendar-v40 .picker-header,
+  .date-picker-popover.jr-mobile-calendar-v40 .picker-footer {
+    min-height: 28px !important;
+  }
+}
+
+/* Olhinho: o tooltip precisa aparecer inclusive nos cards dourados/importantes. */
+.services-observation-hover {
+  position: fixed !important;
+  z-index: 2147483000 !important;
+}
+.services-observation-hover.is-visible {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+[data-services-hover-notes] {
+  pointer-events: auto !important;
+}

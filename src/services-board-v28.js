@@ -224,6 +224,10 @@ const state = {
   renderFrameV22: 0,
   scrollQuietUntilV39: 0,
   scrollQuietTimerV39: 0,
+  visibilityAutoSaveTimerV40: 0,
+  visibilityAutoSaveBusyV40: false,
+  visibilityAutoSaveQueuedV40: false,
+  hoverRetryTimerV40: 0,
   teamFilterSignatureV22: '',
 
   lastBoardRenderSignatureV25: '',
@@ -541,8 +545,7 @@ function bindEvents() {
     openDirectActionConfirm('discard')
   })
 
-  els.hideEmpty?.addEventListener('click', hideEmptyRows)
-  els.showAll?.addEventListener('click', showAllRows)
+  els.hideEmpty?.addEventListener('click', toggleEmptyRowsVisibilityV40)
   els.showAllColumns?.addEventListener('click', showAllColumnsForCurrentMetric)
   els.toggleObservations?.addEventListener('click', toggleObservationColumnForCurrentMetric)
   els.importButton?.addEventListener(
@@ -649,27 +652,24 @@ function bindEvents() {
     applyScoreInputDraft(scoreInput)
     scheduleBoardRenderV22()
   })
-
+  /* JR_GESTAO_V40_HOVER_RETRY */
   els.root?.addEventListener('pointerover', (event) => {
     const anchor = event.target.closest('[data-services-hover-notes]')
     if (!anchor) return
-    if (performance.now() < state.scrollQuietUntilV39) return
     if (event.relatedTarget && anchor.contains(event.relatedTarget)) return
-
     const day = Number(anchor.dataset.servicesHoverNotes)
     if (!Number.isInteger(day)) return
-
-    showObservationHover(day, anchor)
+    queueObservationHoverV40(day, anchor)
   })
 
   els.root?.addEventListener('pointerout', (event) => {
     const anchor = event.target.closest('[data-services-hover-notes]')
     if (!anchor) return
     if (event.relatedTarget && anchor.contains(event.relatedTarget)) return
-
+    window.clearTimeout(state.hoverRetryTimerV40)
+    state.hoverRetryTimerV40 = 0
     hideObservationHover()
   })
-
   window.addEventListener('scroll', () => {
     state.scrollQuietUntilV39 = performance.now() + 120
     if (state.hoverAnchor) hideObservationHover()
@@ -1881,6 +1881,8 @@ function renderBoard() {
     globalDraft,
     state.metric,
   )
+
+  updateVisibilityButtonsV40(globalDraft)
 
   const visibleDays = Array.from(
     { length: daysInMonth(state.month) },
@@ -3217,6 +3219,78 @@ function updateSaveState() {
       : 'Tudo salvo.'
 }
 
+
+
+/* JR_GESTAO_V40_VISIBILIDADE_AUTOSAVE */
+function updateVisibilityButtonsV40(globalDraft = draftFor(GLOBAL_KEY)) {
+  if (els.hideEmpty) {
+    const hasHiddenDays = globalDraft.hiddenDays.size > 0
+    const label = els.hideEmpty.querySelector('.button-label') || els.hideEmpty
+    label.textContent = hasHiddenDays ? 'Mostrar todos os dias' : 'Ocultar dias vazios'
+    els.hideEmpty.setAttribute('aria-pressed', hasHiddenDays ? 'true' : 'false')
+    els.hideEmpty.title = hasHiddenDays
+      ? 'Mostrar novamente todos os dias deste mes'
+      : 'Ocultar automaticamente os dias sem pontos e sem observacoes'
+  }
+}
+
+function scheduleVisibilityAutoSaveV40() {
+  if (!isAdmin()) return
+  window.clearTimeout(state.visibilityAutoSaveTimerV40)
+  state.visibilityAutoSaveQueuedV40 = true
+  if (els.saveState) els.saveState.textContent = 'Salvando preferencia automaticamente...'
+  state.visibilityAutoSaveTimerV40 = window.setTimeout(() => {
+    void flushVisibilityAutoSaveV40()
+  }, 360)
+}
+
+async function flushVisibilityAutoSaveV40() {
+  if (state.visibilityAutoSaveBusyV40) {
+    state.visibilityAutoSaveQueuedV40 = true
+    return
+  }
+  if (!hasUnsavedChanges()) {
+    state.visibilityAutoSaveQueuedV40 = false
+    updateSaveState()
+    return
+  }
+  state.visibilityAutoSaveBusyV40 = true
+  state.visibilityAutoSaveQueuedV40 = false
+  try {
+    await saveAllChanges()
+  } finally {
+    state.visibilityAutoSaveBusyV40 = false
+    if (state.visibilityAutoSaveQueuedV40 && hasUnsavedChanges()) {
+      scheduleVisibilityAutoSaveV40()
+    }
+  }
+}
+
+function toggleEmptyRowsVisibilityV40() {
+  if (!isAdmin()) return
+  const globalDraft = draftFor(GLOBAL_KEY)
+  if (globalDraft.hiddenDays.size > 0) showAllRows(true)
+  else hideEmptyRows(true)
+}
+
+function queueObservationHoverV40(dayNumber, anchor) {
+  window.clearTimeout(state.hoverRetryTimerV40)
+  const quietUntil = Number(state.scrollQuietUntilV39 || 0)
+  const wait = Math.max(0, quietUntil - performance.now())
+  const show = () => {
+    state.hoverRetryTimerV40 = 0
+    if (!anchor?.isConnected) return
+    // Se o navegador suportar :hover, garante que o mouse continua no olhinho.
+    try { if (!anchor.matches(':hover')) return } catch (_error) {}
+    showObservationHover(dayNumber, anchor)
+  }
+  if (wait > 0) {
+    state.hoverRetryTimerV40 = window.setTimeout(show, wait + 28)
+  } else {
+    show()
+  }
+}
+
 function toggleHiddenDay(day) {
   if (!isAdmin()) return
   const draft = draftFor(GLOBAL_KEY)
@@ -3224,9 +3298,10 @@ function toggleHiddenDay(day) {
   else draft.hiddenDays.add(day)
   markDirty(GLOBAL_KEY)
   renderBoard()
+  scheduleVisibilityAutoSaveV40()
 }
 
-function hideEmptyRows() {
+function hideEmptyRows(autoSaveV40 = false) {
   if (!isAdmin()) return
   const allSheets = buildTeamSheets()
   const candidateSheets = allSheets.filter((sheet) => state.selectedTeam === 'all' || sheet.key === state.selectedTeam)
@@ -3244,13 +3319,15 @@ function hideEmptyRows() {
 
   markDirty(GLOBAL_KEY)
   renderBoard()
+  if (autoSaveV40) scheduleVisibilityAutoSaveV40()
 }
 
-function showAllRows() {
+function showAllRows(autoSaveV40 = false) {
   if (!isAdmin()) return
   draftFor(GLOBAL_KEY).hiddenDays.clear()
   markDirty(GLOBAL_KEY)
   renderBoard()
+  if (autoSaveV40) scheduleVisibilityAutoSaveV40()
 }
 
 function toggleHiddenColumn(teamKey) {
@@ -3261,6 +3338,7 @@ function toggleHiddenColumn(teamKey) {
   markDirty(teamKey)
   renderTeamFilter()
   renderBoard()
+  scheduleVisibilityAutoSaveV40()
 }
 
 function showAllColumnsForCurrentMetric() {
@@ -3279,6 +3357,7 @@ function showAllColumnsForCurrentMetric() {
     updateSaveState()
     renderTeamFilter()
     renderBoard()
+    scheduleVisibilityAutoSaveV40()
   } else {
     showToast('Nenhuma equipe está oculta nesta planilha.')
   }
@@ -3516,6 +3595,7 @@ function toggleObservationColumnForCurrentMetric() {
 
   markDirty(GLOBAL_KEY)
   renderBoard()
+  scheduleVisibilityAutoSaveV40()
 }
 
 function discardAllDraftChanges() {

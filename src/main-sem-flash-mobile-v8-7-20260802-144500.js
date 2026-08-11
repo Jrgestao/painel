@@ -37,7 +37,7 @@ const createClient = window.supabase?.createClient
 if (typeof createClient !== 'function') throw new Error('Cliente local do Supabase não carregou.')
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, INTERNAL_LOGIN_DOMAIN, APP_TIME_ZONE, ADMIN_API_BASE_URL } from './config-cachefix-20260731-140035.js'
 import { hydrateIcons, icon } from './icons.js?v=20260731'
-import { initializeUiControls, setUiControlValue, refreshCustomSelect, closeAllUiControls } from './ui-controls.js?v=20260731'
+import { initializeUiControls, setUiControlValue, refreshCustomSelect, closeAllUiControls } from './ui-controls.js?v=mobile-calendar-v40-20260811'
 // JR_GESTAO_DATA_ORDEM_PLANILHAS_V10
 // Exportações e prévias de Códigos/Relatórios em ordem cronológica.
 import {
