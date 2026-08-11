@@ -52,7 +52,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v28.js?v=nomes-por-planilha-v38-20260811'
+        './services-board-v28.js?v=servicos-fluido-v39-1-20260811'
       )
         .then((module) => {
           const first =
@@ -182,7 +182,7 @@ function modulePreloadV25(href) {
 
 function prepareModulesV25() {
   modulePreloadV25(
-    './src/services-board-v28.js?v=nomes-por-planilha-v38-20260811',
+    './src/services-board-v28.js?v=servicos-fluido-v39-1-20260811',
   )
   modulePreloadV25(
     './src/services-home-overlay-v29.js?v=periodo-foto-v37-1-20260811',

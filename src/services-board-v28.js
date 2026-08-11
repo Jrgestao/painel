@@ -222,6 +222,8 @@ const state = {
 
   matrixPersistIdleV22: null,
   renderFrameV22: 0,
+  scrollQuietUntilV39: 0,
+  scrollQuietTimerV39: 0,
   teamFilterSignatureV22: '',
 
   lastBoardRenderSignatureV25: '',
@@ -587,57 +589,21 @@ function bindEvents() {
   )
 
   els.download?.addEventListener('click', downloadWorkbook)
-
+  /* JR_GESTAO_V39_SCROLL_NATIVO
+     Nao cancela mais o wheel nem converte scroll em window.scrollBy.
+     O Chrome passa a rolar pelo compositor nativo. */
   els.root?.addEventListener(
     'wheel',
-    (event) => {
-      const matrix =
-        event.target.closest(
-          '.services-matrix-scroll',
-        )
-
-      if (!matrix) return
-
-      const verticalIntent =
-        Math.abs(event.deltaY) >=
-        Math.abs(event.deltaX)
-
-      if (
-        !verticalIntent ||
-        event.shiftKey
-      ) {
-        return
-      }
-
-      event.preventDefault()
-
-      state.matrixWheelDeltaY +=
-        event.deltaY
-
-      if (state.matrixWheelFrame) {
-        return
-      }
-
-      state.matrixWheelFrame =
-        window.requestAnimationFrame(
-          () => {
-            const delta =
-              state.matrixWheelDeltaY
-
-            state.matrixWheelDeltaY = 0
-            state.matrixWheelFrame = 0
-
-            window.scrollBy({
-              top: delta,
-              left: 0,
-              behavior: 'auto',
-            })
-          },
-        )
+    () => {
+      state.scrollQuietUntilV39 = performance.now() + 150
+      window.clearTimeout(state.scrollQuietTimerV39)
+      state.scrollQuietTimerV39 = window.setTimeout(() => {
+        state.scrollQuietUntilV39 = 0
+      }, 170)
+      if (state.hoverAnchor) hideObservationHover()
     },
-    { passive: false },
+    { passive: true },
   )
-
   els.root?.addEventListener('input', (event) => {
     if (!isAdmin()) return
 
@@ -687,6 +653,7 @@ function bindEvents() {
   els.root?.addEventListener('pointerover', (event) => {
     const anchor = event.target.closest('[data-services-hover-notes]')
     if (!anchor) return
+    if (performance.now() < state.scrollQuietUntilV39) return
     if (event.relatedTarget && anchor.contains(event.relatedTarget)) return
 
     const day = Number(anchor.dataset.servicesHoverNotes)
@@ -703,7 +670,10 @@ function bindEvents() {
     hideObservationHover()
   })
 
-  window.addEventListener('scroll', hideObservationHover, true)
+  window.addEventListener('scroll', () => {
+    state.scrollQuietUntilV39 = performance.now() + 120
+    if (state.hoverAnchor) hideObservationHover()
+  }, { capture: true, passive: true })
   window.addEventListener('resize', hideObservationHover)
 
   els.root?.addEventListener('click', (event) => {
@@ -1874,13 +1844,36 @@ function renderBoard() {
       state.selectedTeam === 'all' ||
       sheet.key === state.selectedTeam,
   )
+
+  /* JR_GESTAO_V39_RENDER_CACHE: cache efemero, somente para este desenho. */
+  const renderDraftCacheV39 = new Map()
+  const renderDraftV39 = (sheet) => {
+    if (!renderDraftCacheV39.has(sheet.key)) {
+      renderDraftCacheV39.set(sheet.key, draftFor(sheet.key))
+    }
+    return renderDraftCacheV39.get(sheet.key)
+  }
+  const renderObservationCacheV39 = new Map()
+  const renderNotePartsV39 = (sheet, dayNumber) => {
+    const key = `${sheet.key}|${dayNumber}|${state.metric}`
+    if (renderObservationCacheV39.has(key)) {
+      return renderObservationCacheV39.get(key)
+    }
+    const parts = effectiveObservationParts(
+      sheet.days[dayNumber - 1],
+      renderDraftV39(sheet),
+      state.metric,
+    )
+    renderObservationCacheV39.set(key, parts)
+    return parts
+  }
   const hiddenColumnCount = candidateSheets.filter(
-    (sheet) => isMetricHidden(draftFor(sheet.key), state.metric),
+    (sheet) => isMetricHidden(renderDraftV39(sheet), state.metric),
   ).length
   const sheets = candidateSheets.filter(
     (sheet) =>
       state.showHiddenColumns ||
-      !isMetricHidden(draftFor(sheet.key), state.metric),
+      !isMetricHidden(renderDraftV39(sheet), state.metric),
   )
 
   const globalDraft = draftFor(GLOBAL_KEY)
@@ -1947,7 +1940,7 @@ function renderBoard() {
   const headerCells = sheets.map((sheet) => {
     const displayName = displayNameFor(sheet)
     const hidden = isMetricHidden(
-      draftFor(sheet.key),
+      renderDraftV39(sheet),
       state.metric,
     )
 
@@ -1982,7 +1975,7 @@ function renderBoard() {
 
     const cells = sheets.map((sheet) => {
       const day = sheet.days[dayNumber - 1]
-      const draft = draftFor(sheet.key)
+      const draft = renderDraftV39(sheet)
       const value = effectiveScore(
         day,
         draft,
@@ -1998,11 +1991,7 @@ function renderBoard() {
         state.metric,
         dayNumber,
       )
-      const noteParts = effectiveObservationParts(
-        day,
-        draft,
-        state.metric,
-      )
+      const noteParts = renderNotePartsV39(sheet, dayNumber)
       const important = noteParts.hasImportant
       const manual = noteParts.hasManual
       const hidden = isMetricHidden(
@@ -2035,11 +2024,20 @@ function renderBoard() {
       </td>`
     }).join('')
 
-    const noteItems = observationItemsForDay(
-      sheets,
-      dayNumber,
-      state.metric,
-    )
+    const noteItems = sheets
+      .map((sheet) => {
+        const parts = renderNotePartsV39(sheet, dayNumber)
+        return {
+          team: displayNameFor(sheet, state.metric),
+          automatic: parts.automatic,
+          imported: parts.imported,
+          manual: parts.manual,
+          text: parts.text,
+          important: parts.hasImportant,
+          manualImportant: parts.manualImportant,
+        }
+      })
+      .filter((item) => item.text || item.important)
 
     const noteCount = noteItems.length
     const hasImportantObservation = noteItems.some(
@@ -2101,7 +2099,7 @@ function renderBoard() {
   }).join('')
 
   const totals = sheets.map((sheet) => {
-    const draft = draftFor(sheet.key)
+    const draft = renderDraftV39(sheet)
     const total = sheet.days.reduce(
       (sum, day) =>
         sum +
