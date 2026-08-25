@@ -428,6 +428,330 @@ const state = {
   periodSelector: { target: 'reports', mode: 'day' },
 }
 
+// JR_GESTAO_FOTOS_COMPLETAS_HORARIO_V40_6_2=20260825
+const photoTimeFilterV4061 = {
+  exact: '',
+  start: '',
+  end: '',
+}
+
+function photoTimeFilterKeyV4061() {
+  return `${photoTimeFilterV4061.exact}|${photoTimeFilterV4061.start}|${photoTimeFilterV4061.end}`
+}
+
+function photoTimeFilterActiveV4061() {
+  return Boolean(photoTimeFilterV4061.exact || photoTimeFilterV4061.start || photoTimeFilterV4061.end)
+}
+
+function photoTimeValueToMinuteV4061(value) {
+  const match = String(value || '').match(/^(\d{1,2}):(\d{2})$/)
+  if (!match) return null
+  const hour = Number(match[1])
+  const minute = Number(match[2])
+  if (!Number.isInteger(hour) || !Number.isInteger(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59) return null
+  return hour * 60 + minute
+}
+
+function photoTimeTextFromMinuteV4061(minute) {
+  if (!Number.isFinite(minute)) return 'Horário não identificado'
+  const normalized = ((Math.trunc(minute) % 1440) + 1440) % 1440
+  return `${String(Math.floor(normalized / 60)).padStart(2, '0')}:${String(normalized % 60).padStart(2, '0')}`
+}
+
+function photoMinuteFromFileNameV4061(fileName) {
+  const base = String(fileName || '').split(/[\\/]/).pop() || ''
+
+  // Ex.: TimePhoto_20260814_183122.jpg / SurveyPhoto-20260814-183122.jpg
+  let match = base.match(/(?:19|20)\d{6}[_-]([01]\d|2[0-3])([0-5]\d)(?:[0-5]\d)?(?:\D|$)/)
+  if (match) return Number(match[1]) * 60 + Number(match[2])
+
+  // Ex.: 1831.jpg / 183122_1.jpg / FOTO_1831_2.jpg
+  match = base.match(/(?:^|[_-])([01]\d|2[0-3])([0-5]\d)(?:[0-5]\d)?(?=[_.-]|$)/)
+  if (match) return Number(match[1]) * 60 + Number(match[2])
+
+  // Ex.: 18-31 / 18_31 / 18:31
+  match = base.match(/(?:^|\D)([01]?\d|2[0-3])[:_-]([0-5]\d)(?:\D|$)/)
+  if (match) return Number(match[1]) * 60 + Number(match[2])
+
+  return null
+}
+
+function photoMinuteFromTimestampV4061(value) {
+  if (!value) return null
+  try {
+    const parsed = parseStoredDateTime(value)
+    if (!parsed) return null
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: APP_TIME_ZONE,
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).formatToParts(parsed)
+    const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+    const hour = Number(values.hour)
+    const minute = Number(values.minute)
+    if (Number.isFinite(hour) && Number.isFinite(minute)) return hour * 60 + minute
+  } catch (_error) {}
+  return null
+}
+
+function photoMinuteForEntryV4061(row, record, kind, fileName) {
+  const candidateFields = kind === 'survey'
+    ? [
+        record.surveyPhotoTakenAt,
+        record.surveyPhotoDateTime,
+        record.surveyTakenAt,
+        record.surveyCreatedAt,
+      ]
+    : [
+        record.timePhotoTakenAt,
+        record.timePhotoDateTime,
+        record.photoTakenAt,
+        record.timePhotoCreatedAt,
+      ]
+
+  for (const value of candidateFields) {
+    const minute = photoMinuteFromTimestampV4061(value)
+    if (minute !== null) return minute
+  }
+
+  let minute = photoMinuteFromFileNameV4061(fileName)
+  if (minute !== null) return minute
+
+  const stamped = String(record.stampedTimeText || '').match(/([01]?\d|2[0-3]):([0-5]\d)/)
+  if (stamped) return Number(stamped[1]) * 60 + Number(stamped[2])
+
+  minute = photoMinuteFromTimestampV4061(recordDisplayDateTime(row))
+  return minute
+}
+
+function photoEntryMatchesTimeV4061(entry) {
+  if (!photoTimeFilterActiveV4061()) return true
+  if (!Number.isFinite(entry.minute)) return false
+
+  const exact = photoTimeValueToMinuteV4061(photoTimeFilterV4061.exact)
+  if (exact !== null) return entry.minute === exact
+
+  const start = photoTimeValueToMinuteV4061(photoTimeFilterV4061.start)
+  const end = photoTimeValueToMinuteV4061(photoTimeFilterV4061.end)
+
+  if (start !== null && end !== null) {
+    if (start <= end) return entry.minute >= start && entry.minute <= end
+    return entry.minute >= start || entry.minute <= end
+  }
+  if (start !== null) return entry.minute >= start
+  if (end !== null) return entry.minute <= end
+  return true
+}
+
+function photoTimeFilterLabelV4061() {
+  if (photoTimeFilterV4061.exact) return `horário exato ${photoTimeFilterV4061.exact}`
+  if (photoTimeFilterV4061.start && photoTimeFilterV4061.end) {
+    return `${photoTimeFilterV4061.start} até ${photoTimeFilterV4061.end}`
+  }
+  if (photoTimeFilterV4061.start) return `a partir de ${photoTimeFilterV4061.start}`
+  if (photoTimeFilterV4061.end) return `até ${photoTimeFilterV4061.end}`
+  return ''
+}
+
+function detailedPhotoEntriesV4061(records, team = '') {
+  const entries = []
+
+  for (const row of records || []) {
+    const record = row.registro || {}
+    const street = streetName(record) || 'Sem rua'
+    const order = record.orderNumber || row.id
+    const workDate = serviceDateKey(row) || state.range.start || todayInCampoGrande()
+
+    if (hasText(record.timePhotoStoragePath)) {
+      const fileName = record.timePhotoFileName || `${row.id}_HORARIO.jpg`
+      const minute = photoMinuteForEntryV4061(row, record, 'time', fileName)
+      entries.push({
+        rowId: row.id,
+        bucket: record.timePhotoStorageBucket || 'fotos',
+        path: record.timePhotoStoragePath,
+        fileName,
+        label: 'Foto de horário',
+        order,
+        street,
+        team,
+        workDate,
+        minute,
+        timeText: photoTimeTextFromMinuteV4061(minute),
+        takenAt: record.timePhotoTakenAt || record.timePhotoDateTime || recordDisplayDateTime(row),
+      })
+    }
+
+    if (hasText(record.surveyPhotoStoragePath)) {
+      const fileName = record.surveyPhotoFileName || `${row.id}_LEVANTAMENTO.jpg`
+      const minute = photoMinuteForEntryV4061(row, record, 'survey', fileName)
+      entries.push({
+        rowId: row.id,
+        bucket: record.surveyPhotoStorageBucket || 'fotos',
+        path: record.surveyPhotoStoragePath,
+        fileName,
+        label: 'Foto de levantamento',
+        order,
+        street,
+        team,
+        workDate,
+        minute,
+        timeText: photoTimeTextFromMinuteV4061(minute),
+        takenAt: record.surveyPhotoTakenAt || record.surveyPhotoDateTime || record.timePhotoTakenAt || recordDisplayDateTime(row),
+      })
+    }
+  }
+
+  return entries
+}
+
+function filteredPhotoEntriesV4061(records, team = '') {
+  return detailedPhotoEntriesV4061(records, team)
+    .filter(photoEntryMatchesTimeV4061)
+    .sort((a, b) => {
+      const dateDiff = String(a.workDate || '').localeCompare(String(b.workDate || ''))
+      if (dateDiff) return dateDiff
+      const aMinute = Number.isFinite(a.minute) ? a.minute : 9999
+      const bMinute = Number.isFinite(b.minute) ? b.minute : 9999
+      return aMinute - bMinute || String(a.fileName || '').localeCompare(String(b.fileName || ''), 'pt-BR')
+    })
+}
+
+function installPhotoTimeFilterV4061() {
+  if (document.getElementById('photos-time-filter-v4061')) return
+
+  const toolbar = document.querySelector('[data-range-toolbar="photos"]')
+  if (!toolbar) return
+
+  const filter = document.createElement('div')
+  filter.id = 'photos-time-filter-v4061'
+  filter.className = 'photos-time-filter-v4061'
+  filter.innerHTML = `
+    <div class="photos-time-filter-title-v4061">
+      <span>${icon('clock')}</span>
+      <div>
+        <strong>FILTRAR POR HORÁRIO</strong>
+        <small>Horário exato ou intervalo de horas.</small>
+      </div>
+    </div>
+
+    <label class="photos-time-field-v4061 photos-time-exact-v4061">
+      <span>HORÁRIO EXATO</span>
+      <input id="photos-time-exact-v4061" type="time" step="60" aria-label="Pesquisar foto por horário exato">
+    </label>
+
+    <span class="photos-time-or-v4061">OU</span>
+
+    <label class="photos-time-field-v4061">
+      <span>DAS</span>
+      <input id="photos-time-start-v4061" type="time" step="60" aria-label="Horário inicial das fotos">
+    </label>
+
+    <label class="photos-time-field-v4061">
+      <span>ATÉ</span>
+      <input id="photos-time-end-v4061" type="time" step="60" aria-label="Horário final das fotos">
+    </label>
+
+    <button id="photos-time-clear-v4061" class="outline-button" type="button">LIMPAR HORÁRIO</button>
+  `
+
+  const refresh = els.photosRefreshButton || document.getElementById('photos-refresh-button')
+  toolbar.insertBefore(filter, refresh || null)
+
+  if (!document.getElementById('photos-time-style-v4061')) {
+    const style = document.createElement('style')
+    style.id = 'photos-time-style-v4061'
+    style.textContent = `
+      .photos-time-filter-v4061{
+        display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;
+        width:100%;padding:12px 14px;border:1px solid rgba(255,255,255,.1);
+        border-radius:14px;background:rgba(255,255,255,.035)
+      }
+      .photos-time-filter-title-v4061{
+        display:flex;align-items:center;gap:9px;min-width:210px;margin-right:2px
+      }
+      .photos-time-filter-title-v4061>span{display:grid;place-items:center}
+      .photos-time-filter-title-v4061 div{display:flex;flex-direction:column;gap:2px}
+      .photos-time-filter-title-v4061 strong{font-size:12px;letter-spacing:.06em}
+      .photos-time-filter-title-v4061 small{font-size:11px;opacity:.68}
+      .photos-time-field-v4061{display:flex;flex-direction:column;gap:5px}
+      .photos-time-field-v4061>span{font-size:10px;font-weight:800;letter-spacing:.06em;opacity:.74}
+      .photos-time-filter-v4061 input[type="time"]{
+        min-width:116px;height:42px;padding:0 10px;border-radius:10px;
+        border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.32);
+        color:inherit;font:inherit;color-scheme:dark
+      }
+      .photos-time-or-v4061{font-size:10px;font-weight:900;opacity:.46;padding-bottom:14px}
+      #photos-time-clear-v4061{height:42px;white-space:nowrap}
+      body.photo-time-filter-active-v4061 .photos-time-filter-v4061{
+        border-color:rgba(38,147,255,.48);box-shadow:0 0 0 1px rgba(38,147,255,.08) inset
+      }
+      .photo-filter-time-v4061{font-weight:800}
+      @media(max-width:760px){
+        .photos-time-filter-v4061{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}
+        .photos-time-filter-title-v4061{grid-column:1/-1;min-width:0}
+        .photos-time-exact-v4061{grid-column:1/-1}
+        .photos-time-or-v4061{display:none}
+        .photos-time-filter-v4061 input[type="time"]{width:100%;min-width:0}
+        #photos-time-clear-v4061{grid-column:1/-1}
+      }
+    `
+    document.head.appendChild(style)
+  }
+
+  const exact = document.getElementById('photos-time-exact-v4061')
+  const start = document.getElementById('photos-time-start-v4061')
+  const end = document.getElementById('photos-time-end-v4061')
+  const clear = document.getElementById('photos-time-clear-v4061')
+
+  const rerender = () => {
+    document.body.classList.toggle('photo-time-filter-active-v4061', photoTimeFilterActiveV4061())
+    try { moduleRenderCacheV31.delete('photos') } catch (_error) {}
+    try { renderCurrentModuleV31('photos', true) } catch (_error) {
+      try {
+        renderPhotoTeams(teamsForRange())
+        if (state.moduleTeams.photos) refreshOpenPhotoFolder()
+      } catch (_nestedError) {}
+    }
+  }
+
+  exact?.addEventListener('change', () => {
+    photoTimeFilterV4061.exact = exact.value || ''
+    if (photoTimeFilterV4061.exact) {
+      photoTimeFilterV4061.start = ''
+      photoTimeFilterV4061.end = ''
+      if (start) start.value = ''
+      if (end) end.value = ''
+    }
+    rerender()
+  })
+
+  const updateRange = () => {
+    photoTimeFilterV4061.start = start?.value || ''
+    photoTimeFilterV4061.end = end?.value || ''
+    if (photoTimeFilterV4061.start || photoTimeFilterV4061.end) {
+      photoTimeFilterV4061.exact = ''
+      if (exact) exact.value = ''
+    }
+    rerender()
+  }
+
+  start?.addEventListener('change', updateRange)
+  end?.addEventListener('change', updateRange)
+
+  clear?.addEventListener('click', () => {
+    photoTimeFilterV4061.exact = ''
+    photoTimeFilterV4061.start = ''
+    photoTimeFilterV4061.end = ''
+    if (exact) exact.value = ''
+    if (start) start.value = ''
+    if (end) end.value = ''
+    rerender()
+  })
+
+  hydrateIcons()
+}
+
 installFluidMetalThemeV26()
 prepareLightSearchUi()
 finalizePanelChromeV26()
@@ -447,6 +771,7 @@ setAllRangeFilters(todayInCampoGrande(), todayInCampoGrande())
 initializeOrdersCurrentMonth()
 initializePersistentUi()
 bindEvents()
+installPhotoTimeFilterV4061()
 bootstrap()
 startDayRolloverWatcher()
 
@@ -860,7 +1185,7 @@ function moduleRenderKeyV31(target) {
   const ordersKey = `${state.ordersRange.loadedKey}|${state.ordersRange.records.length}`
 
   if (target === 'photos') {
-    return `${rangeKey}|${state.moduleTeams.photos || ''}`
+    return `${rangeKey}|${state.moduleTeams.photos || ''}|${photoTimeFilterKeyV4061()}`
   }
 
   if (target === 'codes') {
@@ -4005,20 +4330,36 @@ function renderPhotoTeams(teams) {
     els.photosTeamList.innerHTML = moduleEmpty('Nenhuma equipe com dados neste período.')
     return
   }
+
+  const filterActive = photoTimeFilterActiveV4061()
+  const filterLabel = photoTimeFilterLabelV4061()
+
   els.photosTeamList.innerHTML = teams.map((team) => {
     const summary = rangeSummaryForTeam(team)
+    const entries = filterActive ? filteredPhotoEntriesV4061(summary.active, team) : null
+    const filteredRows = entries ? new Set(entries.map((entry) => String(entry.rowId))).size : 0
+
     return teamFolderCard({
       team,
       action: 'data-open-photo-team',
       iconName: 'image',
-      headline: `${summary.receivedPhotos}/${summary.expectedPhotos} fotos recebidas`,
-      detail: `${summary.active.length} ponto(s) válido(s) • ${summary.criticalCount} pendência(s)`,
-      badge: summary.receivedPhotos === summary.expectedPhotos && summary.expectedPhotos > 0 ? 'COMPLETO' : summary.expectedPhotos === 0 ? 'SEM FOTOS' : 'INCOMPLETO',
-      badgeClass: summary.receivedPhotos === summary.expectedPhotos && summary.expectedPhotos > 0 ? 'confirmed' : 'pending',
+      headline: filterActive
+        ? `${entries.length} foto(s) em ${filterLabel}`
+        : `${summary.receivedPhotos}/${summary.expectedPhotos} fotos recebidas`,
+      detail: filterActive
+        ? `${filteredRows} ponto(s) com foto no horário • ${summary.criticalCount} pendência(s)`
+        : `${summary.active.length} ponto(s) válido(s) • ${summary.criticalCount} pendência(s)`,
+      badge: filterActive
+        ? (entries.length > 0 ? 'FILTRO ATIVO' : 'SEM RESULTADO')
+        : (summary.receivedPhotos === summary.expectedPhotos && summary.expectedPhotos > 0
+          ? 'COMPLETO'
+          : summary.expectedPhotos === 0 ? 'SEM FOTOS' : 'INCOMPLETO'),
+      badgeClass: filterActive
+        ? (entries.length > 0 ? 'confirmed' : 'pending')
+        : (summary.receivedPhotos === summary.expectedPhotos && summary.expectedPhotos > 0 ? 'confirmed' : 'pending'),
     })
   }).join('')
 }
-
 function renderCodeTeams(teams) {
   if (!els.codesTeamList) return
   const visibleTeams=codesTeamsForRangeV21(teams)
@@ -4066,21 +4407,29 @@ function moduleEmpty(message) {
 
 async function openPhotoFolder(team, silent = false) {
   if (!team) return
-
   const openToken = ++photoOpenTokenV37
   state.moduleTeams.photos = team
   els.photosTeamList.classList.add('hidden')
   els.photosFolderDetail.classList.remove('hidden')
   els.photosFolderTitle.textContent = `${team} — ${periodLabel()}`
+
   const summary = rangeSummaryForTeam(team)
-  els.photosFolderSummary.textContent = `${summary.receivedPhotos} foto(s) recebida(s) de ${summary.expectedPhotos} esperada(s).`
-  const downloadablePhotoCountV354 = photoEntries(summary.active).length
-  els.photosTeamDownload.disabled = downloadablePhotoCountV354 === 0
+  const entries = filteredPhotoEntriesV4061(summary.active, team)
+  const filterLabel = photoTimeFilterLabelV4061()
+
+  els.photosFolderSummary.textContent = photoTimeFilterActiveV4061()
+    ? `${entries.length} foto(s) encontrada(s) em ${filterLabel}.`
+    : `${entries.length} foto(s) recebida(s) no Storage.`
+
+  els.photosTeamDownload.disabled = entries.length === 0
   els.photosGrid.innerHTML = `<div class="loading-state"><span class="spinner"></span>Carregando fotos da equipe...</div>`
 
-  const entries = photoEntries(summary.active)
   if (entries.length === 0) {
-    els.photosGrid.innerHTML = moduleEmpty('Nenhuma foto original recebida no Storage para esta equipe no período.')
+    els.photosGrid.innerHTML = moduleEmpty(
+      photoTimeFilterActiveV4061()
+        ? 'Nenhuma foto encontrada nesse horário. Altere ou limpe o filtro.'
+        : 'Nenhuma foto original recebida no Storage para esta equipe no período.'
+    )
     return
   }
 
@@ -4090,33 +4439,36 @@ async function openPhotoFolder(team, silent = false) {
     previewEntries,
     isMobileLayoutV37() ? 5 : 12,
     async (entry) => {
-    try {
-      const { data, error } = await supabase.storage.from(entry.bucket).createSignedUrl(entry.path, 900)
-      if (error) throw error
-      return `<article class="photo-card">
-        <button type="button" class="photo-preview-button" data-photo-bucket="${escapeHtml(entry.bucket)}" data-photo-path="${escapeHtml(entry.path)}" aria-label="Abrir ${escapeHtml(entry.label)}">
-          <img src="${escapeHtml(data.signedUrl)}" alt="${escapeHtml(entry.label)}" loading="lazy" />
-        </button>
-        <div><strong>${escapeHtml(entry.fileName)}</strong><span>${escapeHtml(entry.label)}</span><small>${escapeHtml(entry.order)} • ${escapeHtml(entry.street)}</small></div>
-      </article>`
-    } catch (_error) {
-      return `<article class="photo-card photo-error"><div class="photo-error-icon">${icon('triangle-alert')}</div><div><strong>${escapeHtml(entry.fileName)}</strong><span>Não foi possível abrir a miniatura</span></div></article>`
+      try {
+        const { data, error } = await supabase.storage.from(entry.bucket).createSignedUrl(entry.path, 900)
+        if (error) throw error
+        return `<article class="photo-card">
+          <button type="button" class="photo-preview-button" data-photo-bucket="${escapeHtml(entry.bucket)}" data-photo-path="${escapeHtml(entry.path)}" aria-label="Abrir ${escapeHtml(entry.label)}">
+            <img src="${escapeHtml(data.signedUrl)}" alt="${escapeHtml(entry.label)}" loading="lazy" />
+          </button>
+          <div>
+            <strong>${escapeHtml(entry.fileName)}</strong>
+            <span>${escapeHtml(entry.label)} • <b class="photo-filter-time-v4061">${escapeHtml(entry.timeText)}</b></span>
+            <small>${escapeHtml(entry.order)} • ${escapeHtml(entry.street)}</small>
+          </div>
+        </article>`
+      } catch (_error) {
+        return `<article class="photo-card photo-error"><div class="photo-error-icon">${icon('triangle-alert')}</div><div><strong>${escapeHtml(entry.fileName)}</strong><span>Não foi possível abrir a miniatura</span></div></article>`
+      }
     }
-  })
+  )
 
-  if (
-    openToken !== photoOpenTokenV37 ||
-    state.moduleTeams.photos !== team
-  ) {
-    return
-  }
+  if (openToken !== photoOpenTokenV37 || state.moduleTeams.photos !== team) return
 
   const remainingPhotos = Math.max(0, entries.length - previewEntries.length)
-  els.photosGrid.innerHTML = rendered.join('') + (remainingPhotos > 0 ? `<div class="photo-preview-limit"><strong>Mais ${remainingPhotos} foto(s) no período</strong><span>Use o botão de ZIP para baixar todas sem carregar milhares de miniaturas.</span></div>` : '')
+  els.photosGrid.innerHTML = rendered.join('') + (
+    remainingPhotos > 0
+      ? `<div class="photo-preview-limit"><strong>Mais ${remainingPhotos} foto(s)</strong><span>O ZIP incluirá todas, não apenas as miniaturas exibidas.</span></div>`
+      : ''
+  )
 
   if (!silent) focusModuleDetailV37(els.photosFolderDetail)
 }
-
 function refreshOpenPhotoFolder() {
   const team = state.moduleTeams.photos
   if (!team || !teamsForRange().includes(team)) return closePhotoFolder()
@@ -4352,108 +4704,260 @@ function photoRowsForDownloadV354(team = 'all') {
   return Array.isArray(summary?.active) ? summary.active : []
 }
 function photoEntryCountForDownloadV354(team = 'all') {
-  return photoEntries(photoRowsForDownloadV354(team)).length
+  return photoEntriesForDownloadV4061(team).length
 }
-// JR_GESTAO_FOTOS_DOWNLOAD_AUTH_V40_5_3=20260825
-async function triggerPhotoZipDownloadV354(rawUrl) {
-  const value = String(rawUrl || '').trim()
-  if (!value) throw new Error('O servidor nao retornou o endereco do ZIP.')
+function zipSafePartV4061(value, fallback = 'SEM_NOME') {
+  const safe = String(value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return safe || fallback
+}
 
-  const url = /^https?:\/\//i.test(value)
-    ? value
-    : `${ADMIN_API_BASE_URL}${value.startsWith('/') ? value : `/${value}`}`
+function zipFileNameWithSuffixV4061(name, index) {
+  const dot = name.lastIndexOf('.')
+  if (dot <= 0) return `${name}_${index}`
+  return `${name.slice(0, dot)}_${index}${name.slice(dot)}`
+}
 
-  const { data } = await supabase.auth.getSession()
-  const token = data.session?.access_token
-  if (!token) throw new Error('Sua sessao expirou. Entre novamente para baixar as fotos.')
+function zipPathForPhotoV4061(entry, used) {
+  const team = zipSafePartV4061(entry.team || 'SEM_EQUIPE')
+  const day = zipSafePartV4061(entry.workDate || 'SEM_DATA')
+  const base = zipSafePartV4061(entry.fileName || `${entry.rowId || 'foto'}.jpg`, 'foto.jpg')
+  const prefix = `${team}/${day}/`
+  let candidate = prefix + base
+  let index = 1
+  while (used.has(candidate.toLowerCase())) {
+    candidate = prefix + zipFileNameWithSuffixV4061(base, index++)
+  }
+  used.add(candidate.toLowerCase())
+  return candidate
+}
 
-  const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), 900000)
+const crcTableV4061 = (() => {
+  const table = new Uint32Array(256)
+  for (let n = 0; n < 256; n += 1) {
+    let c = n
+    for (let k = 0; k < 8; k += 1) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1)
+    table[n] = c >>> 0
+  }
+  return table
+})()
 
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-      cache: 'no-store',
-      signal: controller.signal,
-    })
+function crc32V4061(bytes) {
+  let crc = 0xFFFFFFFF
+  for (let i = 0; i < bytes.length; i += 1) {
+    crc = crcTableV4061[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8)
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0
+}
 
-    if (!response.ok) {
-      let serverMessage = ''
-      try {
-        const contentType = String(response.headers.get('Content-Type') || '').toLowerCase()
-        if (contentType.includes('application/json')) {
-          const payload = await response.json()
-          serverMessage = String(payload?.error || payload?.message || '').trim()
-        } else {
-          serverMessage = String(await response.text()).trim()
-        }
-      } catch (_error) {}
+function dosDateTimeV4061(value) {
+  let date
+  try { date = value ? new Date(value) : new Date() } catch (_error) { date = new Date() }
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) date = new Date()
+  let year = date.getFullYear()
+  if (year < 1980) year = 1980
+  if (year > 2107) year = 2107
+  const dosTime = ((date.getHours() & 31) << 11) | ((date.getMinutes() & 63) << 5) | ((Math.floor(date.getSeconds() / 2)) & 31)
+  const dosDate = (((year - 1980) & 127) << 9) | (((date.getMonth() + 1) & 15) << 5) | (date.getDate() & 31)
+  return { dosTime, dosDate }
+}
 
-      if (response.status === 401 || response.status === 403) {
-        throw new Error('O servidor recusou a autenticacao do download. Saia e entre novamente no painel.')
-      }
+function localZipHeaderV4061(nameBytes, item) {
+  const header = new Uint8Array(30 + nameBytes.length)
+  const view = new DataView(header.buffer)
+  view.setUint32(0, 0x04034b50, true)
+  view.setUint16(4, 20, true)
+  view.setUint16(6, 0x0800, true)
+  view.setUint16(8, 0, true)
+  view.setUint16(10, item.dosTime, true)
+  view.setUint16(12, item.dosDate, true)
+  view.setUint32(14, item.crc >>> 0, true)
+  view.setUint32(18, item.size >>> 0, true)
+  view.setUint32(22, item.size >>> 0, true)
+  view.setUint16(26, nameBytes.length, true)
+  view.setUint16(28, 0, true)
+  header.set(nameBytes, 30)
+  return header
+}
 
-      throw new Error(serverMessage || `Falha ao baixar o ZIP de fotos (HTTP ${response.status}).`)
-    }
+function centralZipHeaderV4061(nameBytes, item, localOffset) {
+  const header = new Uint8Array(46 + nameBytes.length)
+  const view = new DataView(header.buffer)
+  view.setUint32(0, 0x02014b50, true)
+  view.setUint16(4, 20, true)
+  view.setUint16(6, 20, true)
+  view.setUint16(8, 0x0800, true)
+  view.setUint16(10, 0, true)
+  view.setUint16(12, item.dosTime, true)
+  view.setUint16(14, item.dosDate, true)
+  view.setUint32(16, item.crc >>> 0, true)
+  view.setUint32(20, item.size >>> 0, true)
+  view.setUint32(24, item.size >>> 0, true)
+  view.setUint16(28, nameBytes.length, true)
+  view.setUint16(30, 0, true)
+  view.setUint16(32, 0, true)
+  view.setUint16(34, 0, true)
+  view.setUint16(36, 0, true)
+  view.setUint32(38, 0, true)
+  view.setUint32(42, localOffset >>> 0, true)
+  header.set(nameBytes, 46)
+  return header
+}
 
-    const blob = await response.blob()
-    if (!blob || blob.size <= 0) throw new Error('O servidor retornou um ZIP vazio.')
+function zipEndV4061(count, centralSize, centralOffset) {
+  const end = new Uint8Array(22)
+  const view = new DataView(end.buffer)
+  view.setUint32(0, 0x06054b50, true)
+  view.setUint16(4, 0, true)
+  view.setUint16(6, 0, true)
+  view.setUint16(8, count, true)
+  view.setUint16(10, count, true)
+  view.setUint32(12, centralSize >>> 0, true)
+  view.setUint32(16, centralOffset >>> 0, true)
+  view.setUint16(20, 0, true)
+  return end
+}
 
-    let fileName = 'JR_GESTAO_FOTOS.zip'
-    const disposition = String(response.headers.get('Content-Disposition') || '')
-    const utfName = disposition.match(/filename\*=UTF-8''([^;]+)/i)
-    const normalName = disposition.match(/filename="?([^";]+)"?/i)
+async function fetchPhotoForZipV4061(entry) {
+  let lastError = null
 
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
     try {
-      if (utfName?.[1]) fileName = decodeURIComponent(utfName[1])
-      else if (normalName?.[1]) fileName = normalName[1].trim()
-    } catch (_error) {}
+      const { data, error } = await supabase.storage.from(entry.bucket).createSignedUrl(entry.path, 1800)
+      if (error) throw error
+      if (!data?.signedUrl) throw new Error('URL assinada não foi gerada.')
 
-    if (!/\.zip$/i.test(fileName)) fileName += '.zip'
+      const response = await fetch(data.signedUrl, { cache: 'no-store' })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
 
-    const objectUrl = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = objectUrl
-    link.download = fileName
-    link.style.display = 'none'
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000)
+      const blob = await response.blob()
+      if (!blob || blob.size <= 0) throw new Error('Arquivo vazio.')
+      if (blob.size > 0xFFFFFFFF) throw new Error('Uma foto ultrapassou 4 GB.')
 
-    return { url, fileName, size: blob.size }
-  } catch (error) {
-    if (error?.name === 'AbortError') {
-      throw new Error('O download das fotos demorou mais de 15 minutos e foi cancelado.')
+      const bytes = new Uint8Array(await blob.arrayBuffer())
+      const crc = crc32V4061(bytes)
+      const stamp = dosDateTimeV4061(entry.takenAt)
+
+      return {
+        entry,
+        blob,
+        size: blob.size,
+        crc,
+        dosTime: stamp.dosTime,
+        dosDate: stamp.dosDate,
+      }
+    } catch (error) {
+      lastError = error
+      if (attempt < 2) await new Promise((resolve) => window.setTimeout(resolve, 500))
     }
-    throw error
-  } finally {
-    window.clearTimeout(timeout)
   }
+
+  throw new Error(`Falha ao baixar ${entry.fileName}: ${friendlyError(lastError)}`)
 }
+
+async function downloadPhotoSetV4061(entries) {
+  const result = new Array(entries.length)
+  let next = 0
+  let done = 0
+  const concurrency = Math.max(1, Math.min(3, entries.length))
+
+  async function worker() {
+    while (true) {
+      const index = next++
+      if (index >= entries.length) return
+      result[index] = await fetchPhotoForZipV4061(entries[index])
+      done += 1
+      if (done === entries.length || done === 1 || done % 10 === 0) {
+        toast(`Baixando fotos do Storage: ${done}/${entries.length}...`)
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: concurrency }, () => worker()))
+  return result
+}
+
+function buildZipBlobV4061(items) {
+  if (items.length > 65535) throw new Error('Quantidade de fotos excede o limite deste ZIP.')
+
+  const encoder = new TextEncoder()
+  const localParts = []
+  const centralParts = []
+  let offset = 0
+
+  for (const item of items) {
+    const nameBytes = encoder.encode(item.zipPath)
+    const localOffset = offset
+    const local = localZipHeaderV4061(nameBytes, item)
+    localParts.push(local, item.blob)
+    offset += local.byteLength + item.size
+    if (offset > 0xFFFFFFFF) throw new Error('O ZIP ultrapassou 4 GB. Selecione um período menor.')
+    centralParts.push(centralZipHeaderV4061(nameBytes, item, localOffset))
+  }
+
+  const centralOffset = offset
+  const centralSize = centralParts.reduce((sum, part) => sum + part.byteLength, 0)
+  if (centralOffset + centralSize > 0xFFFFFFFF) throw new Error('O ZIP ultrapassou 4 GB.')
+
+  return new Blob(
+    [...localParts, ...centralParts, zipEndV4061(items.length, centralSize, centralOffset)],
+    { type: 'application/zip' }
+  )
+}
+
+function photoEntriesForDownloadV4061(team = 'all') {
+  const teams = team === 'all' ? teamsForRange() : [requireSpecificTeam(team)]
+  const entries = []
+
+  for (const teamName of teams) {
+    const summary = rangeSummaryForTeam(teamName)
+    entries.push(...filteredPhotoEntriesV4061(summary.active, teamName))
+  }
+
+  return entries
+}
+
+function photoZipOutputNameV4061(team, start, end) {
+  const teamPart = team === 'all'
+    ? 'TODAS_EQUIPES'
+    : zipSafePartV4061(team).replace(/\s+/g, '_')
+
+  let timePart = ''
+  if (photoTimeFilterV4061.exact) {
+    timePart = `_H${photoTimeFilterV4061.exact.replace(':', '')}`
+  } else if (photoTimeFilterV4061.start || photoTimeFilterV4061.end) {
+    const a = (photoTimeFilterV4061.start || '0000').replace(':', '')
+    const b = (photoTimeFilterV4061.end || '2359').replace(':', '')
+    timePart = `_H${a}-${b}`
+  }
+
+  const period = start === end ? start : `${start}_A_${end}`
+  return `FOTOS_${teamPart}_${period}${timePart}.zip`
+}
+
 async function downloadPhotosZipForTeam(team) {
-  try {
-    await downloadPhotosZipForRange(requireSpecificTeam(team))
-  } catch (error) {
-    toast(friendlyError(error), true)
-  }
+  await downloadPhotosZipForRange(requireSpecificTeam(team))
 }
+
 async function downloadPhotosZipForRange(team = 'all') {
   if (!canDownloadPhotos()) {
-    toast('Acesso negado. Este usuario nao pode baixar fotos.', true)
+    toast('Acesso negado. Este usuário não pode baixar fotos.', true)
     return
   }
+
   if (photosDownloadBusyV354) {
-    toast('Ja existe um ZIP de fotos sendo preparado. Aguarde terminar.')
+    toast('Já existe um ZIP de fotos sendo preparado. Aguarde terminar.')
     return
   }
 
   const normalizedTeam = team === 'all' ? 'all' : requireSpecificTeam(team)
   const button = normalizedTeam === 'all' ? els.photosAllDownload : els.photosTeamDownload
   const idleLabel = normalizedTeam === 'all' ? 'BAIXAR TODAS AS FOTOS' : 'BAIXAR PASTA ZIP'
+
   photosDownloadBusyV354 = true
   setPhotoDownloadBusyV354(button, true, idleLabel)
   toast('Preparando as fotos para download...')
@@ -4462,23 +4966,46 @@ async function downloadPhotosZipForRange(team = 'all') {
   try {
     const { start, end } = await ensureExportRangeReady('photos')
     validateRange(start, end)
-    const photoCount = photoEntryCountForDownloadV354(normalizedTeam)
-    if (photoCount <= 0) throw new Error('Nenhuma foto original foi encontrada neste periodo.')
+
+    const entries = photoEntriesForDownloadV4061(normalizedTeam)
+    if (entries.length === 0) {
+      throw new Error(
+        photoTimeFilterActiveV4061()
+          ? 'Nenhuma foto foi encontrada no horário selecionado.'
+          : 'Nenhuma foto foi encontrada no Storage para este período.'
+      )
+    }
 
     const teamLabel = normalizedTeam === 'all' ? 'todas as equipes' : normalizedTeam
-    toast(`Gerando ZIP de ${teamLabel} com ${photoCount} foto(s). Aguarde, pode demorar alguns minutos.`)
+    const filterLabel = photoTimeFilterLabelV4061()
+
+    toast(
+      filterLabel
+        ? `Encontradas ${entries.length} foto(s) de ${teamLabel} em ${filterLabel}. Baixando todas...`
+        : `Encontradas ${entries.length} foto(s) de ${teamLabel}. Baixando todas...`
+    )
+
+    const downloaded = await downloadPhotoSetV4061(entries)
+
+    if (downloaded.length !== entries.length) {
+      throw new Error(`Conferência falhou: ${entries.length} foto(s) esperadas e ${downloaded.length} baixadas.`)
+    }
+
+    const usedNames = new Set()
+    for (const item of downloaded) {
+      item.zipPath = zipPathForPhotoV4061(item.entry, usedNames)
+    }
+
+    toast(`Montando ZIP com ${downloaded.length} foto(s)...`)
     await paintPhotoDownloadV354()
 
-    const result = await adminApiRequest('/api/admin/photo-exports', {
-      method: 'POST',
-      body: { start, end, team: normalizedTeam },
-      timeoutMs: 600000,
-    })
-    if (!result?.downloadUrl) throw new Error('O servidor nao retornou o endereco do ZIP.')
-    await triggerPhotoZipDownloadV354(result.downloadUrl)
-    toast(`${result.photoCount || photoCount} foto(s) organizadas. Download solicitado ao navegador.`)
+    const zip = buildZipBlobV4061(downloaded)
+    const fileName = photoZipOutputNameV4061(normalizedTeam, start, end)
+    await downloadBlob(zip, fileName)
+
+    toast(`${downloaded.length} foto(s) incluídas no ZIP. Download concluído.`)
   } catch (error) {
-    console.error('[JR V35.4] Falha ao gerar ZIP de fotos:', error)
+    console.error('[JR V40.6.1] Falha ao gerar ZIP local de fotos:', error)
     toast(friendlyError(error), true)
   } finally {
     photosDownloadBusyV354 = false
