@@ -4354,21 +4354,85 @@ function photoRowsForDownloadV354(team = 'all') {
 function photoEntryCountForDownloadV354(team = 'all') {
   return photoEntries(photoRowsForDownloadV354(team)).length
 }
-function triggerPhotoZipDownloadV354(rawUrl) {
+// JR_GESTAO_FOTOS_DOWNLOAD_AUTH_V40_5_3=20260825
+async function triggerPhotoZipDownloadV354(rawUrl) {
   const value = String(rawUrl || '').trim()
   if (!value) throw new Error('O servidor nao retornou o endereco do ZIP.')
+
   const url = /^https?:\/\//i.test(value)
     ? value
     : `${ADMIN_API_BASE_URL}${value.startsWith('/') ? value : `/${value}`}`
 
-  // Iframe evita bloqueio de popup/download depois de uma geracao assincrona demorada.
-  const frame = document.createElement('iframe')
-  frame.style.display = 'none'
-  frame.setAttribute('aria-hidden', 'true')
-  frame.src = url
-  document.body.appendChild(frame)
-  window.setTimeout(() => frame.remove(), 120000)
-  return url
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token
+  if (!token) throw new Error('Sua sessao expirou. Entre novamente para baixar as fotos.')
+
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), 900000)
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      cache: 'no-store',
+      signal: controller.signal,
+    })
+
+    if (!response.ok) {
+      let serverMessage = ''
+      try {
+        const contentType = String(response.headers.get('Content-Type') || '').toLowerCase()
+        if (contentType.includes('application/json')) {
+          const payload = await response.json()
+          serverMessage = String(payload?.error || payload?.message || '').trim()
+        } else {
+          serverMessage = String(await response.text()).trim()
+        }
+      } catch (_error) {}
+
+      if (response.status === 401 || response.status === 403) {
+        throw new Error('O servidor recusou a autenticacao do download. Saia e entre novamente no painel.')
+      }
+
+      throw new Error(serverMessage || `Falha ao baixar o ZIP de fotos (HTTP ${response.status}).`)
+    }
+
+    const blob = await response.blob()
+    if (!blob || blob.size <= 0) throw new Error('O servidor retornou um ZIP vazio.')
+
+    let fileName = 'JR_GESTAO_FOTOS.zip'
+    const disposition = String(response.headers.get('Content-Disposition') || '')
+    const utfName = disposition.match(/filename\*=UTF-8''([^;]+)/i)
+    const normalName = disposition.match(/filename="?([^";]+)"?/i)
+
+    try {
+      if (utfName?.[1]) fileName = decodeURIComponent(utfName[1])
+      else if (normalName?.[1]) fileName = normalName[1].trim()
+    } catch (_error) {}
+
+    if (!/\.zip$/i.test(fileName)) fileName += '.zip'
+
+    const objectUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = objectUrl
+    link.download = fileName
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000)
+
+    return { url, fileName, size: blob.size }
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error('O download das fotos demorou mais de 15 minutos e foi cancelado.')
+    }
+    throw error
+  } finally {
+    window.clearTimeout(timeout)
+  }
 }
 async function downloadPhotosZipForTeam(team) {
   try {
@@ -4411,7 +4475,7 @@ async function downloadPhotosZipForRange(team = 'all') {
       timeoutMs: 600000,
     })
     if (!result?.downloadUrl) throw new Error('O servidor nao retornou o endereco do ZIP.')
-    triggerPhotoZipDownloadV354(result.downloadUrl)
+    await triggerPhotoZipDownloadV354(result.downloadUrl)
     toast(`${result.photoCount || photoCount} foto(s) organizadas. Download solicitado ao navegador.`)
   } catch (error) {
     console.error('[JR V35.4] Falha ao gerar ZIP de fotos:', error)
