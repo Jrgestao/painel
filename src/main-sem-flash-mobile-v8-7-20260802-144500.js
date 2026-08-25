@@ -617,6 +617,190 @@ function filteredPhotoEntriesV4061(records, team = '') {
     })
 }
 
+// JR_GESTAO_FOTOS_LAYOUT_HORARIO_V40_6_3=20260825
+function installPhotoTimeLayoutFixV4063() {
+  const toolbar = document.querySelector('[data-range-toolbar="photos"]')
+  const filter = document.getElementById('photos-time-filter-v4061')
+  if (!toolbar || !filter) return
+
+  filter.classList.add('photos-time-filter-layout-v4063')
+
+  // Tira o filtro da grade Periodo/Atualizar/Baixar e coloca em uma faixa propria.
+  if (toolbar.nextElementSibling !== filter) {
+    toolbar.insertAdjacentElement('afterend', filter)
+  }
+
+  let style = document.getElementById('photos-time-layout-style-v4063')
+  if (!style) {
+    style = document.createElement('style')
+    style.id = 'photos-time-layout-style-v4063'
+    document.head.appendChild(style)
+  }
+
+  style.textContent = `
+    #page-photos .photos-time-filter-v4061.photos-time-filter-layout-v4063 {
+      position: relative !important;
+      inset: auto !important;
+      z-index: 1 !important;
+      float: none !important;
+      clear: both !important;
+      box-sizing: border-box !important;
+      width: 100% !important;
+      max-width: none !important;
+      min-width: 0 !important;
+      height: auto !important;
+      min-height: 78px !important;
+      margin: 12px 0 18px !important;
+      padding: 12px 14px !important;
+      display: grid !important;
+      grid-template-columns:
+        minmax(190px,1.25fr)
+        minmax(145px,.72fr)
+        28px
+        minmax(125px,.62fr)
+        minmax(125px,.62fr)
+        minmax(150px,auto) !important;
+      align-items: end !important;
+      align-content: center !important;
+      gap: 8px 12px !important;
+      overflow: visible !important;
+    }
+
+    #page-photos .photos-time-filter-layout-v4063 > * {
+      min-width: 0 !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
+    }
+
+    #page-photos .photos-time-filter-layout-v4063 .photos-time-filter-title-v4061 {
+      width: auto !important;
+      min-width: 0 !important;
+      align-self: center !important;
+      margin: 0 !important;
+      padding: 0 4px 0 0 !important;
+    }
+
+    #page-photos .photos-time-filter-layout-v4063 .photos-time-filter-title-v4061 div {
+      min-width: 0 !important;
+    }
+
+    #page-photos .photos-time-filter-layout-v4063 .photos-time-filter-title-v4061 strong,
+    #page-photos .photos-time-filter-layout-v4063 .photos-time-filter-title-v4061 small {
+      white-space: normal !important;
+      overflow: visible !important;
+      text-overflow: clip !important;
+    }
+
+    #page-photos .photos-time-filter-layout-v4063 .photos-time-field-v4061 {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 5px !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      align-self: end !important;
+      margin: 0 !important;
+    }
+
+    #page-photos .photos-time-filter-layout-v4063 input[type="time"] {
+      display: block !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      max-width: none !important;
+      height: 42px !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+    }
+
+    #page-photos .photos-time-filter-layout-v4063 .photos-time-or-v4061 {
+      display: flex !important;
+      width: 28px !important;
+      height: 42px !important;
+      align-items: center !important;
+      justify-content: center !important;
+      align-self: end !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      line-height: 1 !important;
+    }
+
+    #page-photos .photos-time-filter-layout-v4063 #photos-time-clear-v4061 {
+      display: inline-flex !important;
+      width: 100% !important;
+      min-width: 0 !important;
+      height: 42px !important;
+      align-items: center !important;
+      justify-content: center !important;
+      align-self: end !important;
+      margin: 0 !important;
+      padding: 0 14px !important;
+      white-space: nowrap !important;
+    }
+
+    #page-photos .photos-time-filter-layout-v4063 ~ #photos-team-list,
+    #page-photos .photos-time-filter-layout-v4063 ~ #photos-folder-detail {
+      clear: both !important;
+    }
+
+    @media (max-width: 1180px) {
+      #page-photos .photos-time-filter-v4061.photos-time-filter-layout-v4063 {
+        grid-template-columns:
+          minmax(180px,1fr)
+          minmax(135px,.75fr)
+          24px
+          minmax(120px,.68fr)
+          minmax(120px,.68fr) !important;
+      }
+
+      #page-photos .photos-time-filter-layout-v4063 #photos-time-clear-v4061 {
+        grid-column: 1 / -1 !important;
+        width: auto !important;
+        min-width: 180px !important;
+        justify-self: end !important;
+      }
+    }
+
+    @media (max-width: 820px) {
+      #page-photos .photos-time-filter-v4061.photos-time-filter-layout-v4063 {
+        grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important;
+        min-height: 0 !important;
+        padding: 12px !important;
+        gap: 10px !important;
+      }
+
+      #page-photos .photos-time-filter-layout-v4063 .photos-time-filter-title-v4061,
+      #page-photos .photos-time-filter-layout-v4063 .photos-time-exact-v4061,
+      #page-photos .photos-time-filter-layout-v4063 #photos-time-clear-v4061 {
+        grid-column: 1 / -1 !important;
+      }
+
+      #page-photos .photos-time-filter-layout-v4063 .photos-time-or-v4061 {
+        display: none !important;
+      }
+
+      #page-photos .photos-time-filter-layout-v4063 #photos-time-clear-v4061 {
+        width: 100% !important;
+        min-width: 0 !important;
+        justify-self: stretch !important;
+      }
+    }
+
+    @media (max-width: 520px) {
+      #page-photos .photos-time-filter-v4061.photos-time-filter-layout-v4063 {
+        grid-template-columns: 1fr !important;
+      }
+
+      #page-photos .photos-time-filter-layout-v4063 .photos-time-filter-title-v4061,
+      #page-photos .photos-time-filter-layout-v4063 .photos-time-exact-v4061,
+      #page-photos .photos-time-filter-layout-v4063 .photos-time-field-v4061,
+      #page-photos .photos-time-filter-layout-v4063 #photos-time-clear-v4061 {
+        grid-column: 1 !important;
+      }
+    }
+  `
+}
+
 function installPhotoTimeFilterV4061() {
   if (document.getElementById('photos-time-filter-v4061')) return
 
@@ -772,6 +956,7 @@ initializeOrdersCurrentMonth()
 initializePersistentUi()
 bindEvents()
 installPhotoTimeFilterV4061()
+installPhotoTimeLayoutFixV4063()
 bootstrap()
 startDayRolloverWatcher()
 
