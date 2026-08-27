@@ -956,7 +956,7 @@ initializeOrdersCurrentMonth()
 initializePersistentUi()
 bindEvents()
 installPhotoTimeFilterV4061()
-installReconciliationPanelV408()
+installStorageRecoveryV409()
 installPhotoTimeLayoutFixV4063()
 bootstrap()
 startDayRolloverWatcher()
@@ -3108,6 +3108,8 @@ async function loadRangeData(showSuccessToast = false, throwOnError = false) {
     }
 
     closeAllModuleDetails()
+    clearRangePerformanceV409()
+    await nextPaintV7()
     renderModulePages()
     if (showSuccessToast) toast(`Período ${periodLabel()} carregado.`)
     return true
@@ -3163,6 +3165,7 @@ function startDayRolloverWatcher() {
 
 async function ensureExportRangeReady(target = 'reports') {
   updateCurrentDayIfNeeded()
+
   const { start, end } = selectedRange(target)
   validateRange(start, end)
   const expectedKey = `${start}|${end}`
@@ -3173,21 +3176,17 @@ async function ensureExportRangeReady(target = 'reports') {
   }
 
   if (state.rangeLoading) await waitForRangeLoading()
+
   if (state.range.loadedKey !== expectedKey) {
     const loaded = await loadRangeData(false, true)
     if (!loaded || state.range.loadedKey !== expectedKey) {
-      throw new Error('O período selecionado ainda não foi carregado. Atualize e tente novamente.')
+      throw new Error('O dia selecionado ainda não foi carregado. Atualize o período e tente novamente.')
     }
   }
 
-  // Códigos, Relatórios e Fotos precisam enxergar os mesmos importados de Serviços Executados.
-  await ensureImportedScoresV36(start, end, true)
-  moduleRenderCacheV31.delete('codes')
-  moduleRenderCacheV31.delete('reports')
-  moduleRenderCacheV31.delete('photos')
-
   return { start, end }
 }
+
 function rangeDateInputs() {
   return [els.photosRangeStart, els.photosRangeEnd, els.codesRangeStart, els.codesRangeEnd, els.reportsRangeStart, els.reportsRangeEnd].filter(Boolean)
 }
@@ -4356,641 +4355,25 @@ function importedRecordsForRangeV21(start, end) {
   try { return window.__JR_IMPORTED_RECORDS_V21__?.recordsForRange?.(start,end) || [] } catch (_error) { return [] }
 }
 function mergeImportedRowsV21(rows, start, end) {
-  return smartMergeImportedRowsV407(rows, start, end)
+  const seen=new Set((rows||[]).map(row=>String(row?.id||'')))
+  const imported=importedRecordsForRangeV21(start,end).filter(row=>!seen.has(String(row?.id||'')))
+  return [...(rows||[]),...imported]
 }
-// JR_GESTAO_UNIFICAR_SERVICOS_CODIGOS_RELATORIOS_FOTOS_V40_8_2=20260827
-const reconciliationV408 = {
-  orphanEntries: [],
-  orphanCache: new Map(),
-  scanning: false,
-}
-
-// Normalizacao GENERICA: vale para qualquer equipe/login.
-function teamKeyV408(value) {
-  return normalizeText(value)
-    .replace(/\s*[\/\\|&+]\s*/g, '/')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function rowTeamMatchesV408(row, team, profileMap = profileMapById()) {
-  return teamKeyV408(recordTeam(row, profileMap)) === teamKeyV408(team)
-}
-
-function componentMinuteV408(row, kind) {
-  const minute = kind === 'survey' ? surveyMinutesMainV28(row) : pointMinutesMainV28(row)
-  return Number.isFinite(minute) ? minute : null
-}
-
-function componentIdentityV408(row, kind, profileMap = profileMapById()) {
-  const record = row?.registro || {}
-  return {
-    kind,
-    team: teamKeyV408(recordTeam(row, profileMap)),
-    date: serviceDateKey(row),
-    order: normalizeText(record.orderNumber || '').trim(),
-    street: normalizeText(streetName(record) || '').replace(/\s+/g, ' ').trim(),
-    minute: componentMinuteV408(row, kind),
-  }
-}
-
-function componentMatchScoreV408(a, b) {
-  if (!a || !b || a.kind !== b.kind || a.team !== b.team || a.date !== b.date) return -1
-
-  let score = 0
-
-  if (a.order && b.order) {
-    if (a.order !== b.order) return -1
-    score += 6
-  }
-
-  if (Number.isFinite(a.minute) && Number.isFinite(b.minute)) {
-    if (a.minute !== b.minute) return -1
-    score += 5
-  }
-
-  if (a.street && b.street) {
-    if (a.street === b.street) score += 3
-    else if (!a.order && !Number.isFinite(a.minute)) return -1
-  }
-
-  // Uma equivalência só é aceita com evidência forte.
-  return score >= 8 ? score : -1
-}
-
-function componentCloneV408(row, kind, imported = Boolean(row?.__jrImportedV21)) {
-  const original = row?.registro || {}
-  const record = {
-    ...original,
-    serviceType: {
-      ...(original.serviceType || {}),
-    },
-  }
-
-  if (kind === 'point') {
-    // Uma linha canônica representa somente UM ponto.
-    if (String(record.serviceType?.code || '').trim() === '162') {
-      record.serviceType = { code: '', name: 'Ponto' }
-    }
-    record.surveyPhotoFileName = ''
-    record.surveyPhotoPath = ''
-    record.surveyPhotoStoragePath = ''
-    record.surveyPhotoTakenAt = ''
-    record.surveyPhotoThumbnailStoragePath = ''
-    record.surveyObservation = ''
-  } else {
-    record.serviceType = { code: '162', name: 'Levantamento' }
-    record.timePhotoFileName = ''
-    record.timePhotoPath = ''
-    record.timePhotoStoragePath = ''
-    record.timePhotoTakenAt = ''
-    record.timePhotoThumbnailStoragePath = ''
-    record.observation = String(original.surveyObservation || original.observation || '')
-  }
-
-  // Arquivo IMPORT_*.jpg é apenas placeholder de planilha, não uma foto real.
-  if (imported) {
-    if (kind === 'point' && !String(record.timePhotoStoragePath || '').trim()) record.timePhotoFileName = ''
-    if (kind === 'survey' && !String(record.surveyPhotoStoragePath || '').trim()) record.surveyPhotoFileName = ''
-  }
-
-  return {
-    ...row,
-    id: `${String(row?.id || 'row')}::${kind}`,
-    __jrCanonicalV408: true,
-    __jrCanonicalKindV408: kind,
-    __jrImportedV21: imported,
-    registro: record,
-  }
-}
-
-function componentRowsFromV408(row) {
-  const score = recordScore(row)
-  const result = []
-  if (score.normal) result.push(componentCloneV408(row, 'point'))
-  if (score.levantamento) result.push(componentCloneV408(row, 'survey'))
-  return result
-}
-
-function canonicalRowsForTeamV408(team) {
-  const profileMap = profileMapById()
-  const nativeRows = rangeSummaryForTeam(team).active
-    .filter((row) => !row?.deleted_at)
-    .flatMap(componentRowsFromV408)
-
-  const importedRows = importedRecordsForRangeV21(state.range.start, state.range.end)
-    .filter((row) => !row?.deleted_at)
-    .filter((row) => rowTeamMatchesV408(row, team, profileMap))
-    .flatMap(componentRowsFromV408)
-
-  // Serviços Executados/importação é a referência principal quando existe.
-  // Registros nativos entram para completar o que não tiver equivalente importado.
-  const result = [...importedRows]
-  const usedImported = new Set()
-
-  for (const native of nativeRows) {
-    const nativeIdentity = componentIdentityV408(native, native.__jrCanonicalKindV408, profileMap)
-    let bestIndex = -1
-    let bestScore = -1
-
-    for (let i = 0; i < importedRows.length; i += 1) {
-      if (usedImported.has(i)) continue
-      const imported = importedRows[i]
-      const importedIdentity = componentIdentityV408(imported, imported.__jrCanonicalKindV408, profileMap)
-      const score = componentMatchScoreV408(nativeIdentity, importedIdentity)
-      if (score > bestScore) {
-        bestScore = score
-        bestIndex = i
-      }
-    }
-
-    if (bestIndex >= 0) {
-      usedImported.add(bestIndex)
-
-      // Preserva a foto REAL do registro nativo no componente importado equivalente.
-      const imported = result[bestIndex]
-      const nativeRecord = native.registro || {}
-      const importedRecord = imported.registro || {}
-      if (native.__jrCanonicalKindV408 === 'point') {
-        importedRecord.timePhotoStoragePath = nativeRecord.timePhotoStoragePath || importedRecord.timePhotoStoragePath || ''
-        importedRecord.timePhotoStorageBucket = nativeRecord.timePhotoStorageBucket || importedRecord.timePhotoStorageBucket || 'fotos'
-        importedRecord.timePhotoFileName = nativeRecord.timePhotoFileName || importedRecord.timePhotoFileName || ''
-        importedRecord.timePhotoTakenAt = nativeRecord.timePhotoTakenAt || importedRecord.timePhotoTakenAt || ''
-      } else {
-        importedRecord.surveyPhotoStoragePath = nativeRecord.surveyPhotoStoragePath || importedRecord.surveyPhotoStoragePath || ''
-        importedRecord.surveyPhotoStorageBucket = nativeRecord.surveyPhotoStorageBucket || importedRecord.surveyPhotoStorageBucket || 'fotos'
-        importedRecord.surveyPhotoFileName = nativeRecord.surveyPhotoFileName || importedRecord.surveyPhotoFileName || ''
-        importedRecord.surveyPhotoTakenAt = nativeRecord.surveyPhotoTakenAt || importedRecord.surveyPhotoTakenAt || ''
-      }
-      imported.__jrMatchedNativeV408 = native.id
-      continue
-    }
-
-    result.push(native)
-  }
-
-  return result
-    .filter((row) => rowTeamMatchesV408(row, team, profileMap))
-    .sort((a, b) => recordSortTimestamp(a) - recordSortTimestamp(b) || String(a.id || '').localeCompare(String(b.id || '')))
-}
-
-function canonicalTeamsForRangeV408(baseTeams = []) {
-  const profileMap = profileMapById()
-  const map = new Map()
-
-  const add = (name) => {
-    const display = String(name || '').trim()
-    const key = teamKeyV408(display)
-    if (key && !map.has(key)) map.set(key, display)
-  }
-
-  ;(baseTeams || []).forEach(add)
-  configuredTeamNames().forEach(add)
-  state.range.records.forEach((row) => add(recordTeam(row, profileMap)))
-  importedRecordsForRangeV21(state.range.start, state.range.end).forEach((row) => add(recordTeam(row, profileMap)))
-
-  return [...map.values()].sort((a, b) => a.localeCompare(b, 'pt-BR'))
-}
-
-function componentStorageInfoV408(row) {
-  const record = row?.registro || {}
-  const kind = row.__jrCanonicalKindV408 || (isServiceLevantamento(record) ? 'survey' : 'point')
-  if (kind === 'survey') {
-    return {
-      kind,
-      bucket: String(record.surveyPhotoStorageBucket || 'fotos').trim(),
-      path: String(record.surveyPhotoStoragePath || '').trim(),
-      fileName: String(record.surveyPhotoFileName || '').trim(),
-    }
-  }
-  return {
-    kind,
-    bucket: String(record.timePhotoStorageBucket || 'fotos').trim(),
-    path: String(record.timePhotoStoragePath || '').trim(),
-    fileName: String(record.timePhotoFileName || '').trim(),
-  }
-}
-
-function coverageForTeamV408(team) {
-  const rows = canonicalRowsForTeamV408(team)
-  const items = rows.map((row) => {
-    const storage = componentStorageInfoV408(row)
-    const record = row?.registro || {}
-    return {
-      row,
-      kind: storage.kind,
-      bucket: storage.bucket,
-      path: storage.path,
-      fileName: storage.fileName,
-      linked: Boolean(storage.path),
-      imported: Boolean(row?.__jrImportedV21),
-      team: recordTeam(row, profileMapById()) || team,
-      date: serviceDateKey(row),
-      minute: componentMinuteV408(row, storage.kind),
-      order: String(record.orderNumber || ''),
-      street: streetName(record) || '',
-      sourceFile: String(record.importedSourceFile || ''),
-    }
-  })
-
-  return {
-    team,
-    rows,
-    expected: items.length,
-    linked: items.filter((item) => item.linked).length,
-    missing: items.filter((item) => !item.linked),
-  }
-}
-
-function coverageForRangeV408() {
-  const teams = canonicalTeamsForRangeV408(teamsForRange())
-  const perTeam = teams.map(coverageForTeamV408)
-  return {
-    teams: perTeam,
-    expected: perTeam.reduce((sum, item) => sum + item.expected, 0),
-    linked: perTeam.reduce((sum, item) => sum + item.linked, 0),
-    missing: perTeam.flatMap((item) => item.missing),
-  }
-}
-
-function installReconciliationPanelV408() {
-  document.getElementById('photos-audit-v407')?.remove()
-  if (document.getElementById('jr-reconciliation-v408')) return
-
-  const list = els.photosTeamList || document.getElementById('photos-team-list')
-  if (!list?.parentElement) return
-
-  const panel = document.createElement('section')
-  panel.id = 'jr-reconciliation-v408'
-  panel.className = 'jr-reconciliation-v408'
-  panel.innerHTML = `
-    <div class="jr-reconciliation-head-v408">
-      <div>
-        <strong>CONFERÊNCIA TOTAL — SERVIÇOS × CÓDIGOS × RELATÓRIOS × FOTOS</strong>
-        <small>Nenhum ponto é removido por estar sem foto. Foto faltante aparece separadamente.</small>
-      </div>
-      <span id="jr-reconciliation-status-v408">CONFERINDO</span>
-    </div>
-
-    <div class="jr-reconciliation-metrics-v408">
-      <article><small>SERVIÇOS / PONTOS</small><strong id="jr-rec-services-v408">0</strong></article>
-      <article><small>CÓDIGOS / RELATÓRIOS</small><strong id="jr-rec-exports-v408">0</strong></article>
-      <article><small>FOTOS VINCULADAS</small><strong id="jr-rec-linked-v408">0</strong></article>
-      <article><small>FOTOS FALTANDO</small><strong id="jr-rec-missing-v408">0</strong></article>
-      <article><small>ÓRFÃS ENCONTRADAS</small><strong id="jr-rec-orphans-v408">0</strong></article>
-    </div>
-
-    <div id="jr-reconciliation-warning-v408" class="jr-reconciliation-warning-v408 hidden"></div>
-
-    <div class="jr-reconciliation-actions-v408">
-      <button id="jr-rec-scan-v408" class="outline-button" type="button">${icon('search')}PROCURAR FOTOS FALTANTES NO STORAGE</button>
-      <button id="jr-rec-download-all-v408" class="primary-button" type="button">${icon('download')}BAIXAR TODAS AS FOTOS EXISTENTES</button>
-      <button id="jr-rec-csv-v408" class="outline-button" type="button">${icon('file-text')}BAIXAR LISTA DO QUE FALTA</button>
-    </div>
-
-    <details id="jr-rec-details-v408">
-      <summary>VER PONTOS SEM FOTO</summary>
-      <div id="jr-rec-list-v408"></div>
-    </details>
-  `
-  list.insertAdjacentElement('beforebegin', panel)
-
-  const style = document.createElement('style')
-  style.id = 'jr-reconciliation-style-v408'
-  style.textContent = `
-    .jr-reconciliation-v408{margin:14px 0 16px;padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(7,13,21,.78)}
-    .jr-reconciliation-v408.has-missing{border-color:rgba(255,93,93,.45)}
-    .jr-reconciliation-head-v408{display:flex;justify-content:space-between;align-items:center;gap:12px}
-    .jr-reconciliation-head-v408>div{display:flex;flex-direction:column;gap:3px}
-    .jr-reconciliation-head-v408 strong{font-size:12px;letter-spacing:.055em}
-    .jr-reconciliation-head-v408 small{font-size:11px;opacity:.7}
-    #jr-reconciliation-status-v408{font-size:10px;font-weight:900;padding:7px 10px;border:1px solid rgba(255,255,255,.15);border-radius:999px}
-    .jr-reconciliation-metrics-v408{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-top:12px}
-    .jr-reconciliation-metrics-v408 article{padding:10px 11px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:rgba(255,255,255,.035)}
-    .jr-reconciliation-metrics-v408 small{display:block;font-size:9px;font-weight:900;letter-spacing:.055em;opacity:.62}
-    .jr-reconciliation-metrics-v408 strong{display:block;font-size:22px;margin-top:4px}
-    .jr-reconciliation-warning-v408{margin-top:10px;padding:10px 12px;border:1px solid rgba(255,91,91,.25);border-radius:10px;background:rgba(255,91,91,.08);font-size:12px;line-height:1.45}
-    .jr-reconciliation-actions-v408{display:flex;flex-wrap:wrap;gap:9px;margin-top:11px}
-    .jr-reconciliation-actions-v408 button{min-height:40px}
-    #jr-rec-details-v408{margin-top:11px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}
-    #jr-rec-details-v408 summary{cursor:pointer;font-size:11px;font-weight:900}
-    .jr-rec-row-v408{display:grid;grid-template-columns:145px 90px 80px 90px 1fr;gap:8px;padding:8px 3px;border-bottom:1px solid rgba(255,255,255,.06);font-size:11px}
-    @media(max-width:950px){.jr-reconciliation-metrics-v408{grid-template-columns:repeat(2,minmax(0,1fr))}.jr-rec-row-v408{grid-template-columns:1fr 1fr}}
-    @media(max-width:560px){.jr-reconciliation-actions-v408{display:grid;grid-template-columns:1fr}.jr-reconciliation-actions-v408 button{width:100%}}
-  `
-  document.head.appendChild(style)
-
-  document.getElementById('jr-rec-scan-v408')?.addEventListener('click', scanStorageForMissingV408)
-  document.getElementById('jr-rec-download-all-v408')?.addEventListener('click', downloadAllExistingPhotosV408)
-  document.getElementById('jr-rec-csv-v408')?.addEventListener('click', downloadMissingListV408)
-  hydrateIcons()
-}
-
-function renderReconciliationV408() {
-  installReconciliationPanelV408()
-  const panel = document.getElementById('jr-reconciliation-v408')
-  if (!panel) return
-
-  const coverage = coverageForRangeV408()
-  const exportsCount = coverage.teams.reduce((sum, item) => sum + canonicalRowsForTeamV408(item.team).length, 0)
-
-  document.getElementById('jr-rec-services-v408').textContent = String(coverage.expected)
-  document.getElementById('jr-rec-exports-v408').textContent = String(exportsCount)
-  document.getElementById('jr-rec-linked-v408').textContent = String(coverage.linked)
-  document.getElementById('jr-rec-missing-v408').textContent = String(coverage.missing.length)
-  document.getElementById('jr-rec-orphans-v408').textContent = String(reconciliationV408.orphanEntries.length)
-
-  panel.classList.toggle('has-missing', coverage.missing.length > 0)
-  const status = document.getElementById('jr-reconciliation-status-v408')
-  if (status) status.textContent = coverage.missing.length ? `FALTAM ${coverage.missing.length} FOTO(S)` : 'TUDO CONFERIDO'
-
-  const warning = document.getElementById('jr-reconciliation-warning-v408')
-  if (warning) {
-    warning.classList.toggle('hidden', coverage.missing.length === 0)
-    warning.innerHTML = coverage.missing.length
-      ? `<strong>${coverage.missing.length} serviço(s) estão sem foto vinculada.</strong> Eles continuam entrando normalmente em Códigos/Relatórios. Use a busca no Storage para tentar recuperar os arquivos.`
-      : ''
-  }
-
-  const list = document.getElementById('jr-rec-list-v408')
-  if (list) {
-    list.innerHTML = coverage.missing.slice(0, 500).map((item) => `
-      <div class="jr-rec-row-v408">
-        <strong>${escapeHtml(item.team)}</strong>
-        <span>${escapeHtml(formatDate(item.date))}</span>
-        <span>${escapeHtml(Number.isFinite(item.minute) ? photoTimeTextFromMinuteV4061(item.minute) : '—')}</span>
-        <span>${escapeHtml(item.kind === 'survey' ? 'LEVANT.' : 'PONTO')}</span>
-        <span>${escapeHtml(`OS ${item.order || '-'} • ${item.street || 'Sem rua'}${item.sourceFile ? ` • ${item.sourceFile}` : ''}`)}</span>
-      </div>
-    `).join('')
-  }
-}
-
-function folderOfStoragePathV408(value) {
-  const path = String(value || '').replaceAll('\\', '/').trim()
-  const index = path.lastIndexOf('/')
-  return index > 0 ? path.slice(0, index) : ''
-}
-
-function storagePrefixesForTeamDateV408(team, date) {
-  const prefixes = new Set()
-  const profileMap = profileMapById()
-
-  for (const row of state.range.records || []) {
-    if (!rowTeamMatchesV408(row, team, profileMap)) continue
-    if (serviceDateKey(row) !== date) continue
-    const record = row?.registro || {}
-    for (const path of [record.timePhotoStoragePath, record.surveyPhotoStoragePath]) {
-      const folder = folderOfStoragePathV408(path)
-      if (folder) prefixes.add(folder)
-    }
-  }
-
-  const slug = String(team || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-
-  for (const profile of state.profiles || []) {
-    if (teamKeyV408(profile?.team_name) !== teamKeyV408(team)) continue
-    if (!profile?.id) continue
-    prefixes.add(`${profile.id}/${slug}/${date}`)
-  }
-
-  return [...prefixes]
-}
-
-async function listStoragePrefixV408(bucket, prefix) {
-  const key = `${bucket}|${prefix}`
-  if (reconciliationV408.orphanCache.has(key)) return reconciliationV408.orphanCache.get(key)
-
-  const result = []
-  let offset = 0
-  const limit = 1000
-  while (offset < 20000) {
-    const { data, error } = await supabase.storage.from(bucket).list(prefix, {
-      limit,
-      offset,
-      sortBy: { column: 'name', order: 'asc' },
-    })
-    if (error) throw error
-    const page = Array.isArray(data) ? data : []
-    result.push(...page)
-    if (page.length < limit) break
-    offset += limit
-  }
-
-  reconciliationV408.orphanCache.set(key, result)
-  return result
-}
-
-function knownPhotoPathsV408() {
-  const result = new Set()
-  for (const row of state.range.records || []) {
-    const record = row?.registro || {}
-    for (const path of [record.timePhotoStoragePath, record.surveyPhotoStoragePath]) {
-      const normalized = String(path || '').trim()
-      if (normalized) result.add(normalized)
-    }
-  }
-  return result
-}
-
-async function scanStorageForMissingV408() {
-  if (reconciliationV408.scanning) return
-  reconciliationV408.scanning = true
-  const button = document.getElementById('jr-rec-scan-v408')
-  if (button) button.disabled = true
-
-  try {
-    const coverage = coverageForRangeV408()
-    const groups = new Map()
-    for (const missing of coverage.missing) {
-      if (!missing.team || !missing.date) continue
-      const key = `${teamKeyV408(missing.team)}|${missing.date}`
-      if (!groups.has(key)) groups.set(key, { team: missing.team, date: missing.date, missing: [] })
-      groups.get(key).missing.push(missing)
-    }
-
-    const known = knownPhotoPathsV408()
-    const orphans = []
-    const seen = new Set()
-
-    for (const group of groups.values()) {
-      const prefixes = storagePrefixesForTeamDateV408(group.team, group.date)
-      for (const prefix of prefixes) {
-        let files = []
-        try {
-          files = await listStoragePrefixV408('fotos', prefix)
-        } catch (error) {
-          console.warn('[JR V40.8] Falha ao listar', prefix, error)
-          continue
-        }
-
-        for (const file of files) {
-          if (!/\.(?:jpe?g|png|webp|heic)$/i.test(String(file?.name || ''))) continue
-          const fullPath = `${prefix}/${file.name}`
-          if (known.has(fullPath) || seen.has(fullPath)) continue
-          seen.add(fullPath)
-
-          const minute = photoMinuteFromFileNameV4061(file.name)
-          const candidates = group.missing.filter((item) =>
-            Number.isFinite(item.minute) && Number.isFinite(minute) && item.minute === minute
-          )
-
-          orphans.push({
-            rowId: `orphan:${fullPath}`,
-            bucket: 'fotos',
-            path: fullPath,
-            fileName: file.name,
-            label: candidates.length === 1 ? 'Foto órfã — horário compatível' : 'Foto órfã',
-            order: candidates.length === 1 ? candidates[0].order : '',
-            street: candidates.length === 1 ? candidates[0].street : '',
-            team: group.team,
-            workDate: group.date,
-            minute,
-            timeText: Number.isFinite(minute) ? photoTimeTextFromMinuteV4061(minute) : '',
-            takenAt: file?.created_at || file?.updated_at || '',
-            likelyMissing: candidates.length === 1 ? candidates[0] : null,
-          })
-        }
-      }
-    }
-
-    reconciliationV408.orphanEntries = orphans.sort((a, b) =>
-      String(a.workDate).localeCompare(String(b.workDate)) ||
-      (Number.isFinite(a.minute) ? a.minute : 9999) - (Number.isFinite(b.minute) ? b.minute : 9999) ||
-      String(a.fileName).localeCompare(String(b.fileName), 'pt-BR')
-    )
-
-    renderReconciliationV408()
-    toast(
-      orphans.length
-        ? `${orphans.length} foto(s) órfã(s) encontrada(s) no Storage.`
-        : 'Nenhuma foto órfã foi encontrada nas pastas conhecidas do período.',
-      orphans.length === 0
-    )
-  } catch (error) {
-    toast(`Falha ao conferir Storage: ${friendlyError(error)}`, true)
-  } finally {
-    reconciliationV408.scanning = false
-    if (button) button.disabled = false
-  }
-}
-
-function linkedPhotoEntriesAllV408() {
-  const entries = []
-  const seen = new Set()
-
-  for (const team of canonicalTeamsForRangeV408(teamsForRange())) {
-    for (const row of canonicalRowsForTeamV408(team)) {
-      const storage = componentStorageInfoV408(row)
-      if (!storage.path) continue
-      const key = `${storage.bucket}|${storage.path}`
-      if (seen.has(key)) continue
-      seen.add(key)
-
-      const record = row?.registro || {}
-      entries.push({
-        rowId: row.id,
-        bucket: storage.bucket,
-        path: storage.path,
-        fileName: storage.fileName || `${row.id}.jpg`,
-        label: storage.kind === 'survey' ? 'Foto de levantamento' : 'Foto de horário',
-        order: record.orderNumber || '',
-        street: streetName(record) || '',
-        team,
-        workDate: serviceDateKey(row),
-        minute: componentMinuteV408(row, storage.kind),
-        timeText: Number.isFinite(componentMinuteV408(row, storage.kind))
-          ? photoTimeTextFromMinuteV4061(componentMinuteV408(row, storage.kind))
-          : '',
-        takenAt: storage.kind === 'survey' ? record.surveyPhotoTakenAt : record.timePhotoTakenAt,
-      })
-    }
-  }
-
-  return entries
-}
-
-async function downloadAllExistingPhotosV408() {
-  try {
-    if (typeof downloadPhotoSetV4061 !== 'function' || typeof buildZipBlobV4061 !== 'function') {
-      throw new Error('Atualize primeiro para a versão de fotos completas V40.6.x.')
-    }
-
-    const map = new Map()
-    for (const entry of [...linkedPhotoEntriesAllV408(), ...reconciliationV408.orphanEntries]) {
-      const key = `${entry.bucket}|${entry.path}`
-      if (!map.has(key)) map.set(key, entry)
-    }
-    const entries = [...map.values()]
-    if (!entries.length) throw new Error('Nenhuma foto existente foi encontrada neste período.')
-
-    toast(`Baixando todas as ${entries.length} foto(s) existentes...`)
-    const downloaded = await downloadPhotoSetV4061(entries)
-    if (downloaded.length !== entries.length) {
-      throw new Error(`Esperadas ${entries.length} fotos, mas somente ${downloaded.length} foram baixadas.`)
-    }
-
-    const used = new Set()
-    for (const item of downloaded) {
-      const entry = item.entry
-      const team = zipSafePartV4061(entry.team || 'SEM_EQUIPE')
-      const date = zipSafePartV4061(entry.workDate || 'SEM_DATA')
-      const base = zipSafePartV4061(entry.fileName || 'foto.jpg', 'foto.jpg')
-      let candidate = `${team}/${date}/${base}`
-      let index = 1
-      const dot = candidate.lastIndexOf('.')
-      const stem = dot > 0 ? candidate.slice(0, dot) : candidate
-      const ext = dot > 0 ? candidate.slice(dot) : ''
-      while (used.has(candidate.toLowerCase())) candidate = `${stem}_${index++}${ext}`
-      used.add(candidate.toLowerCase())
-      item.zipPath = candidate
-    }
-
-    const zip = buildZipBlobV4061(downloaded)
-    const fileName = `TODAS_FOTOS_EXISTENTES_${state.range.start}_A_${state.range.end}.zip`
-    await downloadBlob(zip, fileName)
-    toast(`${downloaded.length} foto(s) existentes entregues no ZIP.`)
-  } catch (error) {
-    toast(friendlyError(error), true)
-  }
-}
-
-function csvCellV408(value) {
-  return `"${String(value ?? '').replaceAll('"', '""')}"`
-}
-
-function downloadMissingListV408() {
-  const coverage = coverageForRangeV408()
-  const header = ['equipe','data','horario','tipo','ordem','rua','origem','arquivo_importado']
-  const rows = coverage.missing.map((item) => [
-    item.team,
-    item.date,
-    Number.isFinite(item.minute) ? photoTimeTextFromMinuteV4061(item.minute) : '',
-    item.kind === 'survey' ? 'LEVANTAMENTO' : 'PONTO',
-    item.order,
-    item.street,
-    item.imported ? 'SERVICOS_EXECUTADOS_IMPORTADO' : 'APP_NATIVO',
-    item.sourceFile,
-  ])
-
-  const content = '\uFEFF' + [header, ...rows].map((row) => row.map(csvCellV408).join(';')).join('\r\n')
-  downloadBlob(
-    new Blob([content], { type: 'text/csv;charset=utf-8' }),
-    `FOTOS_FALTANTES_${state.range.start}_A_${state.range.end}.csv`
-  )
-}
-
 function codesRecordsForTeamV21(team) {
-  return canonicalRowsForTeamV408(team)
+  const normalized=normalizeText(team)
+  const profileMap=profileMapById()
+  const normal=rangeSummaryForTeam(team).active
+  return mergeImportedRowsV21(normal,state.range.start,state.range.end)
+    .filter(row=>normalizeText(recordTeam(row,profileMap))===normalized)
+    .sort((a,b)=>recordSortTimestamp(a)-recordSortTimestamp(b)||String(a.id||'').localeCompare(String(b.id||'')))
 }
 function codesTeamsForRangeV21(teams) {
-  return canonicalTeamsForRangeV408(teams)
+  const profileMap=profileMapById()
+  const names=new Set(teams||[])
+  importedRecordsForRangeV21(state.range.start,state.range.end).forEach(row=>{const team=recordTeam(row,profileMap);if(team)names.add(team)})
+  return [...names].filter(Boolean).sort((a,b)=>a.localeCompare(b,'pt-BR'))
 }
+
 function syncOrdersTeamFilter() {
   if (!els.ordersTeamFilter) return
 
@@ -5129,621 +4512,39 @@ function formatOrderExecutionTime(row) {
   return stamped || 'Horário não informado'
 }
 
-// JR_GESTAO_CONFERENCIA_FOTOS_CODIGOS_V40_7=20260827
-const photoAuditRecoveryV407 = {
-  scanning: false,
-  orphanEntries: [],
-  orphanByTeamDate: new Map(),
-  lastKey: '',
-}
-
-function importedKindV407(row) {
-  const record = row?.registro || {}
-  const raw = String(record.__jrImportedKind || '').trim().toLowerCase()
-  if (raw === 'survey') return 'survey'
-  if (raw === 'point') return 'time'
-  return isServiceLevantamento(record) ? 'survey' : 'time'
-}
-
-function componentMinuteV407(row, kind) {
-  if (kind === 'survey') {
-    const value = surveyMinutesMainV28(row)
-    return Number.isFinite(value) ? value : null
-  }
-  const value = pointMinutesMainV28(row)
-  return Number.isFinite(value) ? value : null
-}
-
-function normalizedIdentityTextV407(value) {
-  return normalizeText(value).replace(/\s+/g, ' ').trim()
-}
-
-function nativeCanSupplyKindV407(row, kind) {
-  const score = recordScore(row)
-  return kind === 'survey' ? score.levantamento > 0 : score.normal > 0
-}
-
-function importedMatchesNativeV407(imported, native, kind) {
-  if (!nativeCanSupplyKindV407(native, kind)) return false
-
-  const importedTeam = normalizedIdentityTextV407(recordTeam(imported))
-  const nativeTeam = normalizedIdentityTextV407(recordTeam(native))
-  if (importedTeam && nativeTeam && importedTeam !== nativeTeam) return false
-
-  const importedDay = serviceDateKey(imported)
-  const nativeDay = serviceDateKey(native)
-  if (importedDay && nativeDay && importedDay !== nativeDay) return false
-
-  const importedRecord = imported?.registro || {}
-  const nativeRecord = native?.registro || {}
-
-  const importedOrder = normalizedIdentityTextV407(importedRecord.orderNumber)
-  const nativeOrder = normalizedIdentityTextV407(nativeRecord.orderNumber)
-  if (importedOrder && nativeOrder && importedOrder !== nativeOrder) return false
-
-  const importedMinute = componentMinuteV407(imported, kind)
-  const nativeMinute = componentMinuteV407(native, kind)
-  if (Number.isFinite(importedMinute) && Number.isFinite(nativeMinute) && importedMinute !== nativeMinute) return false
-
-  const importedStreet = normalizedIdentityTextV407(streetName(importedRecord))
-  const nativeStreet = normalizedIdentityTextV407(streetName(nativeRecord))
-
-  let evidence = 0
-  if (importedOrder && nativeOrder && importedOrder === nativeOrder) evidence += 4
-  if (Number.isFinite(importedMinute) && Number.isFinite(nativeMinute) && importedMinute === nativeMinute) evidence += 3
-  if (importedStreet && nativeStreet && importedStreet === nativeStreet) evidence += 2
-  if (importedTeam && nativeTeam && importedTeam === nativeTeam) evidence += 1
-  if (importedDay && nativeDay && importedDay === nativeDay) evidence += 1
-
-  // Exige evidência forte para nunca apagar uma importação legítima por engano.
-  return evidence >= 8
-}
-
-function smartMergeImportedRowsV407(rows, start, end) {
-  const native = [...(rows || [])]
-  const nativeIds = new Set(native.map((row) => String(row?.id || '')))
-  const imported = importedRecordsForRangeV21(start, end)
-    .filter((row) => !nativeIds.has(String(row?.id || '')))
-
-  const usedNativeComponents = new Set()
-  const kept = []
-
-  for (const importedRow of imported) {
-    const kind = importedKindV407(importedRow)
-    const candidates = native.filter((nativeRow) => {
-      const componentKey = `${nativeRow?.id || ''}|${kind}`
-      if (usedNativeComponents.has(componentKey)) return false
-      return importedMatchesNativeV407(importedRow, nativeRow, kind)
-    })
-
-    if (candidates.length === 1) {
-      usedNativeComponents.add(`${candidates[0]?.id || ''}|${kind}`)
-      continue
-    }
-
-    kept.push(importedRow)
-  }
-
-  return [...native, ...kept]
-}
-
-function rawImportedForTeamV407(team) {
-  const target = normalizeText(team)
-  const profileMap = profileMapById()
-  return importedRecordsForRangeV21(state.range.start, state.range.end)
-    .filter((row) => normalizeText(recordTeam(row, profileMap)) === target)
-}
-
-function reconciledRowsForTeamV407(team) {
-  const target = normalizeText(team)
-  const profileMap = profileMapById()
-  const native = rangeSummaryForTeam(team).active
-  return smartMergeImportedRowsV407(native, state.range.start, state.range.end)
-    .filter((row) => normalizeText(recordTeam(row, profileMap)) === target)
-    .sort((a, b) => recordSortTimestamp(a) - recordSortTimestamp(b) || String(a.id || '').localeCompare(String(b.id || '')))
-}
-
-function photoRequirementKeyV407(row, kind) {
-  return `${String(row?.id || '')}|${kind}`
-}
-
-function requirementForV407(row, team, kind) {
-  const record = row?.registro || {}
-  const imported = Boolean(row?.__jrImportedV21)
-  const path = kind === 'survey'
-    ? String(record.surveyPhotoStoragePath || '').trim()
-    : String(record.timePhotoStoragePath || '').trim()
-  const bucket = kind === 'survey'
-    ? String(record.surveyPhotoStorageBucket || 'fotos').trim()
-    : String(record.timePhotoStorageBucket || 'fotos').trim()
-  const fileName = kind === 'survey'
-    ? String(record.surveyPhotoFileName || '').trim()
-    : String(record.timePhotoFileName || '').trim()
-  const minute = componentMinuteV407(row, kind)
-
-  return {
-    key: photoRequirementKeyV407(row, kind),
-    row,
-    rowId: String(row?.id || ''),
-    userId: String(row?.user_id || ''),
-    kind,
-    imported,
-    team,
-    workDate: serviceDateKey(row),
-    order: String(record.orderNumber || '').trim(),
-    street: streetName(record) || '',
-    service: String(record.serviceType?.name || record.serviceType?.code || '').trim(),
-    sourceFile: String(record.importedSourceFile || '').trim(),
-    minute,
-    timeText: Number.isFinite(minute) ? photoTimeTextFromMinuteV4061(minute) : '',
-    bucket,
-    path,
-    fileName,
-    linked: Boolean(path),
-  }
-}
-
-function photoAuditForTeamV407(team) {
-  const rows = reconciledRowsForTeamV407(team)
-  const requirements = []
-
-  for (const row of rows) {
-    const score = recordScore(row)
-    if (score.normal) requirements.push(requirementForV407(row, team, 'time'))
-    if (score.levantamento) requirements.push(requirementForV407(row, team, 'survey'))
-  }
-
-  const received = requirements.filter((item) => item.linked).length
-  const missing = requirements.filter((item) => !item.linked)
-  const rawImports = rawImportedForTeamV407(team)
-  const keptImports = rows.filter((row) => row?.__jrImportedV21)
-  const duplicateImports = Math.max(0, rawImports.length - keptImports.length)
-
-  return {
-    team,
-    rows,
-    requirements,
-    expected: requirements.length,
-    received,
-    missing,
-    nativeMissing: missing.filter((item) => !item.imported),
-    importedMissing: missing.filter((item) => item.imported),
-    duplicateImports,
-    codesScore: scoreBreakdown(rows).total,
-  }
-}
-
-function photoAuditForRangeV407(teams = teamsForRange()) {
-  const perTeam = teams.map(photoAuditForTeamV407)
-  return {
-    teams: perTeam,
-    expected: perTeam.reduce((sum, item) => sum + item.expected, 0),
-    received: perTeam.reduce((sum, item) => sum + item.received, 0),
-    missing: perTeam.flatMap((item) => item.missing),
-    nativeMissing: perTeam.flatMap((item) => item.nativeMissing),
-    importedMissing: perTeam.flatMap((item) => item.importedMissing),
-    duplicateImports: perTeam.reduce((sum, item) => sum + item.duplicateImports, 0),
-    codesScore: perTeam.reduce((sum, item) => sum + item.codesScore, 0),
-  }
-}
-
-function installPhotoAuditPanelV407() {
-  if (document.getElementById('photos-audit-v407')) return
-
-  const teamList = els.photosTeamList || document.getElementById('photos-team-list')
-  if (!teamList?.parentElement) return
-
-  const panel = document.createElement('section')
-  panel.id = 'photos-audit-v407'
-  panel.className = 'photos-audit-v407'
-  panel.innerHTML = `
-    <div class="photos-audit-head-v407">
-      <div>
-        <strong>CONFERÊNCIA CÓDIGOS × FOTOS</strong>
-        <small>Compara os pontos contabilizados com as fotos realmente vinculadas ao Storage.</small>
-      </div>
-      <span id="photos-audit-status-v407" class="photos-audit-status-v407">CONFERINDO</span>
-    </div>
-
-    <div class="photos-audit-metrics-v407">
-      <div><small>PONTOS / CÓDIGOS</small><strong id="photos-audit-codes-v407">0</strong></div>
-      <div><small>FOTOS VINCULADAS</small><strong id="photos-audit-received-v407">0</strong></div>
-      <div><small>SEM FOTO / VÍNCULO</small><strong id="photos-audit-missing-v407">0</strong></div>
-      <div><small>IMPORTAÇÕES DUPLICADAS</small><strong id="photos-audit-duplicates-v407">0</strong></div>
-    </div>
-
-    <div id="photos-audit-warning-v407" class="photos-audit-warning-v407 hidden"></div>
-
-    <div class="photos-audit-actions-v407">
-      <button id="photos-audit-storage-scan-v407" class="outline-button" type="button">
-        ${icon('search')} <span>PROCURAR FOTOS ÓRFÃS NO STORAGE</span>
-      </button>
-      <button id="photos-audit-csv-v407" class="outline-button" type="button">
-        ${icon('download')} <span>BAIXAR CONFERÊNCIA CSV</span>
-      </button>
-      <button id="photos-audit-orphans-download-v407" class="outline-button hidden" type="button">
-        ${icon('archive')} <span>BAIXAR FOTOS ÓRFÃS</span>
-      </button>
-    </div>
-
-    <details id="photos-audit-details-v407" class="photos-audit-details-v407">
-      <summary>VER ITENS SEM FOTO / VÍNCULO</summary>
-      <div id="photos-audit-list-v407"></div>
-    </details>
-  `
-
-  teamList.insertAdjacentElement('beforebegin', panel)
-
-  const style = document.createElement('style')
-  style.id = 'photos-audit-style-v407'
-  style.textContent = `
-    .photos-audit-v407{
-      margin:14px 0 16px;padding:14px;border:1px solid rgba(255,255,255,.11);
-      border-radius:14px;background:rgba(8,15,24,.72)
-    }
-    .photos-audit-v407.is-danger{border-color:rgba(255,93,93,.48);box-shadow:0 0 0 1px rgba(255,93,93,.08) inset}
-    .photos-audit-v407.is-ok{border-color:rgba(49,211,150,.35)}
-    .photos-audit-head-v407{display:flex;align-items:center;justify-content:space-between;gap:14px}
-    .photos-audit-head-v407>div{display:flex;flex-direction:column;gap:3px}
-    .photos-audit-head-v407 strong{font-size:13px;letter-spacing:.055em}
-    .photos-audit-head-v407 small{font-size:11px;opacity:.68}
-    .photos-audit-status-v407{font-size:10px;font-weight:900;padding:7px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.14)}
-    .photos-audit-v407.is-danger .photos-audit-status-v407{color:#ff9f9f;border-color:rgba(255,93,93,.4)}
-    .photos-audit-v407.is-ok .photos-audit-status-v407{color:#66e2b1;border-color:rgba(49,211,150,.35)}
-    .photos-audit-metrics-v407{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
-    .photos-audit-metrics-v407>div{padding:11px 12px;border-radius:11px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.075)}
-    .photos-audit-metrics-v407 small{display:block;font-size:9px;font-weight:900;letter-spacing:.07em;opacity:.63}
-    .photos-audit-metrics-v407 strong{display:block;font-size:23px;margin-top:4px}
-    .photos-audit-warning-v407{margin-top:11px;padding:10px 12px;border-radius:10px;background:rgba(255,80,80,.08);border:1px solid rgba(255,80,80,.22);font-size:12px;line-height:1.45}
-    .photos-audit-actions-v407{display:flex;gap:9px;flex-wrap:wrap;margin-top:11px}
-    .photos-audit-actions-v407 button{min-height:40px}
-    .photos-audit-details-v407{margin-top:11px;border-top:1px solid rgba(255,255,255,.08);padding-top:10px}
-    .photos-audit-details-v407 summary{cursor:pointer;font-size:11px;font-weight:900;letter-spacing:.055em}
-    .photos-audit-row-v407{display:grid;grid-template-columns:110px 145px 70px 1fr 1.2fr;gap:8px;padding:9px 4px;border-bottom:1px solid rgba(255,255,255,.06);font-size:11px;align-items:center}
-    .photos-audit-row-v407 b.imported{color:#ffbf69}
-    .photos-audit-row-v407 b.native{color:#ff8e8e}
-    .photos-audit-orphan-v407{color:#75d6ff}
-    @media(max-width:850px){
-      .photos-audit-metrics-v407{grid-template-columns:1fr 1fr}
-      .photos-audit-row-v407{grid-template-columns:1fr 1fr}
-      .photos-audit-row-v407 span:last-child{grid-column:1/-1}
-    }
-    @media(max-width:520px){
-      .photos-audit-head-v407{align-items:flex-start;flex-direction:column}
-      .photos-audit-metrics-v407{grid-template-columns:1fr 1fr}
-      .photos-audit-actions-v407{display:grid;grid-template-columns:1fr}
-      .photos-audit-actions-v407 button{width:100%}
-    }
-  `
-  document.head.appendChild(style)
-
-  document.getElementById('photos-audit-csv-v407')?.addEventListener('click', downloadPhotoAuditCsvV407)
-  document.getElementById('photos-audit-storage-scan-v407')?.addEventListener('click', scanOrphanPhotosV407)
-  document.getElementById('photos-audit-orphans-download-v407')?.addEventListener('click', downloadOrphanPhotosV407)
-  hydrateIcons()
-}
-
-function auditMissingRowHtmlV407(item) {
-  const origin = item.imported ? 'IMPORTAÇÃO' : 'NATIVO'
-  const originClass = item.imported ? 'imported' : 'native'
-  const kind = item.kind === 'survey' ? 'Levantamento' : 'Ponto'
-  const time = item.timeText || 'sem horário'
-  const source = item.imported
-    ? `Importado${item.sourceFile ? ` • ${item.sourceFile}` : ''}`
-    : `Registro ${item.rowId.slice(0, 8)}`
-  return `
-    <div class="photos-audit-row-v407">
-      <b class="${originClass}">${escapeHtml(origin)}</b>
-      <span>${escapeHtml(item.team || 'Sem equipe')}</span>
-      <span>${escapeHtml(formatDate(item.workDate || ''))}</span>
-      <span>${escapeHtml(`${time} • ${kind} • OS ${item.order || '-'}`)}</span>
-      <span>${escapeHtml(`${item.street || 'Sem rua'} • ${source}`)}</span>
-    </div>
-  `
-}
-
-function renderPhotoAuditV407(teams = teamsForRange()) {
-  const panel = document.getElementById('photos-audit-v407')
-  if (!panel) return
-
-  const audit = photoAuditForRangeV407(teams)
-  document.getElementById('photos-audit-codes-v407').textContent = String(audit.codesScore)
-  document.getElementById('photos-audit-received-v407').textContent = String(audit.received)
-  document.getElementById('photos-audit-missing-v407').textContent = String(audit.missing.length)
-  document.getElementById('photos-audit-duplicates-v407').textContent = String(audit.duplicateImports)
-
-  const status = document.getElementById('photos-audit-status-v407')
-  const warning = document.getElementById('photos-audit-warning-v407')
-  const details = document.getElementById('photos-audit-details-v407')
-  const list = document.getElementById('photos-audit-list-v407')
-
-  panel.classList.toggle('is-danger', audit.missing.length > 0)
-  panel.classList.toggle('is-ok', audit.missing.length === 0)
-  if (status) status.textContent = audit.missing.length ? `FALTAM ${audit.missing.length}` : 'CONFERIDO'
-
-  if (warning) {
-    warning.classList.toggle('hidden', audit.missing.length === 0)
-    warning.innerHTML = audit.missing.length
-      ? `<strong>Atenção:</strong> existem ${audit.missing.length} ponto(s)/levantamento(s) contabilizados sem foto vinculada ao Storage. ` +
-        `${audit.importedMissing.length} vieram de importação sem registro/foto nativa e ${audit.nativeMissing.length} são registros nativos sem o caminho da foto.`
-      : ''
-  }
-
-  if (details) details.classList.toggle('hidden', audit.missing.length === 0)
-  if (list) list.innerHTML = audit.missing.slice(0, 300).map(auditMissingRowHtmlV407).join('')
-
-  const orphanButton = document.getElementById('photos-audit-orphans-download-v407')
-  if (orphanButton) {
-    orphanButton.classList.toggle('hidden', photoAuditRecoveryV407.orphanEntries.length === 0)
-    const label = orphanButton.querySelector('span')
-    if (label) label.textContent = photoAuditRecoveryV407.orphanEntries.length
-      ? `BAIXAR ${photoAuditRecoveryV407.orphanEntries.length} FOTO(S) ÓRFÃ(S)`
-      : 'BAIXAR FOTOS ÓRFÃS'
-  }
-}
-
-function csvCellV407(value) {
-  return `"${String(value ?? '').replaceAll('"', '""')}"`
-}
-
-function downloadPhotoAuditCsvV407() {
-  try {
-    const teams = teamsForRange()
-    const audit = photoAuditForRangeV407(teams)
-    const headers = [
-      'status','origem','equipe','data','horario','tipo','ordem','rua','servico',
-      'arquivo_origem','id_registro','user_id'
-    ]
-    const rows = audit.missing.map((item) => [
-      item.imported ? 'IMPORTADO_SEM_REGISTRO_FOTO' : 'REGISTRO_NATIVO_SEM_FOTO_STORAGE',
-      item.imported ? 'IMPORTACAO' : 'NATIVO',
-      item.team,
-      item.workDate,
-      item.timeText,
-      item.kind === 'survey' ? 'LEVANTAMENTO' : 'PONTO',
-      item.order,
-      item.street,
-      item.service,
-      item.sourceFile,
-      item.rowId,
-      item.userId,
-    ])
-    const content = '\uFEFF' + [headers, ...rows]
-      .map((row) => row.map(csvCellV407).join(';'))
-      .join('\r\n')
-    const name = `CONFERENCIA_FOTOS_${state.range.start}_A_${state.range.end}.csv`
-    downloadBlob(new Blob([content], { type: 'text/csv;charset=utf-8' }), name)
-    toast(`Conferência gerada com ${rows.length} item(ns) sem foto/vínculo.`)
-  } catch (error) {
-    toast(friendlyError(error), true)
-  }
-}
-
-function storageTeamSlugV407(team) {
-  return String(team || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-}
-
-function profileIdsForAuditTeamV407(team) {
-  const target = normalizeText(team)
-  const ids = new Set()
-  for (const profile of state.profiles || []) {
-    if (normalizeText(profile?.team_name) === target && hasText(profile?.id)) ids.add(String(profile.id))
-  }
-  return [...ids]
-}
-
-async function listStorageFolderV407(bucket, prefix) {
-  const cacheKey = `${bucket}|${prefix}`
-  if (photoAuditRecoveryV407.orphanByTeamDate.has(cacheKey)) {
-    return photoAuditRecoveryV407.orphanByTeamDate.get(cacheKey)
-  }
-
-  const rows = []
-  let offset = 0
-  const limit = 1000
-  while (offset < 10000) {
-    const { data, error } = await supabase.storage.from(bucket).list(prefix, {
-      limit,
-      offset,
-      sortBy: { column: 'name', order: 'asc' },
-    })
-    if (error) throw error
-    const page = Array.isArray(data) ? data : []
-    rows.push(...page)
-    if (page.length < limit) break
-    offset += limit
-  }
-
-  photoAuditRecoveryV407.orphanByTeamDate.set(cacheKey, rows)
-  return rows
-}
-
-function knownStoragePathsV407() {
-  const known = new Set()
-  for (const row of state.range.records || []) {
-    const record = row?.registro || {}
-    for (const value of [record.timePhotoStoragePath, record.surveyPhotoStoragePath]) {
-      const path = String(value || '').trim()
-      if (path) known.add(path)
-    }
-  }
-  return known
-}
-
-function looksLikeImageV407(name) {
-  return /\.(?:jpe?g|png|webp|heic)$/i.test(String(name || ''))
-}
-
-async function scanOrphanPhotosV407() {
-  if (photoAuditRecoveryV407.scanning) return
-  const button = document.getElementById('photos-audit-storage-scan-v407')
-  const label = button?.querySelector('span')
-  photoAuditRecoveryV407.scanning = true
-  if (button) button.disabled = true
-  if (label) label.textContent = 'PROCURANDO NO STORAGE...'
-
-  try {
-    const audit = photoAuditForRangeV407(teamsForRange())
-    if (!audit.missing.length) {
-      toast('Não existem divergências para procurar no Storage.')
-      return
-    }
-
-    const known = knownStoragePathsV407()
-    const groups = new Map()
-    for (const item of audit.missing) {
-      if (!item.team || !item.workDate) continue
-      const key = `${item.team}|${item.workDate}`
-      if (!groups.has(key)) groups.set(key, { team: item.team, date: item.workDate, missing: [] })
-      groups.get(key).missing.push(item)
-    }
-
-    const orphanEntries = []
-    const seenPaths = new Set()
-
-    for (const group of groups.values()) {
-      const slug = storageTeamSlugV407(group.team)
-      const profileIds = profileIdsForAuditTeamV407(group.team)
-
-      for (const userId of profileIds) {
-        const prefix = `${userId}/${slug}/${group.date}`
-        let files
-        try {
-          files = await listStorageFolderV407('fotos', prefix)
-        } catch (error) {
-          console.warn('[JR V40.7] Storage list falhou:', prefix, error)
-          continue
-        }
-
-        for (const file of files) {
-          if (!looksLikeImageV407(file?.name)) continue
-          const fullPath = `${prefix}/${file.name}`
-          if (known.has(fullPath) || seenPaths.has(fullPath)) continue
-
-          seenPaths.add(fullPath)
-          const minute = photoMinuteFromFileNameV4061(file.name)
-          const candidateMissing = group.missing.filter((item) =>
-            Number.isFinite(item.minute) &&
-            Number.isFinite(minute) &&
-            item.minute === minute
-          )
-
-          orphanEntries.push({
-            rowId: `orphan:${fullPath}`,
-            bucket: 'fotos',
-            path: fullPath,
-            fileName: file.name,
-            label: candidateMissing.length === 1
-              ? `Foto órfã — provável ${candidateMissing[0].kind === 'survey' ? 'levantamento' : 'ponto'}`
-              : 'Foto órfã sem vínculo',
-            order: candidateMissing.length === 1 ? candidateMissing[0].order : '',
-            street: candidateMissing.length === 1 ? candidateMissing[0].street : '',
-            team: group.team,
-            workDate: group.date,
-            minute,
-            timeText: Number.isFinite(minute) ? photoTimeTextFromMinuteV4061(minute) : '',
-            takenAt: file?.created_at || file?.updated_at || '',
-            likelyKey: candidateMissing.length === 1 ? candidateMissing[0].key : '',
-          })
-        }
-      }
-    }
-
-    photoAuditRecoveryV407.orphanEntries = orphanEntries
-      .sort((a, b) =>
-        String(a.workDate).localeCompare(String(b.workDate)) ||
-        (Number.isFinite(a.minute) ? a.minute : 9999) - (Number.isFinite(b.minute) ? b.minute : 9999) ||
-        String(a.fileName).localeCompare(String(b.fileName), 'pt-BR')
-      )
-
-    renderPhotoAuditV407(teamsForRange())
-
-    const exactMatches = orphanEntries.filter((entry) => entry.likelyKey).length
-    toast(
-      orphanEntries.length
-        ? `Storage conferido: ${orphanEntries.length} foto(s) órfã(s) encontrada(s); ${exactMatches} têm horário compatível com uma divergência.`
-        : 'Storage conferido: nenhuma foto órfã foi encontrada nas pastas das equipes/datas com divergência.',
-      orphanEntries.length === 0
-    )
-  } catch (error) {
-    console.error('[JR V40.7] Falha ao procurar órfãs:', error)
-    toast(`Não foi possível listar o Storage: ${friendlyError(error)}`, true)
-  } finally {
-    photoAuditRecoveryV407.scanning = false
-    if (button) button.disabled = false
-    if (label) label.textContent = 'PROCURAR FOTOS ÓRFÃS NO STORAGE'
-  }
-}
-
-async function downloadOrphanPhotosV407() {
-  try {
-    const entries = [...photoAuditRecoveryV407.orphanEntries]
-    if (!entries.length) throw new Error('Nenhuma foto órfã foi encontrada para baixar.')
-
-    toast(`Baixando ${entries.length} foto(s) órfã(s) encontradas no Storage...`)
-    const downloaded = await downloadPhotoSetV4061(entries)
-    if (downloaded.length !== entries.length) {
-      throw new Error(`Esperadas ${entries.length} fotos órfãs, mas somente ${downloaded.length} foram baixadas.`)
-    }
-
-    const used = new Set()
-    for (const item of downloaded) {
-      const entry = item.entry
-      const base = zipSafePartV4061(entry.fileName || 'foto.jpg', 'foto.jpg')
-      const timePart = entry.timeText ? `${entry.timeText.replace(':', '')}_` : ''
-      const likely = entry.likelyKey ? 'PROVAVEL_MATCH' : 'SEM_MATCH'
-      let candidate = `RECUPERADAS_ORFAS/${zipSafePartV4061(entry.team)}/${entry.workDate}/${likely}_${timePart}${base}`
-      let index = 1
-      const dot = candidate.lastIndexOf('.')
-      const stem = dot > 0 ? candidate.slice(0, dot) : candidate
-      const ext = dot > 0 ? candidate.slice(dot) : ''
-      while (used.has(candidate.toLowerCase())) candidate = `${stem}_${index++}${ext}`
-      used.add(candidate.toLowerCase())
-      item.zipPath = candidate
-    }
-
-    const zip = buildZipBlobV4061(downloaded)
-    const fileName = `FOTOS_ORFAS_RECUPERADAS_${state.range.start}_A_${state.range.end}.zip`
-    await downloadBlob(zip, fileName)
-    toast(`${downloaded.length} foto(s) órfã(s) recuperadas no ZIP.`)
-  } catch (error) {
-    toast(friendlyError(error), true)
-  }
-}
-
 function renderPhotoTeams(teams) {
   if (!els.photosTeamList) return
-
-  renderReconciliationV408()
-
-  const visibleTeams = canonicalTeamsForRangeV408(teams)
-  if (visibleTeams.length === 0) {
+  if (teams.length === 0) {
     els.photosTeamList.innerHTML = moduleEmpty('Nenhuma equipe com dados neste período.')
     return
   }
 
-  els.photosTeamList.innerHTML = visibleTeams.map((team) => {
-    const coverage = coverageForTeamV408(team)
-    const filterActive = typeof photoTimeFilterActiveV4061 === 'function' && photoTimeFilterActiveV4061()
-    const nativeSummary = rangeSummaryForTeam(team)
-    const filteredEntries = filterActive ? filteredPhotoEntriesV4061(nativeSummary.active, team) : []
-    const filterLabel = filterActive ? photoTimeFilterLabelV4061() : ''
+  const filterActive = photoTimeFilterActiveV4061()
+  const filterLabel = photoTimeFilterLabelV4061()
+
+  els.photosTeamList.innerHTML = teams.map((team) => {
+    const summary = rangeSummaryForTeam(team)
+    const entries = filterActive ? filteredPhotoEntriesV4061(summary.active, team) : null
+    const filteredRows = entries ? new Set(entries.map((entry) => String(entry.rowId))).size : 0
 
     return teamFolderCard({
       team,
       action: 'data-open-photo-team',
       iconName: 'image',
       headline: filterActive
-        ? `${filteredEntries.length} foto(s) em ${filterLabel}`
-        : `${coverage.linked}/${coverage.expected} foto(s) vinculada(s)`,
-      detail: `${coverage.expected} serviço(s) contabilizado(s) • ${coverage.missing.length} sem foto`,
-      badge: coverage.missing.length ? `FALTAM ${coverage.missing.length}` : coverage.expected ? 'COMPLETO' : 'SEM FOTOS',
-      badgeClass: coverage.missing.length ? 'pending' : 'confirmed',
+        ? `${entries.length} foto(s) em ${filterLabel}`
+        : `${summary.receivedPhotos}/${summary.expectedPhotos} fotos recebidas`,
+      detail: filterActive
+        ? `${filteredRows} ponto(s) com foto no horário • ${summary.criticalCount} pendência(s)`
+        : `${summary.active.length} ponto(s) válido(s) • ${summary.criticalCount} pendência(s)`,
+      badge: filterActive
+        ? (entries.length > 0 ? 'FILTRO ATIVO' : 'SEM RESULTADO')
+        : (summary.receivedPhotos === summary.expectedPhotos && summary.expectedPhotos > 0
+          ? 'COMPLETO'
+          : summary.expectedPhotos === 0 ? 'SEM FOTOS' : 'INCOMPLETO'),
+      badgeClass: filterActive
+        ? (entries.length > 0 ? 'confirmed' : 'pending')
+        : (summary.receivedPhotos === summary.expectedPhotos && summary.expectedPhotos > 0 ? 'confirmed' : 'pending'),
     })
   }).join('')
 }
@@ -5760,26 +4561,25 @@ function renderCodeTeams(teams) {
 
 function renderReportTeams(teams) {
   if (!els.reportsTeamList) return
-  const visibleTeams = canonicalTeamsForRangeV408(teams)
-  if (visibleTeams.length === 0) {
+  if (teams.length === 0) {
     els.reportsTeamList.innerHTML = moduleEmpty('Nenhuma equipe com dados neste período.')
     return
   }
-
-  els.reportsTeamList.innerHTML = visibleTeams.map((team) => {
+  els.reportsTeamList.innerHTML = teams.map((team) => {
+    const summary = rangeSummaryForTeam(team)
     const filtered = reportRecordsForTeam(team)
-    const coverage = coverageForTeamV408(team)
     return teamFolderCard({
       team,
       action: 'data-open-report-team',
       iconName: 'file-text',
-      headline: `${filtered.length} serviço(s) • ${scoreBreakdown(filtered).total} ponto(s)`,
-      detail: `${coverage.linked}/${coverage.expected} foto(s) vinculada(s) • ${coverage.missing.length} faltando`,
+      headline: `${scoreBreakdown(filtered).total} ponto(s) • ${filtered.length} registro(s) filtrado(s)`,
+      detail: `${summary.active.length} válido(s) no período • ${summary.deleted.length} excluído(s)`,
       badge: filtered.length > 0 ? 'PRONTO' : 'SEM RESULTADO',
       badgeClass: filtered.length > 0 ? 'confirmed' : 'pending',
     })
   }).join('')
 }
+
 function teamFolderCard({ team, action, iconName, headline, detail, badge, badgeClass }) {
   return `<button class="team-folder-card jr-team-folder-card-v27 jr-team-card-clean-v29" type="button" ${action}="${encodeURIComponent(team)}">
     <span class="folder-card-icon">${icon(iconName)}</span>
@@ -5802,13 +4602,12 @@ async function openPhotoFolder(team, silent = false) {
   els.photosFolderTitle.textContent = `${team} — ${periodLabel()}`
 
   const summary = rangeSummaryForTeam(team)
-  const audit = photoAuditForTeamV407(team)
   const entries = filteredPhotoEntriesV4061(summary.active, team)
   const filterLabel = photoTimeFilterLabelV4061()
 
   els.photosFolderSummary.textContent = photoTimeFilterActiveV4061()
-    ? `${entries.length} foto(s) encontrada(s) em ${filterLabel}. No período: ${audit.received}/${audit.expected} vinculadas e ${audit.missing.length} faltando.`
-    : `${audit.received} foto(s) vinculada(s) de ${audit.expected} ponto(s)/levantamento(s) contabilizados. ${audit.missing.length} sem foto/vínculo.`
+    ? `${entries.length} foto(s) encontrada(s) em ${filterLabel}.`
+    : `${entries.length} foto(s) recebida(s) no Storage.`
 
   els.photosTeamDownload.disabled = entries.length === 0
   els.photosGrid.innerHTML = `<div class="loading-state"><span class="spinner"></span>Carregando fotos da equipe...</div>`
@@ -5817,9 +4616,7 @@ async function openPhotoFolder(team, silent = false) {
     els.photosGrid.innerHTML = moduleEmpty(
       photoTimeFilterActiveV4061()
         ? 'Nenhuma foto encontrada nesse horário. Altere ou limpe o filtro.'
-        : audit.missing.length
-          ? 'Não há foto vinculada para exibir. Veja a CONFERÊNCIA CÓDIGOS × FOTOS acima.'
-          : 'Nenhuma foto original recebida no Storage para esta equipe no período.'
+        : 'Nenhuma foto original recebida no Storage para esta equipe no período.'
     )
     return
   }
@@ -6443,26 +5240,345 @@ function summaryForTeam(team) {
   return summary
 }
 
-function rangeSummaryForTeam(team) {
+// JR_GESTAO_RECUPERACAO_PERFORMANCE_V40_9=20260827
+const rangePerformanceV409 = {
+  key: '',
+  recordsByTeam: new Map(),
+  manifestsByTeam: new Map(),
+  teamNames: [],
+  summaryByTeam: new Map(),
+}
+
+function rangePerformanceProfileKeyV409() {
+  return (state.profiles || [])
+    .map((profile) => `${profile?.id || ''}:${profile?.team_name || ''}:${profile?.active === false ? 0 : 1}`)
+    .join('|')
+}
+
+function clearRangePerformanceV409() {
+  rangePerformanceV409.key = ''
+  rangePerformanceV409.recordsByTeam.clear()
+  rangePerformanceV409.manifestsByTeam.clear()
+  rangePerformanceV409.teamNames = []
+  rangePerformanceV409.summaryByTeam.clear()
+}
+
+function ensureRangePerformanceV409() {
+  const key = [
+    state.range.loadedKey,
+    state.range.records.length,
+    state.range.manifests.length,
+    rangePerformanceProfileKeyV409(),
+  ].join('|')
+
+  if (rangePerformanceV409.key === key) return rangePerformanceV409
+
   const profileMap = profileMapById()
-  return buildSummary(
-    recordsForTeam(team, profileMap, state.range.records),
-    manifestsForTeam(team, profileMap, state.range.manifests),
+  const recordsByTeam = new Map()
+  const manifestsByTeam = new Map()
+  const displayNames = new Map()
+
+  const addName = (value) => {
+    const display = String(value || '').trim()
+    const normalized = normalizeText(display)
+    if (normalized && !displayNames.has(normalized)) displayNames.set(normalized, display)
+  }
+
+  for (const team of configuredTeamNames()) addName(team)
+
+  for (const row of state.range.records) {
+    const team = String(recordTeam(row, profileMap) || '').trim()
+    const normalized = normalizeText(team)
+    if (!normalized) continue
+    addName(team)
+    if (!recordsByTeam.has(normalized)) recordsByTeam.set(normalized, [])
+    recordsByTeam.get(normalized).push(row)
+  }
+
+  for (const manifest of state.range.manifests) {
+    const team = String(profileMap.get(manifest.user_id)?.team_name || manifest.team_name || '').trim()
+    const normalized = normalizeText(team)
+    if (!normalized) continue
+    addName(team)
+    if (!manifestsByTeam.has(normalized)) manifestsByTeam.set(normalized, [])
+    manifestsByTeam.get(normalized).push(manifest)
+  }
+
+  rangePerformanceV409.key = key
+  rangePerformanceV409.recordsByTeam = recordsByTeam
+  rangePerformanceV409.manifestsByTeam = manifestsByTeam
+  rangePerformanceV409.teamNames = [...displayNames.values()]
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  rangePerformanceV409.summaryByTeam = new Map()
+  return rangePerformanceV409
+}
+
+const storageRecoveryV409 = {
+  busy: false,
+  orphanEntries: [],
+}
+
+function installStorageRecoveryV409() {
+  if (document.getElementById('storage-recovery-v409')) return
+  const list = els.photosTeamList || document.getElementById('photos-team-list')
+  if (!list?.parentElement) return
+
+  const box = document.createElement('div')
+  box.id = 'storage-recovery-v409'
+  box.className = 'storage-recovery-v409'
+  box.innerHTML = `
+    <div>
+      <strong>RECUPERAÇÃO DE FOTOS</strong>
+      <small>A busca pesada no Storage só roda quando você mandar.</small>
+    </div>
+    <button id="storage-recovery-scan-v409" class="outline-button" type="button">
+      ${icon('search')} PROCURAR FOTOS ÓRFÃS
+    </button>
+    <button id="storage-recovery-download-v409" class="outline-button hidden" type="button">
+      ${icon('download')} BAIXAR TODAS EXISTENTES
+    </button>
+    <span id="storage-recovery-status-v409"></span>
+  `
+  list.insertAdjacentElement('beforebegin', box)
+
+  const style = document.createElement('style')
+  style.id = 'storage-recovery-style-v409'
+  style.textContent = `
+    .storage-recovery-v409{
+      display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+      margin:10px 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.09);
+      border-radius:12px;background:rgba(255,255,255,.025)
+    }
+    .storage-recovery-v409>div{display:flex;flex-direction:column;gap:2px;margin-right:auto}
+    .storage-recovery-v409 strong{font-size:11px;letter-spacing:.06em}
+    .storage-recovery-v409 small,.storage-recovery-v409>span{font-size:10px;opacity:.68}
+    .storage-recovery-v409 button{min-height:38px}
+    @media(max-width:650px){
+      .storage-recovery-v409{display:grid;grid-template-columns:1fr}
+      .storage-recovery-v409 button{width:100%}
+    }
+  `
+  document.head.appendChild(style)
+
+  document.getElementById('storage-recovery-scan-v409')?.addEventListener('click', scanStorageOrphansV409)
+  document.getElementById('storage-recovery-download-v409')?.addEventListener('click', downloadAllExistingStoragePhotosV409)
+  hydrateIcons()
+}
+
+function knownPhotoPathsV409() {
+  const paths = new Set()
+  for (const row of state.range.records) {
+    const record = row?.registro || {}
+    for (const value of [record.timePhotoStoragePath, record.surveyPhotoStoragePath]) {
+      const path = String(value || '').trim()
+      if (path) paths.add(path)
+    }
+  }
+  return paths
+}
+
+function linkedPhotoEntriesV409() {
+  const entries = []
+  const seen = new Set()
+  const profileMap = profileMapById()
+
+  for (const row of state.range.records) {
+    if (row?.deleted_at) continue
+    const record = row?.registro || {}
+    const team = recordTeam(row, profileMap) || 'Sem equipe'
+    const workDate = serviceDateKey(row)
+
+    const add = (kind, bucket, path, fileName, takenAt) => {
+      path = String(path || '').trim()
+      if (!path) return
+      const key = `${bucket || 'fotos'}|${path}`
+      if (seen.has(key)) return
+      seen.add(key)
+      const minute = photoMinuteFromFileNameV4061(fileName || path)
+      entries.push({
+        rowId: row.id,
+        bucket: bucket || 'fotos',
+        path,
+        fileName: fileName || path.split('/').pop() || `${row.id}.jpg`,
+        label: kind === 'survey' ? 'Foto de levantamento' : 'Foto de horário',
+        order: record.orderNumber || '',
+        street: streetName(record) || '',
+        team,
+        workDate,
+        minute,
+        timeText: Number.isFinite(minute) ? photoTimeTextFromMinuteV4061(minute) : '',
+        takenAt,
+      })
+    }
+
+    add('time', record.timePhotoStorageBucket, record.timePhotoStoragePath, record.timePhotoFileName, record.timePhotoTakenAt)
+    add('survey', record.surveyPhotoStorageBucket, record.surveyPhotoStoragePath, record.surveyPhotoFileName, record.surveyPhotoTakenAt)
+  }
+
+  return entries
+}
+
+function storageFoldersKnownV409() {
+  const folders = new Set()
+  for (const path of knownPhotoPathsV409()) {
+    const normalized = path.replaceAll('\\', '/')
+    const index = normalized.lastIndexOf('/')
+    if (index > 0) folders.add(normalized.slice(0, index))
+  }
+  return [...folders]
+}
+
+async function listStorageFolderV409(prefix) {
+  const files = []
+  let offset = 0
+  const limit = 1000
+  while (offset < 20000) {
+    const { data, error } = await supabase.storage.from('fotos').list(prefix, {
+      limit,
+      offset,
+      sortBy: { column: 'name', order: 'asc' },
+    })
+    if (error) throw error
+    const page = Array.isArray(data) ? data : []
+    files.push(...page)
+    if (page.length < limit) break
+    offset += limit
+  }
+  return files
+}
+
+async function scanStorageOrphansV409() {
+  if (storageRecoveryV409.busy) return
+  storageRecoveryV409.busy = true
+
+  const scan = document.getElementById('storage-recovery-scan-v409')
+  const status = document.getElementById('storage-recovery-status-v409')
+  const download = document.getElementById('storage-recovery-download-v409')
+  if (scan) scan.disabled = true
+  if (status) status.textContent = 'Procurando...'
+
+  try {
+    const known = knownPhotoPathsV409()
+    const folders = storageFoldersKnownV409()
+    const orphanEntries = []
+    const seen = new Set()
+
+    for (const folder of folders) {
+      let files
+      try {
+        files = await listStorageFolderV409(folder)
+      } catch (error) {
+        console.warn('[JR V40.9] Falha ao listar pasta', folder, error)
+        continue
+      }
+
+      for (const file of files) {
+        const name = String(file?.name || '')
+        if (!/\.(?:jpe?g|png|webp|heic)$/i.test(name)) continue
+        const path = `${folder}/${name}`
+        if (known.has(path) || seen.has(path)) continue
+        seen.add(path)
+
+        const parts = folder.split('/')
+        const workDate = parts[parts.length - 1] || ''
+        const minute = photoMinuteFromFileNameV4061(name)
+        orphanEntries.push({
+          rowId: `orphan:${path}`,
+          bucket: 'fotos',
+          path,
+          fileName: name,
+          label: 'Foto órfã encontrada no Storage',
+          order: '',
+          street: '',
+          team: parts.length >= 2 ? parts[parts.length - 2] : 'Storage',
+          workDate,
+          minute,
+          timeText: Number.isFinite(minute) ? photoTimeTextFromMinuteV4061(minute) : '',
+          takenAt: file?.created_at || file?.updated_at || '',
+        })
+      }
+    }
+
+    storageRecoveryV409.orphanEntries = orphanEntries
+    if (status) status.textContent = `${orphanEntries.length} foto(s) órfã(s) encontrada(s).`
+    if (download) download.classList.toggle('hidden', linkedPhotoEntriesV409().length + orphanEntries.length === 0)
+    toast(`Conferência concluída: ${orphanEntries.length} foto(s) órfã(s) encontrada(s).`)
+  } catch (error) {
+    if (status) status.textContent = 'Falha na busca.'
+    toast(friendlyError(error), true)
+  } finally {
+    storageRecoveryV409.busy = false
+    if (scan) scan.disabled = false
+  }
+}
+
+async function downloadAllExistingStoragePhotosV409() {
+  try {
+    const map = new Map()
+    for (const entry of [...linkedPhotoEntriesV409(), ...storageRecoveryV409.orphanEntries]) {
+      const key = `${entry.bucket}|${entry.path}`
+      if (!map.has(key)) map.set(key, entry)
+    }
+    const entries = [...map.values()]
+    if (!entries.length) throw new Error('Nenhuma foto existente foi encontrada no período.')
+
+    toast(`Baixando ${entries.length} foto(s) existentes...`)
+    const downloaded = await downloadPhotoSetV4061(entries)
+    if (downloaded.length !== entries.length) {
+      throw new Error(`Esperadas ${entries.length} fotos, mas ${downloaded.length} foram baixadas.`)
+    }
+
+    const used = new Set()
+    for (const item of downloaded) {
+      const entry = item.entry
+      const team = zipSafePartV4061(entry.team || 'SEM_EQUIPE')
+      const date = zipSafePartV4061(entry.workDate || 'SEM_DATA')
+      const base = zipSafePartV4061(entry.fileName || 'foto.jpg', 'foto.jpg')
+      let candidate = `${team}/${date}/${base}`
+      let index = 1
+      const dot = candidate.lastIndexOf('.')
+      const stem = dot > 0 ? candidate.slice(0, dot) : candidate
+      const ext = dot > 0 ? candidate.slice(dot) : ''
+      while (used.has(candidate.toLowerCase())) candidate = `${stem}_${index++}${ext}`
+      used.add(candidate.toLowerCase())
+      item.zipPath = candidate
+    }
+
+    const zip = buildZipBlobV4061(downloaded)
+    await downloadBlob(zip, `TODAS_FOTOS_EXISTENTES_${state.range.start}_A_${state.range.end}.zip`)
+    toast(`${downloaded.length} foto(s) existentes incluídas no ZIP.`)
+  } catch (error) {
+    toast(friendlyError(error), true)
+  }
+}
+
+document.addEventListener('jr:imported-records-v21', () => {
+  moduleRenderCacheV31.delete('codes')
+  moduleRenderCacheV31.delete('reports')
+})
+
+function rangeSummaryForTeam(team) {
+  const perf = ensureRangePerformanceV409()
+  const normalized = normalizeText(team)
+  if (perf.summaryByTeam.has(normalized)) return perf.summaryByTeam.get(normalized)
+
+  const profileMap = profileMapById()
+  const summary = buildSummary(
+    perf.recordsByTeam.get(normalized) || [],
+    perf.manifestsByTeam.get(normalized) || [],
     profileMap,
   )
-}
 
+  perf.summaryByTeam.set(normalized, summary)
+  return summary
+}
 function teamsForRange() {
-  const profileMap = profileMapById()
-  const names = new Set(configuredTeamNames())
-  state.range.records.forEach((row) => { const team = recordTeam(row, profileMap); if (team) names.add(team) })
-  state.range.manifests.forEach((manifest) => { const team = profileMap.get(manifest.user_id)?.team_name || manifest.team_name; if (team) names.add(String(team).trim()) })
-  return [...names].filter(Boolean).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  return [...ensureRangePerformanceV409().teamNames]
 }
-
 function reportRecordsForTeam(team) {
   const profileMap = profileMapById()
-  return canonicalRowsForTeamV408(team)
+  return codesRecordsForTeamV21(team)
     .filter((row) => {
       const score = recordScore(row)
       if (state.reportKind === 'points' && score.normal === 0) return false
@@ -7607,11 +6723,9 @@ function escapeHtml(value) { return String(value ?? '').replaceAll('&', '&amp;')
 function friendlyError(error) { const message = error?.message || String(error || 'Erro desconhecido'); if (/invalid login credentials/i.test(message)) return 'Usuário ou senha incorretos.'; if (isRateLimitError(error)) return 'Muitas solicitações ao painel. A atualização automática será retomada após o intervalo de segurança.'; if (/admin_purge_excluded_record|function .* does not exist|could not find the function/i.test(message)) return 'Execute o SQL 03_EXCLUSAO_DEFINITIVA_ADMIN.sql no Supabase antes de usar a exclusão definitiva.'; if (/failed to fetch|network|fetch/i.test(message)) return 'Não foi possível conectar ao Supabase.'; return message }
 
 document.addEventListener('jr:imported-v21-ready', () => {
-  for (const target of ['codes', 'reports', 'photos', 'orders']) {
-    moduleRenderCacheV31.delete(target)
-  }
-
-  if (['codes', 'reports', 'photos', 'orders'].includes(state.page)) {
+  moduleRenderCacheV31.delete('codes')
+  moduleRenderCacheV31.delete('orders')
+  if (state.page === 'codes' || state.page === 'orders') {
     scheduleCurrentModuleRenderV31(state.page)
   }
 })
