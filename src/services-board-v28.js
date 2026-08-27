@@ -45,6 +45,313 @@ const GLOBAL_KEY = '__matrix__'
 // JR_GESTAO_OBSERVACOES_INTELIGENTES_V40_13=20260827
 
 // JR_GESTAO_OBSERVACOES_SEM_CORTE_V40_14_3=20260827
+
+// JR_GESTAO_OBSERVACOES_QUADRADO_CENTRAL_V40_14_4=20260827
+function jrSetImportantV4144(element, property, value) {
+  if (!element) return
+  element.style.setProperty(property, value, 'important')
+}
+
+function jrForceObservationSquareV4144() {
+  const viewer = document.getElementById('services-observation-viewer')
+  if (!viewer) return
+
+  const card = viewer.querySelector('.services-observation-viewer-card')
+  if (!card) return
+
+  const mobile = window.matchMedia?.('(max-width: 700px)')?.matches === true
+
+  // OVERLAY: ocupa a tela, mas o quadrado interno fica pequeno/controlado.
+  ;[
+    ['position', 'fixed'],
+    ['inset', '0'],
+    ['width', '100vw'],
+    ['max-width', '100vw'],
+    ['height', '100dvh'],
+    ['max-height', '100dvh'],
+    ['box-sizing', 'border-box'],
+    ['padding', mobile ? '8px' : '16px'],
+    ['overflow-x', 'hidden'],
+    ['overflow-y', 'hidden'],
+    ['display', 'flex'],
+    ['align-items', 'center'],
+    ['justify-content', 'center'],
+  ].forEach(([p, v]) => jrSetImportantV4144(viewer, p, v))
+
+  // QUADRADO PRINCIPAL: não fica gigante.
+  const desktopSize = 'min(760px, calc(100vw - 32px), calc(100dvh - 32px))'
+  const mobileSize = 'calc(100vw - 16px)'
+  ;[
+    ['position', 'relative'],
+    ['inset', 'auto'],
+    ['left', 'auto'],
+    ['right', 'auto'],
+    ['top', 'auto'],
+    ['bottom', 'auto'],
+    ['transform', 'none'],
+    ['translate', 'none'],
+    ['width', mobile ? mobileSize : desktopSize],
+    ['max-width', mobile ? mobileSize : '760px'],
+    ['min-width', '0'],
+    ['height', mobile ? 'calc(100dvh - 16px)' : desktopSize],
+    ['max-height', mobile ? 'calc(100dvh - 16px)' : '760px'],
+    ['min-height', '0'],
+    ['margin', '0 auto'],
+    ['padding', '0'],
+    ['box-sizing', 'border-box'],
+    ['overflow-x', 'hidden'],
+    ['overflow-y', 'hidden'],
+    ['display', 'flex'],
+    ['flex-direction', 'column'],
+    ['align-items', 'stretch'],
+  ].forEach(([p, v]) => jrSetImportantV4144(card, p, v))
+
+  const header = card.querySelector('.services-observation-viewer-header')
+  if (header) {
+    ;[
+      ['position', 'relative'],
+      ['inset', 'auto'],
+      ['transform', 'none'],
+      ['width', '100%'],
+      ['max-width', '100%'],
+      ['min-width', '0'],
+      ['box-sizing', 'border-box'],
+      ['flex', '0 0 auto'],
+      ['margin', '0'],
+      ['padding', mobile ? '10px' : '12px 14px 10px'],
+      ['overflow-x', 'hidden'],
+      ['overflow-y', 'visible'],
+      ['text-align', 'center'],
+    ].forEach(([p, v]) => jrSetImportantV4144(header, p, v))
+  }
+
+  const days = card.querySelector('.services-viewer-days')
+  if (days) {
+    ;[
+      ['position', 'relative'],
+      ['inset', 'auto'],
+      ['transform', 'none'],
+      ['display', 'flex'],
+      ['flex-wrap', 'wrap'],
+      ['align-items', 'center'],
+      ['justify-content', 'center'],
+      ['align-content', 'center'],
+      ['gap', mobile ? '4px' : '5px'],
+      ['width', '100%'],
+      ['max-width', '100%'],
+      ['min-width', '0'],
+      ['box-sizing', 'border-box'],
+      ['flex', '0 0 auto'],
+      ['margin', '0'],
+      ['padding', mobile ? '7px 8px' : '8px 12px'],
+      ['overflow-x', 'hidden'],
+      ['overflow-y', 'visible'],
+      ['white-space', 'normal'],
+    ].forEach(([p, v]) => jrSetImportantV4144(days, p, v))
+
+    days.querySelectorAll(':scope > *').forEach((button) => {
+      ;[
+        ['position', 'relative'],
+        ['inset', 'auto'],
+        ['transform', 'none'],
+        ['flex', '0 0 auto'],
+        ['margin', '0'],
+      ].forEach(([p, v]) => jrSetImportantV4144(button, p, v))
+    })
+  }
+
+  const body = card.querySelector('.services-observation-viewer-body')
+  if (body) {
+    ;[
+      ['position', 'relative'],
+      ['inset', 'auto'],
+      ['transform', 'none'],
+      ['display', 'flex'],
+      ['flex-direction', 'column'],
+      ['align-items', 'stretch'],
+      ['justify-content', 'flex-start'],
+      ['gap', '9px'],
+      ['width', '100%'],
+      ['max-width', '100%'],
+      ['min-width', '0'],
+      ['height', 'auto'],
+      ['min-height', '0'],
+      ['box-sizing', 'border-box'],
+      ['flex', '1 1 auto'],
+      ['margin', '0'],
+      ['padding', mobile ? '8px' : '10px 12px 14px'],
+      ['overflow-x', 'hidden'],
+      ['overflow-y', 'auto'],
+      ['overscroll-behavior-x', 'none'],
+      ['overscroll-behavior-y', 'contain'],
+    ].forEach(([p, v]) => jrSetImportantV4144(body, p, v))
+  }
+
+  // Cada equipe = UM CARD centralizado ocupando somente o espaço interno.
+  card.querySelectorAll('.services-viewer-team').forEach((team) => {
+    ;[
+      ['position', 'relative'],
+      ['inset', 'auto'],
+      ['left', 'auto'],
+      ['right', 'auto'],
+      ['top', 'auto'],
+      ['bottom', 'auto'],
+      ['transform', 'none'],
+      ['translate', 'none'],
+      ['float', 'none'],
+      ['clear', 'both'],
+      ['display', 'block'],
+      ['grid-column', '1 / -1'],
+      ['width', '100%'],
+      ['max-width', '100%'],
+      ['min-width', '0'],
+      ['height', 'auto'],
+      ['min-height', '0'],
+      ['max-height', 'none'],
+      ['box-sizing', 'border-box'],
+      ['flex', '0 0 auto'],
+      ['margin', '0'],
+      ['padding', mobile ? '9px' : '10px 12px'],
+      ['overflow-x', 'hidden'],
+      ['overflow-y', 'visible'],
+      ['text-align', 'center'],
+    ].forEach(([p, v]) => jrSetImportantV4144(team, p, v))
+
+    const teamHeader = team.querySelector('header')
+    if (teamHeader) {
+      ;[
+        ['position', 'relative'],
+        ['inset', 'auto'],
+        ['transform', 'none'],
+        ['display', 'flex'],
+        ['flex-direction', 'column'],
+        ['align-items', 'center'],
+        ['justify-content', 'center'],
+        ['gap', '5px'],
+        ['width', '100%'],
+        ['max-width', '100%'],
+        ['min-width', '0'],
+        ['box-sizing', 'border-box'],
+        ['margin', '0 0 7px'],
+        ['padding', '0'],
+        ['overflow-x', 'hidden'],
+        ['overflow-y', 'visible'],
+        ['text-align', 'center'],
+      ].forEach(([p, v]) => jrSetImportantV4144(teamHeader, p, v))
+    }
+
+    team.querySelectorAll(
+      '.services-viewer-team-content,.services-viewer-service,.services-viewer-manual,.services-viewer-empty,.services-viewer-manual-important'
+    ).forEach((node) => {
+      ;[
+        ['position', 'relative'],
+        ['inset', 'auto'],
+        ['transform', 'none'],
+        ['translate', 'none'],
+        ['display', 'block'],
+        ['width', '100%'],
+        ['max-width', '100%'],
+        ['min-width', '0'],
+        ['height', 'auto'],
+        ['min-height', '0'],
+        ['max-height', 'none'],
+        ['box-sizing', 'border-box'],
+        ['margin-left', '0'],
+        ['margin-right', '0'],
+        ['overflow-x', 'hidden'],
+        ['overflow-y', 'visible'],
+        ['text-align', 'center'],
+      ].forEach(([p, v]) => jrSetImportantV4144(node, p, v))
+    })
+
+    team.querySelectorAll('p,strong,span,small,b').forEach((node) => {
+      ;[
+        ['display', 'block'],
+        ['max-width', '100%'],
+        ['min-width', '0'],
+        ['margin-left', 'auto'],
+        ['margin-right', 'auto'],
+        ['white-space', 'normal'],
+        ['overflow-wrap', 'anywhere'],
+        ['word-break', 'normal'],
+        ['text-align', 'center'],
+        ['box-sizing', 'border-box'],
+      ].forEach(([p, v]) => jrSetImportantV4144(node, p, v))
+    })
+  })
+
+  const footer = card.querySelector('.services-observation-viewer-footer')
+  if (footer) {
+    ;[
+      ['position', 'relative'],
+      ['inset', 'auto'],
+      ['transform', 'none'],
+      ['display', 'flex'],
+      ['flex-wrap', 'wrap'],
+      ['align-items', 'center'],
+      ['justify-content', 'center'],
+      ['gap', '7px'],
+      ['width', '100%'],
+      ['max-width', '100%'],
+      ['min-width', '0'],
+      ['box-sizing', 'border-box'],
+      ['flex', '0 0 auto'],
+      ['margin', '0'],
+      ['padding', mobile ? '8px' : '9px 12px 11px'],
+      ['overflow-x', 'hidden'],
+      ['overflow-y', 'visible'],
+      ['text-align', 'center'],
+    ].forEach(([p, v]) => jrSetImportantV4144(footer, p, v))
+
+    footer.querySelectorAll('button').forEach((button) => {
+      ;[
+        ['max-width', '100%'],
+        ['min-width', '0'],
+        ['white-space', 'normal'],
+        ['text-align', 'center'],
+      ].forEach(([p, v]) => jrSetImportantV4144(button, p, v))
+    })
+  }
+}
+
+function jrScheduleObservationSquareV4144() {
+  requestAnimationFrame(() => {
+    jrForceObservationSquareV4144()
+    requestAnimationFrame(jrForceObservationSquareV4144)
+  })
+}
+
+// Observa o modal: sempre que dia/equipe/conteúdo muda, reaplica inline !important.
+function jrInstallObservationSquareObserverV4144() {
+  const attach = () => {
+    const viewer = document.getElementById('services-observation-viewer')
+    if (!viewer || viewer.__jrSquareObserverV4144) return false
+
+    viewer.__jrSquareObserverV4144 = true
+    const observer = new MutationObserver(() => jrScheduleObservationSquareV4144())
+    observer.observe(viewer, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['class', 'style'],
+    })
+
+    viewer.addEventListener('click', jrScheduleObservationSquareV4144, true)
+    window.addEventListener('resize', jrScheduleObservationSquareV4144)
+    jrScheduleObservationSquareV4144()
+    return true
+  }
+
+  if (attach()) return
+
+  const pageObserver = new MutationObserver(() => {
+    if (attach()) pageObserver.disconnect()
+  })
+  pageObserver.observe(document.documentElement, { childList: true, subtree: true })
+}
+
+jrInstallObservationSquareObserverV4144()
+
 function jrInstallObservationNoClipV4142() {
   let style = document.getElementById('jr-observation-no-clip-v4142')
   if (!style) {
