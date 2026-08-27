@@ -1,3 +1,4 @@
+// JR_GESTAO_OBS_CACHE_V40_12=20260827
 /*
   V29: esconde os números mensais nativos/parciais desde o boot.
 */
@@ -52,7 +53,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v28.js?v=toggles-calendar-hover-v40-20260811'
+        './services-board-v28.js?v=obs-summary-v40-12-20260827'
       )
         .then((module) => {
           const first =
@@ -182,7 +183,7 @@ function modulePreloadV25(href) {
 
 function prepareModulesV25() {
   modulePreloadV25(
-    './src/services-board-v28.js?v=toggles-calendar-hover-v40-20260811',
+    './src/services-board-v28.js?v=obs-summary-v40-12-20260827',
   )
   modulePreloadV25(
     './src/services-home-overlay-v29.js?v=periodo-foto-v37-1-20260811',

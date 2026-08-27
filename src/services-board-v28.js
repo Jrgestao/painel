@@ -42,6 +42,200 @@ import {
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 const $ = (selector) => document.querySelector(selector)
 const GLOBAL_KEY = '__matrix__'
+// JR_GESTAO_OBSERVACOES_RESUMIDAS_V40_12=20260827
+const originalEffectiveObservationPartsV412 = effectiveObservationParts
+
+function compactNormalizeObservationV412(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function compactAutomaticObservationV412(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+
+  const text = compactNormalizeObservationV412(raw)
+  const segments = text
+    .split(/\s*(?:•|\||;|\n)\s*/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+
+  const items = []
+  const seen = new Set()
+  const add = (label) => {
+    const key = compactNormalizeObservationV412(label)
+    if (!key || seen.has(key)) return
+    seen.add(key)
+    items.push(label)
+  }
+
+  // Esses dois precisam sempre permanecer visíveis quando existirem.
+  if (/\b(?:trans\s*munk|transmunk|transmulk|transmunck|munck|munk)\b/.test(text)) {
+    add('TRANS MUNK CAMINHÃO')
+  }
+  if (/\bcaminhao\s+(?:locad|alugad)|(?:locac|alug).{0,35}\bcaminhao\b/.test(text)) {
+    add('CAMINHÃO LOCADO')
+  }
+
+  const contactorText = segments
+    .filter((segment) => /conta(?:c)?tor/.test(segment))
+    .join(' ')
+  if (contactorText) {
+    if (/instal|implan/.test(contactorText)) add('INSTALAÇÃO DE CONTATORA')
+    else if (/troca|substit/.test(contactorText)) add('TROCA DE CONTATORA')
+    else if (/manuten|reparo/.test(contactorText)) add('MANUTENÇÃO DE CONTATORA')
+    else if (/acion|desacion/.test(contactorText)) add('ACIONAMENTO DE CONTATORA')
+    else add('CONTATORA')
+  }
+
+  const commandBoxText = segments
+    .filter((segment) => /caixa.{0,25}comando|sistema.{0,20}comando/.test(segment))
+    .join(' ')
+  if (commandBoxText) {
+    if (/instal|implan/.test(commandBoxText)) add('INSTALAÇÃO DE CAIXA DE COMANDO')
+    else if (/manuten|reparo/.test(commandBoxText)) add('MANUTENÇÃO DE CAIXA DE COMANDO')
+    else add('CAIXA DE COMANDO')
+  }
+
+  if (/escav|valeta|buraco/.test(text)) add('ESCAVAÇÃO / VALETA / BURACO')
+  if (/\bsuper\s+poste\b/.test(text)) add('SUPER POSTE')
+  if (/(?:implan|instal).{0,65}\bposte\b|\bposte\b.{0,65}(?:implan|instal)/.test(text)) {
+    add('IMPLANTAÇÃO DE POSTE')
+  }
+  if (/\bevento\b/.test(text)) add('EVENTO')
+  if (/\bpraca\b/.test(text)) add('PRAÇA')
+  if (/\bcampo\b/.test(text)) add('CAMPO')
+  if (/\bescola\b/.test(text)) add('ESCOLA')
+  if (/lancamento.{0,60}\bcabo\b|\bcabo\s+aereo\b/.test(text)) add('LANÇAMENTO DE CABO')
+  if (/(?:implan|instal).{0,60}\brefletor/.test(text)) add('IMPLANTAÇÃO DE REFLETOR')
+  if (/(?:implan|instal).{0,60}\btomad/.test(text)) add('INSTALAÇÃO DE TOMADA')
+  if (/(?:implan|instal).{0,60}\blampad/.test(text)) add('INSTALAÇÃO DE LÂMPADA')
+
+  // Troca de LED, fio, relé, conector e detalhes técnicos não entram sozinhos.
+  // Mantém no máximo oito serviços realmente relevantes para o card ficar legível.
+  return items.slice(0, 8).join(' • ')
+}
+
+function compactEffectiveObservationPartsV412(day, draft, metricKey) {
+  const parts = originalEffectiveObservationPartsV412(day, draft, metricKey) || {}
+  const automatic = compactAutomaticObservationV412(parts.automatic)
+  const manual = String(parts.manual || '').trim()
+
+  return {
+    ...parts,
+    automatic,
+    manual,
+    text: [automatic, manual].filter(Boolean).join('\n'),
+    hasAutomatic: Boolean(automatic),
+    hasManual: Boolean(manual),
+    hasImportant: Boolean(automatic) || Boolean(parts.manualImportant),
+  }
+}
+
+function installObservationLayoutV412() {
+  if (document.getElementById('jr-observation-layout-v412')) return
+  const style = document.createElement('style')
+  style.id = 'jr-observation-layout-v412'
+  style.textContent = `
+    .services-observation-viewer-card {
+      width: min(1180px, calc(100vw - 28px)) !important;
+      max-width: 1180px !important;
+      max-height: calc(100dvh - 28px) !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      display: grid !important;
+      grid-template-rows: auto auto minmax(0, 1fr) auto !important;
+    }
+
+    .services-observation-viewer-header {
+      min-width: 0 !important;
+      flex: 0 0 auto !important;
+    }
+
+    .services-viewer-days {
+      min-width: 0 !important;
+      max-width: 100% !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      flex-wrap: nowrap !important;
+      scrollbar-width: thin;
+      overscroll-behavior-x: contain;
+    }
+
+    .services-viewer-days > * {
+      flex: 0 0 auto !important;
+    }
+
+    .services-observation-viewer-body {
+      min-width: 0 !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      overscroll-behavior: contain;
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      grid-auto-rows: max-content !important;
+      align-content: start !important;
+      align-items: start !important;
+      gap: 12px !important;
+      padding-bottom: 24px !important;
+    }
+
+    .services-viewer-team {
+      position: relative !important;
+      min-width: 0 !important;
+      width: 100% !important;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      overflow: hidden !important;
+      align-self: start !important;
+    }
+
+    .services-viewer-team-content,
+    .services-viewer-service,
+    .services-viewer-manual {
+      min-width: 0 !important;
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
+    }
+
+    .services-viewer-service p,
+    .services-viewer-manual p {
+      margin: 0 !important;
+      white-space: pre-wrap !important;
+      overflow-wrap: anywhere !important;
+      word-break: normal !important;
+      max-height: none !important;
+      overflow: visible !important;
+      line-height: 1.45 !important;
+    }
+
+    .services-observation-viewer-footer {
+      position: relative !important;
+      z-index: 2 !important;
+      flex: 0 0 auto !important;
+    }
+
+    @media (max-width: 820px) {
+      .services-observation-viewer-card {
+        width: min(100vw - 14px, 760px) !important;
+        max-height: calc(100dvh - 14px) !important;
+      }
+      .services-observation-viewer-body {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 10px !important;
+      }
+    }
+  `
+  document.head.appendChild(style)
+}
 
 const SETTINGS_FRESH_MS_V22 = 120000
 const MATRIX_CACHE_IDLE_TIMEOUT_V22 = 1400
@@ -235,6 +429,7 @@ const state = {
 }
 
 initializeUiControls()
+installObservationLayoutV412()
 moveObservationHoverToBody()
 moveDirtyActionsToBody()
 bindEvents()
@@ -1859,7 +2054,7 @@ function renderBoard() {
     if (renderObservationCacheV39.has(key)) {
       return renderObservationCacheV39.get(key)
     }
-    const parts = effectiveObservationParts(
+    const parts = compactEffectiveObservationPartsV412(
       sheet.days[dayNumber - 1],
       renderDraftV39(sheet),
       state.metric,
@@ -2185,7 +2380,7 @@ function observationItemsForDay(
   return sheets
     .map((sheet) => {
       const day = sheet.days[dayNumber - 1]
-      const parts = effectiveObservationParts(
+      const parts = compactEffectiveObservationPartsV412(
         day,
         draftFor(sheet.key),
         metricKey,
@@ -2263,7 +2458,7 @@ function showObservationHover(dayNumber, anchor) {
   const metric = metricDefinition(state.metric)
   const items = visibleSheetsForHover()
     .map((sheet) => {
-      const parts = effectiveObservationParts(
+      const parts = compactEffectiveObservationPartsV412(
         sheet.days[dayNumber - 1],
         draftFor(sheet.key),
         state.metric,
@@ -2504,7 +2699,7 @@ function renderObservationViewer() {
     els.viewerDays.innerHTML = availableDays
       .map((day) => {
         const hasNotes = sheets.some((sheet) => {
-          const parts = effectiveObservationParts(
+          const parts = compactEffectiveObservationPartsV412(
             sheet.days[day - 1],
             draftFor(sheet.key),
             state.metric,
@@ -2524,7 +2719,7 @@ function renderObservationViewer() {
 
   const cards = sheets.map((sheet) => {
     const day = sheet.days[dayNumber - 1]
-    const parts = effectiveObservationParts(
+    const parts = compactEffectiveObservationPartsV412(
       day,
       draftFor(sheet.key),
       state.metric,
@@ -5040,7 +5235,7 @@ async function downloadWorkbook() {
 
         sheets.forEach((sheet, index) => {
           const parts =
-            effectiveObservationParts(
+            compactEffectiveObservationPartsV412(
               sheet.days[dayNumber - 1],
               draftFor(sheet.key),
               metric.key,
