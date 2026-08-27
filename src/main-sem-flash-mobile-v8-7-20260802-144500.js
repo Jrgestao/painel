@@ -72,6 +72,482 @@ let serviceDateScrollLockUntilV38 = 0
 let serviceDateObserverV38 = null
 let photoOpenTokenV37 = 0
 const teamSummaryCacheV37 = new Map()
+// JR_GESTAO_FLUIDEZ_REAL_V40_13=20260827
+const jrPerfV413 = {
+  token: 0,
+  busy: new Set(),
+  progressOwner: '',
+}
+
+function jrPerfEnsureUiV413() {
+  let box = document.getElementById('jr-perf-v413')
+  if (!box) {
+    box = document.createElement('div')
+    box.id = 'jr-perf-v413'
+    box.setAttribute('role', 'status')
+    box.setAttribute('aria-live', 'polite')
+    box.innerHTML = `
+      <span class="jr-perf-spinner-v413" aria-hidden="true"></span>
+      <div class="jr-perf-copy-v413">
+        <strong>JR GESTÃO</strong>
+        <small id="jr-perf-text-v413">Carregando dados...</small>
+        <span class="jr-perf-track-v413"><i id="jr-perf-bar-v413"></i></span>
+      </div>
+    `
+    document.body.appendChild(box)
+  }
+
+  if (!document.getElementById('jr-perf-style-v413')) {
+    const style = document.createElement('style')
+    style.id = 'jr-perf-style-v413'
+    style.textContent = `
+      #jr-perf-v413{
+        position:fixed!important;
+        top:14px!important;
+        right:18px!important;
+        z-index:2147483000!important;
+        display:flex!important;
+        align-items:center!important;
+        gap:11px!important;
+        width:min(330px,calc(100vw - 30px))!important;
+        box-sizing:border-box!important;
+        padding:11px 13px!important;
+        border:1px solid rgba(255,255,255,.14)!important;
+        border-radius:13px!important;
+        color:#f4f4f4!important;
+        background:rgba(14,18,23,.97)!important;
+        box-shadow:0 12px 34px rgba(0,0,0,.36)!important;
+        opacity:0!important;
+        visibility:hidden!important;
+        transform:translate3d(0,-8px,0)!important;
+        transition:opacity .14s ease,transform .14s ease,visibility .14s ease!important;
+        pointer-events:none!important;
+        contain:layout paint style!important;
+      }
+      #jr-perf-v413.show{
+        opacity:1!important;
+        visibility:visible!important;
+        transform:translate3d(0,0,0)!important;
+      }
+      .jr-perf-spinner-v413{
+        display:block!important;
+        width:20px!important;
+        height:20px!important;
+        flex:0 0 20px!important;
+        box-sizing:border-box!important;
+        border:2px solid rgba(255,255,255,.18)!important;
+        border-top-color:#fff!important;
+        border-right-color:rgba(255,255,255,.64)!important;
+        border-radius:999px!important;
+        animation:jr-spin-v413 .68s linear infinite!important;
+        will-change:transform!important;
+        transform:translate3d(0,0,0)!important;
+        backface-visibility:hidden!important;
+      }
+      @keyframes jr-spin-v413{
+        from{transform:translate3d(0,0,0) rotate(0deg)}
+        to{transform:translate3d(0,0,0) rotate(360deg)}
+      }
+      .jr-perf-copy-v413{
+        min-width:0!important;
+        flex:1 1 auto!important;
+        display:grid!important;
+        gap:3px!important;
+      }
+      .jr-perf-copy-v413 strong{
+        font-size:9px!important;
+        line-height:1.1!important;
+        letter-spacing:.08em!important;
+        opacity:.58!important;
+      }
+      .jr-perf-copy-v413 small{
+        min-width:0!important;
+        overflow:hidden!important;
+        text-overflow:ellipsis!important;
+        white-space:nowrap!important;
+        font-size:12px!important;
+        font-weight:750!important;
+      }
+      .jr-perf-track-v413{
+        display:block!important;
+        width:100%!important;
+        height:3px!important;
+        overflow:hidden!important;
+        border-radius:999px!important;
+        background:rgba(255,255,255,.09)!important;
+      }
+      .jr-perf-track-v413 i{
+        display:block!important;
+        width:100%!important;
+        height:100%!important;
+        border-radius:inherit!important;
+        background:currentColor!important;
+        transform:scaleX(.04)!important;
+        transform-origin:left center!important;
+        transition:transform .16s ease!important;
+        will-change:transform!important;
+      }
+
+      .jr-skeleton-v413{
+        display:grid!important;
+        gap:10px!important;
+        width:100%!important;
+      }
+      .jr-skeleton-card-v413{
+        height:78px!important;
+        border:1px solid rgba(255,255,255,.07)!important;
+        border-radius:13px!important;
+        background:rgba(255,255,255,.035)!important;
+        position:relative!important;
+        overflow:hidden!important;
+      }
+      .jr-skeleton-card-v413::before{
+        content:""!important;
+        position:absolute!important;
+        inset:0!important;
+        width:42%!important;
+        background:linear-gradient(90deg,transparent,rgba(255,255,255,.075),transparent)!important;
+        transform:translate3d(-140%,0,0)!important;
+        animation:jr-skeleton-v413 1.05s ease-in-out infinite!important;
+        will-change:transform!important;
+      }
+      @keyframes jr-skeleton-v413{
+        to{transform:translate3d(340%,0,0)}
+      }
+
+      body.jr-processing-v413 [class*="liquid-metal"],
+      body.jr-processing-v413 [class*="metal-liquid"]{
+        animation-play-state:paused!important;
+      }
+
+      @media(max-width:700px){
+        #jr-perf-v413{
+          top:10px!important;
+          left:12px!important;
+          right:12px!important;
+          width:auto!important;
+        }
+        .jr-skeleton-card-v413{height:70px!important}
+      }
+    `
+    document.head.appendChild(style)
+  }
+  return box
+}
+
+function jrPerfShowV413(owner, message, current = 0, total = 0) {
+  const box = jrPerfEnsureUiV413()
+  const key = String(owner || 'busy')
+  jrPerfV413.busy.add(key)
+  jrPerfV413.progressOwner = key
+  const text = document.getElementById('jr-perf-text-v413')
+  if (text) text.textContent = String(message || 'Carregando dados...')
+  jrPerfProgressV413(key, current, total)
+  box.classList.add('show')
+  document.body.classList.add('jr-processing-v413')
+}
+
+function jrPerfProgressV413(owner, current, total, message = '') {
+  if (jrPerfV413.progressOwner !== String(owner || '')) return
+  const text = document.getElementById('jr-perf-text-v413')
+  if (message && text) text.textContent = message
+  const bar = document.getElementById('jr-perf-bar-v413')
+  if (!bar) return
+  const ratio = total > 0 ? Math.max(.04, Math.min(1, Number(current || 0) / total)) : .18
+  bar.style.transform = `scaleX(${ratio})`
+}
+
+function jrPerfHideV413(owner) {
+  const key = String(owner || 'busy')
+  jrPerfV413.busy.delete(key)
+  if (jrPerfV413.progressOwner === key) jrPerfV413.progressOwner = ''
+  if (jrPerfV413.busy.size) return
+  document.body.classList.remove('jr-processing-v413')
+  const box = document.getElementById('jr-perf-v413')
+  if (box) box.classList.remove('show')
+}
+
+function jrPerfYieldV413() {
+  return new Promise((resolve) => {
+    const finish = () => window.setTimeout(resolve, 0)
+    if (typeof requestAnimationFrame !== 'function') {
+      finish()
+      return
+    }
+    requestAnimationFrame(() => requestAnimationFrame(finish))
+  })
+}
+
+function jrPerfListV413(target) {
+  if (target === 'photos') return els.photosTeamList
+  if (target === 'codes') return els.codesTeamList
+  if (target === 'reports') return els.reportsTeamList
+  return null
+}
+
+function jrPerfSkeletonV413(target) {
+  const list = jrPerfListV413(target)
+  if (!list) return
+  const detailOpen =
+    target === 'photos' ? Boolean(state.moduleTeams.photos) :
+    target === 'codes' ? Boolean(state.moduleTeams.codes) :
+    target === 'reports' ? Boolean(state.moduleTeams.reports) :
+    false
+  if (detailOpen) return
+
+  list.innerHTML = `
+    <div class="jr-skeleton-v413">
+      <div class="jr-skeleton-card-v413"></div>
+      <div class="jr-skeleton-card-v413"></div>
+      <div class="jr-skeleton-card-v413"></div>
+    </div>
+  `
+}
+
+function jrPerfCodesRowsV413(team) {
+  return typeof jrPerfCodesRowsV411 === 'function'
+    ? jrPerfCodesRowsV411(team)
+    : codesRecordsForTeamV21(team)
+}
+
+function jrPerfReportRowsV413(team) {
+  return typeof jrPerfReportRowsV411 === 'function'
+    ? jrPerfReportRowsV411(team)
+    : reportRecordsForTeam(team)
+}
+
+function jrPerfSummaryV413(team) {
+  return typeof jrPerfRangeSummaryV411 === 'function'
+    ? jrPerfRangeSummaryV411(team)
+    : rangeSummaryForTeam(team)
+}
+
+async function jrPerfRenderPhotoTeamsV413(teams, token, owner) {
+  const list = els.photosTeamList
+  if (!list) return
+  if (!teams.length) {
+    list.innerHTML = moduleEmpty('Nenhuma equipe com dados neste período.')
+    return
+  }
+
+  list.innerHTML = ''
+  for (let index = 0; index < teams.length; index += 1) {
+    if (token !== jrPerfV413.token || state.page !== 'photos') return
+    const team = teams[index]
+    const summary = jrPerfSummaryV413(team)
+    const html = teamFolderCard({
+      team,
+      action: 'data-open-photo-team',
+      iconName: 'image',
+      headline: `${summary.receivedPhotos}/${summary.expectedPhotos} fotos recebidas`,
+      detail: `${summary.active.length} ponto(s) válido(s) • ${summary.criticalCount} pendência(s)`,
+      badge: summary.receivedPhotos === summary.expectedPhotos && summary.expectedPhotos > 0
+        ? 'COMPLETO'
+        : summary.expectedPhotos === 0 ? 'SEM FOTOS' : 'INCOMPLETO',
+      badgeClass: summary.receivedPhotos === summary.expectedPhotos && summary.expectedPhotos > 0
+        ? 'confirmed'
+        : 'pending',
+    })
+    list.insertAdjacentHTML('beforeend', html)
+    jrPerfProgressV413(owner, index + 1, teams.length, `Fotos • ${index + 1}/${teams.length} equipe(s)`)
+    await jrPerfYieldV413()
+  }
+}
+
+async function jrPerfRenderCodeTeamsV413(teams, token, owner) {
+  const list = els.codesTeamList
+  if (!list) return
+  const visibleTeams = codesTeamsForRangeV21(teams)
+  if (!visibleTeams.length) {
+    list.innerHTML = moduleEmpty('Nenhuma equipe com pontos neste período.')
+    return
+  }
+
+  list.innerHTML = ''
+  for (let index = 0; index < visibleTeams.length; index += 1) {
+    if (token !== jrPerfV413.token || state.page !== 'codes') return
+    const team = visibleTeams[index]
+    const records = jrPerfCodesRowsV413(team)
+    const score = scoreBreakdown(records)
+    list.insertAdjacentHTML('beforeend', teamFolderCard({
+      team,
+      action: 'data-open-code-team',
+      iconName: 'table',
+      headline: `${score.total} ponto(s) contabilizado(s)`,
+      detail: `${records.length} registro(s) válido(s) • importações incluídas`,
+      badge: records.length > 0 ? 'PRONTO' : 'VAZIO',
+      badgeClass: records.length > 0 ? 'confirmed' : 'pending',
+    }))
+    jrPerfProgressV413(owner, index + 1, visibleTeams.length, `Códigos • ${index + 1}/${visibleTeams.length} equipe(s)`)
+    await jrPerfYieldV413()
+  }
+}
+
+async function jrPerfRenderReportTeamsV413(teams, token, owner) {
+  const list = els.reportsTeamList
+  if (!list) return
+  if (!teams.length) {
+    list.innerHTML = moduleEmpty('Nenhuma equipe com dados neste período.')
+    return
+  }
+
+  list.innerHTML = ''
+  for (let index = 0; index < teams.length; index += 1) {
+    if (token !== jrPerfV413.token || state.page !== 'reports') return
+    const team = teams[index]
+    const summary = jrPerfSummaryV413(team)
+    const filtered = jrPerfReportRowsV413(team)
+    list.insertAdjacentHTML('beforeend', teamFolderCard({
+      team,
+      action: 'data-open-report-team',
+      iconName: 'file-text',
+      headline: `${scoreBreakdown(filtered).total} ponto(s) • ${filtered.length} registro(s) filtrado(s)`,
+      detail: `${summary.active.length} válido(s) no período • ${summary.deleted.length} excluído(s)`,
+      badge: filtered.length > 0 ? 'PRONTO' : 'SEM RESULTADO',
+      badgeClass: filtered.length > 0 ? 'confirmed' : 'pending',
+    }))
+    jrPerfProgressV413(owner, index + 1, teams.length, `Relatórios • ${index + 1}/${teams.length} equipe(s)`)
+    await jrPerfYieldV413()
+  }
+}
+
+async function jrPerfOpenCodesTeamV413(team, silent = false) {
+  if (!team) return
+  const owner = 'detail:codes'
+  state.moduleTeams.codes = team
+  els.codesTeamList.classList.add('hidden')
+  els.codesTeamDetail.classList.remove('hidden')
+  els.codesTeamTitle.textContent = `${team} — ${periodLabel()}`
+  els.codesPreview.innerHTML = `<div class="loading-state"><span class="spinner"></span>Preparando prévia dos códigos...</div>`
+  jrPerfShowV413(owner, 'Preparando códigos da equipe...', 0, 1)
+  await jrPerfYieldV413()
+
+  try {
+    const records = jrPerfCodesRowsV413(team)
+    els.codesTeamSummary.textContent = `${records.length} ponto(s) válido(s). Registros importados também entram na planilha em códigos.`
+    els.codesTeamDownload.disabled = codesWorkbookBusyV35 || records.length === 0
+    await jrPerfYieldV413()
+    els.codesPreview.innerHTML = recordsPreview(records, profileMapById(), { newestFirst: false, showObservation: true })
+    jrPerfProgressV413(owner, 1, 1, 'Códigos prontos')
+    if (!silent) focusModuleDetailV37(els.codesTeamDetail)
+  } finally {
+    jrPerfHideV413(owner)
+  }
+}
+
+async function jrPerfOpenReportsTeamV413(team, silent = false) {
+  if (!team) return
+  const owner = 'detail:reports'
+  state.moduleTeams.reports = team
+  els.reportsTeamList.classList.add('hidden')
+  els.reportsTeamDetail.classList.remove('hidden')
+  syncReportSearchAvailability()
+  els.reportsTeamTitle.textContent = `${team} — ${periodLabel()}`
+  els.reportsPreview.innerHTML = `<div class="loading-state"><span class="spinner"></span>Preparando prévia do relatório...</div>`
+  jrPerfShowV413(owner, 'Preparando relatório da equipe...', 0, 1)
+  await jrPerfYieldV413()
+
+  try {
+    const records = jrPerfReportRowsV413(team)
+    const allSummary = jrPerfSummaryV413(team)
+    els.reportsTeamSummary.textContent = `${records.length} registro(s) após os filtros. ${allSummary.deleted.length} excluído(s) não entram no arquivo.`
+    els.reportsTeamDownload.disabled = records.length === 0
+    await jrPerfYieldV413()
+    els.reportsPreview.innerHTML = recordsPreview(records, allSummary.profileMap, { newestFirst: false, showObservation: true })
+    jrPerfProgressV413(owner, 1, 1, 'Relatório pronto')
+    if (!silent) focusModuleDetailV37(els.reportsTeamDetail)
+  } finally {
+    jrPerfHideV413(owner)
+  }
+}
+
+async function jrPerfRenderCurrentModuleV413(target, force, token, owner) {
+  if (!['photos', 'codes', 'reports', 'orders'].includes(target)) return
+
+  const key = moduleRenderKeyV31(target)
+  if (!force && moduleRenderCacheV31.get(target) === key) {
+    jrPerfProgressV413(owner, 1, 1, 'Dados já carregados')
+    return
+  }
+
+  await jrPerfYieldV413()
+  if (token !== jrPerfV413.token || state.page !== target) return
+
+  if (target === 'orders') {
+    renderOrdersPage()
+    moduleRenderCacheV31.set(target, moduleRenderKeyV31(target))
+    return
+  }
+
+  const teams = teamsForRange()
+
+  if (target === 'photos') {
+    if (state.moduleTeams.photos) await openPhotoFolder(state.moduleTeams.photos, true)
+    else await jrPerfRenderPhotoTeamsV413(teams, token, owner)
+  } else if (target === 'codes') {
+    if (state.moduleTeams.codes) await jrPerfOpenCodesTeamV413(state.moduleTeams.codes, true)
+    else await jrPerfRenderCodeTeamsV413(teams, token, owner)
+  } else if (target === 'reports') {
+    syncReportSearchAvailability()
+    if (state.moduleTeams.reports) await jrPerfOpenReportsTeamV413(state.moduleTeams.reports, true)
+    else await jrPerfRenderReportTeamsV413(teams, token, owner)
+  }
+
+  if (token === jrPerfV413.token && state.page === target) {
+    moduleRenderCacheV31.set(target, moduleRenderKeyV31(target))
+  }
+}
+
+async function jrPerfScheduleV413(target, force = false) {
+  if (!['photos', 'codes', 'reports', 'orders'].includes(target)) return
+
+  const key = moduleRenderKeyV31(target)
+  if (!force && moduleRenderCacheV31.get(target) === key) return
+
+  const token = ++jrPerfV413.token
+  const owner = `module:${target}`
+  jrPerfShowV413(owner,
+    target === 'photos' ? 'Carregando fotos...' :
+    target === 'codes' ? 'Preparando códigos...' :
+    target === 'reports' ? 'Preparando relatórios...' :
+    'Carregando ordens...',
+    0, 1
+  )
+  jrPerfSkeletonV413(target)
+  await jrPerfYieldV413()
+
+  try {
+    await jrPerfRenderCurrentModuleV413(target, force, token, owner)
+  } catch (error) {
+    console.error('[JR V40.13] Falha no módulo:', target, error)
+    toast(friendlyError(error), true)
+  } finally {
+    jrPerfHideV413(owner)
+  }
+}
+
+async function jrPerfRenderHomeV413(samePage) {
+  if (samePage && state.monthSummary) return
+  const owner = 'home'
+  jrPerfShowV413(owner, 'Atualizando pontuação do mês...', 0, 1)
+  await jrPerfYieldV413()
+  try {
+    if (state.page !== 'home') return
+    renderDashboard({ renderModules: false, forceHome: true })
+    jrPerfProgressV413(owner, 1, 1, 'Pontuação atualizada')
+  } finally {
+    jrPerfHideV413(owner)
+  }
+}
+
+function jrPerfInvalidateModulesV413() {
+  moduleRenderCacheV31.delete('codes')
+  moduleRenderCacheV31.delete('reports')
+}
+
+document.addEventListener('jr:imported-v21-ready', jrPerfInvalidateModulesV413)
+document.addEventListener('jr:imported-records-v21', jrPerfInvalidateModulesV413)
+document.addEventListener('jr:services-settings-updated', jrPerfInvalidateModulesV413)
 // JR_GESTAO_PERFORMANCE_PRO_V40_11=20260827
 const jrPerfV411 = {
   rangeKey: '',
@@ -445,7 +921,7 @@ function jrPerfWarmRangeV411() {
 
 function jrPerfHandleImportedV411() {
   jrPerfInvalidateImportedV411()
-  window.setTimeout(jrPerfWarmRangeV411, 90)
+  void 0
 }
 
 function jrPerfQueueModuleV411(target) {
@@ -483,9 +959,9 @@ function jrPerfQueueModuleV411(target) {
   }
 }
 
-document.addEventListener('jr:imported-v21-ready', jrPerfHandleImportedV411)
-document.addEventListener('jr:imported-records-v21', jrPerfHandleImportedV411)
-document.addEventListener('jr:services-settings-updated', jrPerfHandleImportedV411)
+document.addEventListener('jr:imported-v21-ready', jrPerfInvalidateImportedV411)
+document.addEventListener('jr:imported-records-v21', jrPerfInvalidateImportedV411)
+document.addEventListener('jr:services-settings-updated', jrPerfInvalidateImportedV411)
 // JR_GESTAO_CONTAGEM_PLANILHA_UNIFICADA_V36_BEGIN
 const IMPORTED_BRIDGE_URL_V36 = './services-import-bridge-v21.js?v=bridge-v21-20260807'
 let importedDashboardRefreshTimerV36 = 0
@@ -1828,7 +2304,7 @@ function renderCurrentModuleV31(target, force = false) {
 }
 
 function scheduleCurrentModuleRenderV31(target) {
-  jrPerfQueueModuleV411(target)
+  void jrPerfScheduleV413(target, false)
 }
 function updateMobileViewportV32() {
   cancelAnimationFrame(mobileViewportFrameV32)
@@ -3522,7 +3998,7 @@ async function loadRangeData(showSuccessToast = false, throwOnError = false) {
     jrPerfShowBusyV411('range', 'Organizando dados do período...')
     await jrPerfYieldV411()
     renderModulePages()
-    window.setTimeout(jrPerfWarmRangeV411, 120)
+    void 0
     if (showSuccessToast) toast(`Período ${periodLabel()} carregado.`)
     return true
   } catch (error) {
@@ -3886,11 +4362,12 @@ function setRangeLoading(value) {
   ;[els.photosRefreshButton, els.codesRefreshButton, els.reportsRefreshButton].forEach((button) => {
     if (button) button.disabled = value
   })
+
   if (value) {
-    jrPerfShowBusyV411('range', 'Carregando período selecionado...')
-    if (['photos', 'codes', 'reports'].includes(state.page)) jrPerfShowSkeletonV411(state.page)
+    jrPerfShowV413('range', 'Carregando dados do período...', 0, 1)
+    if (['photos', 'codes', 'reports'].includes(state.page)) jrPerfSkeletonV413(state.page)
   } else {
-    jrPerfHideBusyV411('range')
+    jrPerfHideV413('range')
   }
 }
 function setOrdersRangeLoading(value) {
@@ -5084,18 +5561,8 @@ function closePhotoFolder() {
 }
 
 function openCodesTeam(team, silent = false) {
-  if (!team) return
-  state.moduleTeams.codes=team
-  els.codesTeamList.classList.add('hidden')
-  els.codesTeamDetail.classList.remove('hidden')
-  const records=jrPerfCodesRowsV411(team)
-  els.codesTeamTitle.textContent=String(team)+' — '+periodLabel()
-  els.codesTeamSummary.textContent=String(records.length)+' ponto(s) válido(s). Registros importados também entram na planilha em códigos.'
-  els.codesTeamDownload.disabled=codesWorkbookBusyV35 || records.length===0
-  els.codesPreview.innerHTML=recordsPreview(records,profileMapById(),{newestFirst:false,showObservation:true})
-  if(!silent)focusModuleDetailV37(els.codesTeamDetail)
+  void jrPerfOpenCodesTeamV413(team, silent)
 }
-
 function closeCodesTeam() {
   state.moduleTeams.codes = null
   els.codesTeamDetail.classList.add('hidden')
@@ -5103,20 +5570,8 @@ function closeCodesTeam() {
 }
 
 function openReportsTeam(team, silent = false) {
-  if (!team) return
-  state.moduleTeams.reports = team
-  els.reportsTeamList.classList.add('hidden')
-  els.reportsTeamDetail.classList.remove('hidden')
-  syncReportSearchAvailability()
-  const records = jrPerfReportRowsV411(team)
-  const allSummary = rangeSummaryForTeam(team)
-  els.reportsTeamTitle.textContent = `${team} — ${periodLabel()}`
-  els.reportsTeamSummary.textContent = `${records.length} registro(s) após os filtros. ${allSummary.deleted.length} excluído(s) não entram no arquivo.`
-  els.reportsTeamDownload.disabled = records.length === 0
-  els.reportsPreview.innerHTML = recordsPreview(records, allSummary.profileMap, { newestFirst: false, showObservation: true })
-  if (!silent) focusModuleDetailV37(els.reportsTeamDetail)
+  void jrPerfOpenReportsTeamV413(team, silent)
 }
-
 function closeReportsTeam() {
   state.moduleTeams.reports = null
   state.reportObservation = ''
@@ -6070,9 +6525,7 @@ function switchPage(page, silent = false) {
 
   requestAnimationFrame(() => {
     if (target === 'home') {
-      if (!samePage || !state.monthSummary) {
-        renderDashboard({ renderModules: false, forceHome: true })
-      }
+      void jrPerfRenderHomeV413(samePage)
       return
     }
 

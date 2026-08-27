@@ -42,6 +42,336 @@ import {
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 const $ = (selector) => document.querySelector(selector)
 const GLOBAL_KEY = '__matrix__'
+// JR_GESTAO_OBSERVACOES_INTELIGENTES_V40_13=20260827
+function jrObsNormalizeV413(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function jrRawObservationPartsV413(day, draft, metricKey) {
+  if (typeof originalEffectiveObservationPartsV412 === 'function') {
+    return originalEffectiveObservationPartsV412(day, draft, metricKey)
+  }
+  return effectiveObservationParts(day, draft, metricKey)
+}
+
+function jrObsActionV413(text) {
+  const normalized = jrObsNormalizeV413(text)
+  return {
+    install: /\b(?:instal|implant|montag|colocac)/.test(normalized),
+    remove: /\b(?:retir|remoc|remov|desinstal)/.test(normalized),
+    maintenance: /\b(?:manuten|reparo|acion|desacion|regulag|ajust)/.test(normalized),
+  }
+}
+
+function jrObsActionLabelV413(actions, objectLabel) {
+  if (actions.remove && actions.install) return `RETIRADA E INSTALAÇÃO DE ${objectLabel}`
+  if (actions.install) return `INSTALAÇÃO DE ${objectLabel}`
+  if (actions.remove) return `RETIRADA DE ${objectLabel}`
+  if (actions.maintenance) return `MANUTENÇÃO DE ${objectLabel}`
+  return objectLabel
+}
+
+function smartObservationSummaryV413(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+
+  const text = jrObsNormalizeV413(raw)
+  const segments = text
+    .split(/\s*(?:•|\||;|\n)\s*/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+
+  const contactor = { present: false, install: false, remove: false, maintenance: false }
+  const commandBox = { present: false, install: false, remove: false, maintenance: false }
+
+  let transMunk = false
+  let rentedTruck = false
+  let excavation = false
+  let superPost = false
+  let postInstallation = false
+  let cableLaunch = false
+  let reflector = false
+  let outlet = false
+  let lamp = false
+  let event = false
+  let square = false
+  let field = false
+  let school = false
+
+  for (const segment of segments) {
+    const action = jrObsActionV413(segment)
+
+    const isContactor =
+      /conta(?:c)?tor/.test(segment) ||
+      /\bcodigo\s*16\b/.test(segment)
+
+    if (isContactor) {
+      contactor.present = true
+      contactor.install ||= action.install
+      contactor.remove ||= action.remove
+      contactor.maintenance ||= action.maintenance
+    }
+
+    const isCommandBox =
+      /caixa.{0,35}(?:comando|sistema)/.test(segment) ||
+      /sistema.{0,35}(?:comando|caixa)/.test(segment)
+
+    if (isCommandBox) {
+      commandBox.present = true
+      commandBox.install ||= action.install
+      commandBox.remove ||= action.remove
+      commandBox.maintenance ||= action.maintenance
+    }
+
+    if (/\b(?:trans\s*munk|transmunk|transmulk|transmunck|munck|munk)\b/.test(segment)) {
+      transMunk = true
+      if (/\b(?:locad[oa]?|alugad[oa]?|locacao|aluguel)\b/.test(segment)) rentedTruck = true
+    }
+
+    if (
+      /\bcaminhao\b.{0,45}\b(?:locad[oa]?|alugad[oa]?|locacao|aluguel)\b/.test(segment) ||
+      /\b(?:locad[oa]?|alugad[oa]?|locacao|aluguel)\b.{0,45}\bcaminhao\b/.test(segment)
+    ) rentedTruck = true
+
+    if (/escav|valeta|buraco/.test(segment)) excavation = true
+    if (/\bsuper\s+poste\b/.test(segment)) superPost = true
+
+    if (
+      /(?:implant|instal).{0,55}\bposte\b/.test(segment) ||
+      /\bposte\b.{0,55}(?:implant|instal)/.test(segment)
+    ) postInstallation = true
+
+    if (
+      /lancamento.{0,55}\bcabo\b/.test(segment) ||
+      /\bcabo\s+aereo\b/.test(segment)
+    ) cableLaunch = true
+
+    if (/(?:implant|instal).{0,55}\brefletor/.test(segment)) reflector = true
+    if (/(?:implant|instal).{0,55}\btomad/.test(segment)) outlet = true
+    if (/(?:implant|instal).{0,55}\blampad/.test(segment)) lamp = true
+    if (/\bevento\b/.test(segment)) event = true
+    if (/\bpraca\b/.test(segment)) square = true
+    if (/\bcampo\b/.test(segment)) field = true
+    if (/\bescola\b/.test(segment)) school = true
+  }
+
+  const result = []
+  const add = (label) => {
+    if (!label || result.includes(label)) return
+    result.push(label)
+  }
+
+  if (transMunk && rentedTruck) add('TRANS MUNK CAMINHÃO LOCADO')
+  else if (transMunk) add('TRANS MUNK CAMINHÃO')
+  else if (rentedTruck) add('CAMINHÃO LOCADO')
+
+  if (contactor.present) add(jrObsActionLabelV413(contactor, 'CONTACTORA'))
+  if (commandBox.present) add(jrObsActionLabelV413(commandBox, 'CAIXA / SISTEMA DE COMANDO'))
+
+  if (cableLaunch) add('LANÇAMENTO DE CABO')
+  if (excavation) add('ESCAVAÇÃO / VALETA / BURACO')
+  if (postInstallation) add('IMPLANTAÇÃO DE POSTE')
+  if (superPost) add('SUPER POSTE')
+  if (reflector) add('IMPLANTAÇÃO DE REFLETOR')
+  if (outlet) add('INSTALAÇÃO DE TOMADA')
+  if (lamp) add('INSTALAÇÃO DE LÂMPADA')
+  if (event) add('EVENTO')
+  if (square) add('PRAÇA')
+  if (field) add('CAMPO')
+  if (school) add('ESCOLA')
+
+  // LED, fio, relé, conector perfurante, amperagem e descrição técnica
+  // não entram como serviço isolado.
+  return result.slice(0, 10).join(' • ')
+}
+
+function installObservationLayoutV413() {
+  let style = document.getElementById('jr-observation-layout-v413')
+  if (!style) {
+    style = document.createElement('style')
+    style.id = 'jr-observation-layout-v413'
+    document.head.appendChild(style)
+  }
+
+  style.textContent = `
+    #services-observation-viewer.services-observation-viewer{
+      box-sizing:border-box!important;
+      padding:14px!important;
+      overflow:hidden!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-card{
+      position:relative!important;
+      inset:auto!important;
+      transform:none!important;
+      box-sizing:border-box!important;
+      width:min(1080px,calc(100vw - 28px))!important;
+      max-width:1080px!important;
+      height:min(880px,calc(100dvh - 28px))!important;
+      max-height:calc(100dvh - 28px)!important;
+      min-height:0!important;
+      margin:auto!important;
+      overflow:hidden!important;
+      display:flex!important;
+      flex-direction:column!important;
+      align-items:stretch!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-header,
+    #services-observation-viewer .services-viewer-days,
+    #services-observation-viewer .services-observation-viewer-footer{
+      flex:0 0 auto!important;
+      position:relative!important;
+      inset:auto!important;
+      transform:none!important;
+    }
+
+    #services-observation-viewer .services-viewer-days{
+      display:flex!important;
+      flex-wrap:nowrap!important;
+      gap:7px!important;
+      width:100%!important;
+      min-width:0!important;
+      overflow-x:auto!important;
+      overflow-y:hidden!important;
+      overscroll-behavior-x:contain!important;
+      scrollbar-width:thin!important;
+    }
+
+    #services-observation-viewer .services-viewer-days > *{
+      flex:0 0 auto!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-body{
+      position:relative!important;
+      inset:auto!important;
+      transform:none!important;
+      display:block!important;
+      flex:1 1 auto!important;
+      width:100%!important;
+      min-width:0!important;
+      min-height:0!important;
+      height:auto!important;
+      max-height:none!important;
+      box-sizing:border-box!important;
+      overflow-x:hidden!important;
+      overflow-y:auto!important;
+      padding:12px 2px 24px!important;
+      margin:0!important;
+      overscroll-behavior:contain!important;
+    }
+
+    #services-observation-viewer .services-viewer-team{
+      position:relative!important;
+      inset:auto!important;
+      transform:none!important;
+      float:none!important;
+      clear:both!important;
+      display:block!important;
+      box-sizing:border-box!important;
+      width:100%!important;
+      min-width:0!important;
+      max-width:none!important;
+      height:auto!important;
+      min-height:0!important;
+      max-height:none!important;
+      margin:0 0 12px!important;
+      padding:12px!important;
+      overflow:hidden!important;
+    }
+
+    #services-observation-viewer .services-viewer-team:last-child{
+      margin-bottom:0!important;
+    }
+
+    #services-observation-viewer .services-viewer-team > header{
+      position:relative!important;
+      inset:auto!important;
+      transform:none!important;
+      display:flex!important;
+      align-items:flex-start!important;
+      justify-content:space-between!important;
+      flex-wrap:wrap!important;
+      gap:8px!important;
+      min-width:0!important;
+      height:auto!important;
+      margin:0 0 9px!important;
+    }
+
+    #services-observation-viewer .services-viewer-team-content{
+      position:relative!important;
+      inset:auto!important;
+      transform:none!important;
+      display:block!important;
+      box-sizing:border-box!important;
+      width:100%!important;
+      min-width:0!important;
+      height:auto!important;
+      min-height:0!important;
+      max-height:none!important;
+      overflow:visible!important;
+      margin:0!important;
+      padding:0!important;
+    }
+
+    #services-observation-viewer .services-viewer-service,
+    #services-observation-viewer .services-viewer-manual,
+    #services-observation-viewer .services-viewer-empty,
+    #services-observation-viewer .services-viewer-manual-important{
+      position:relative!important;
+      inset:auto!important;
+      transform:none!important;
+      display:block!important;
+      box-sizing:border-box!important;
+      width:100%!important;
+      min-width:0!important;
+      height:auto!important;
+      min-height:0!important;
+      max-height:none!important;
+      overflow:visible!important;
+      margin:0!important;
+    }
+
+    #services-observation-viewer .services-viewer-manual{
+      margin-top:8px!important;
+    }
+
+    #services-observation-viewer .services-viewer-service p,
+    #services-observation-viewer .services-viewer-manual p{
+      display:block!important;
+      width:100%!important;
+      min-width:0!important;
+      height:auto!important;
+      max-height:none!important;
+      margin:5px 0 0!important;
+      overflow:visible!important;
+      white-space:pre-wrap!important;
+      overflow-wrap:anywhere!important;
+      word-break:normal!important;
+      line-height:1.42!important;
+    }
+
+    @media(max-width:700px){
+      #services-observation-viewer.services-observation-viewer{
+        padding:7px!important;
+      }
+      #services-observation-viewer .services-observation-viewer-card{
+        width:calc(100vw - 14px)!important;
+        height:calc(100dvh - 14px)!important;
+        max-height:calc(100dvh - 14px)!important;
+      }
+      #services-observation-viewer .services-viewer-team{
+        padding:10px!important;
+        margin-bottom:9px!important;
+      }
+    }
+  `
+}
 // JR_GESTAO_OBSERVACOES_RESUMIDAS_V40_12=20260827
 const originalEffectiveObservationPartsV412 = effectiveObservationParts
 
@@ -430,6 +760,7 @@ const state = {
 
 initializeUiControls()
 installObservationLayoutV412()
+installObservationLayoutV413()
 moveObservationHoverToBody()
 moveDirtyActionsToBody()
 bindEvents()
@@ -2380,30 +2711,24 @@ function observationItemsForDay(
   return sheets
     .map((sheet) => {
       const day = sheet.days[dayNumber - 1]
-      const parts = compactEffectiveObservationPartsV412(
+      const parts = jrRawObservationPartsV413(
         day,
         draftFor(sheet.key),
         metricKey,
       )
-
+      const automatic = smartObservationSummaryV413(parts.automatic)
+      const manual = String(parts.manual || '').trim()
       return {
-        team: displayNameFor(sheet, metricKey),
-        automatic: parts.automatic,
-        imported: parts.imported,
-        manual: parts.manual,
-        text: parts.text,
-        important: parts.hasImportant,
+        team: displayNameFor(sheet),
+        automatic,
+        manual,
+        text: [automatic, manual].filter(Boolean).join('\n'),
+        important: Boolean(automatic) || Boolean(parts.manualImportant),
         manualImportant: parts.manualImportant,
       }
     })
-    .filter(
-      (item) =>
-        item.text ||
-        item.important,
-    )
+    .filter((item) => item.text || item.important)
 }
-
-
 function employeeNamesForSheet(sheet) {
   const source = displayNameFor(sheet) || sheet?.originalName || ''
   const parts = String(source)
@@ -2454,88 +2779,54 @@ function visibleSheetsForHover() {
 function showObservationHover(dayNumber, anchor) {
   if (!els.hoverPreview || !anchor) return
   if (draftFor(GLOBAL_KEY).hiddenDays.has(dayNumber)) return
-
   const metric = metricDefinition(state.metric)
   const items = visibleSheetsForHover()
     .map((sheet) => {
-      const parts = compactEffectiveObservationPartsV412(
+      const parts = jrRawObservationPartsV413(
         sheet.days[dayNumber - 1],
         draftFor(sheet.key),
         state.metric,
       )
-
-      if (!parts.text && !parts.hasImportant) return null
-
+      const automatic = smartObservationSummaryV413(parts.automatic)
+      const manual = String(parts.manual || '').trim()
+      if (!automatic && !manual && !parts.manualImportant) return null
       return {
-        team: displayNameFor(sheet, metricKey),
-        automatic: parts.automatic,
-        imported: parts.imported,
-        manual: parts.manual,
-        important: parts.hasImportant,
+        team: displayNameFor(sheet),
+        automatic,
+        manual,
+        important: Boolean(automatic) || Boolean(parts.manualImportant),
+        manualImportant: Boolean(parts.manualImportant),
       }
     })
     .filter(Boolean)
 
   const content = items.length
-    ? items
-        .map(
-          (item) => `<article class="services-hover-team ${item.important ? 'is-important' : ''}">
-            <strong>${escapeHtml(item.team)}</strong>
-            ${
-              item.automatic
-                ? `<span class="services-hover-service"><b>Serviço:</b> ${escapeHtml(item.automatic)}</span>`
-                : ''
-            }
-            ${
-              item.imported
-                ? `<span class="services-hover-imported"><b>Planilha:</b> ${escapeHtml(importedObservationDisplayV26(item.imported))}</span>`
-                : ''
-            }
-            ${
-              item.manual
-                ? `<span class="services-hover-manual"><b>Comunicado:</b> ${escapeHtml(item.manual)}</span>`
-                : ''
-            }
-            ${
-              item.manualImportant &&
-              !item.automatic &&
-              !item.imported
-                ? '<span class="services-hover-manual-highlight">✦ Destaque manual como serviço importante</span>'
-                : ''
-            }
-          </article>`,
-        )
-        .join('')
+    ? items.map((item) => `<article class="services-hover-team ${item.important ? 'is-important' : ''}">
+        <strong>${escapeHtml(item.team)}</strong>
+        ${item.automatic ? `<span class="services-hover-service"><b>Serviço:</b> ${escapeHtml(item.automatic)}</span>` : ''}
+        ${item.manual ? `<span class="services-hover-manual"><b>Comunicado:</b> ${escapeHtml(item.manual)}</span>` : ''}
+        ${item.manualImportant && !item.automatic ? '<span class="services-hover-manual-highlight">✦ Destaque manual como serviço importante</span>' : ''}
+      </article>`).join('')
     : `<div class="services-hover-empty">Sem observações em ${escapeHtml(metric.label)}.</div>`
 
   els.hoverPreview.innerHTML = `
     <div class="services-hover-heading">
-      <div>
-        <small>OBSERVAÇÕES</small>
-        <strong>DIA ${String(dayNumber).padStart(2, '0')}</strong>
-      </div>
+      <div><small>OBSERVAÇÕES</small><strong>DIA ${String(dayNumber).padStart(2, '0')}</strong></div>
       <span>${escapeHtml(metric.shortLabel)}</span>
     </div>
     <div class="services-hover-list">${content}</div>`
 
   state.hoverDay = dayNumber
   state.hoverAnchor = anchor
-
   els.hoverPreview.classList.add('is-visible')
   els.hoverPreview.setAttribute('aria-hidden', 'false')
 
   window.requestAnimationFrame(() => {
-    if (
-      state.hoverAnchor === anchor &&
-      els.hoverPreview?.classList.contains(
-        'is-visible',
-      )
-    ) {
+    if (state.hoverAnchor === anchor && els.hoverPreview?.classList.contains('is-visible')) {
       positionObservationHover(anchor)
     }
   })
 }
-
 function positionObservationHover(anchor) {
   if (!els.hoverPreview || !anchor) return
 
@@ -2648,7 +2939,6 @@ function renderObservationViewer() {
   if (!els.viewerBody || !state.viewerDay) return
 
   const availableDays = availableObservationDays()
-
   if (!availableDays.length) {
     els.viewerBody.innerHTML =
       '<div class="services-empty"><strong>Nenhum dia visível</strong><span>Desoculte pelo menos um dia para consultar observações.</span></div>'
@@ -2658,9 +2948,7 @@ function renderObservationViewer() {
     return
   }
 
-  if (!availableDays.includes(state.viewerDay)) {
-    state.viewerDay = availableDays[0]
-  }
+  if (!availableDays.includes(state.viewerDay)) state.viewerDay = availableDays[0]
 
   const dayNumber = state.viewerDay
   const currentIndex = availableDays.indexOf(dayNumber)
@@ -2669,112 +2957,74 @@ function renderObservationViewer() {
   const periodLabel = SERVICE_PERIOD_LABELS[period]
   const sheets = buildTeamSheets()
 
-  if (els.viewerTitle) {
-    els.viewerTitle.textContent =
-      `DIA ${String(dayNumber).padStart(2, '0')}`
-  }
-
-  if (els.viewerPeriod) {
-    els.viewerPeriod.textContent =
-      `${metric.label} • ${periodLabel}`
-  }
-
-  if (els.viewerPrev) {
-    els.viewerPrev.disabled = currentIndex <= 0
-  }
-
-  if (els.viewerNext) {
-    els.viewerNext.disabled =
-      currentIndex >= availableDays.length - 1
-  }
-
-  if (els.viewerEdit) {
-    els.viewerEdit.classList.toggle(
-      'hidden',
-      !isAdmin(),
-    )
-  }
+  if (els.viewerTitle) els.viewerTitle.textContent = `DIA ${String(dayNumber).padStart(2, '0')}`
+  if (els.viewerPeriod) els.viewerPeriod.textContent = `${metric.label} • ${periodLabel}`
+  if (els.viewerPrev) els.viewerPrev.disabled = currentIndex <= 0
+  if (els.viewerNext) els.viewerNext.disabled = currentIndex >= availableDays.length - 1
+  if (els.viewerEdit) els.viewerEdit.classList.toggle('hidden', !isAdmin())
 
   if (els.viewerDays) {
-    els.viewerDays.innerHTML = availableDays
-      .map((day) => {
-        const hasNotes = sheets.some((sheet) => {
-          const parts = compactEffectiveObservationPartsV412(
-            sheet.days[day - 1],
-            draftFor(sheet.key),
-            state.metric,
-          )
-          return Boolean(parts.text)
-        })
-
-        return `<button type="button"
-          class="${day === dayNumber ? 'is-active' : ''} ${hasNotes ? 'has-notes' : ''}"
-          data-viewer-day="${day}"
-          title="Abrir observações do dia ${String(day).padStart(2, '0')}">
-          ${String(day).padStart(2, '0')}
-        </button>`
+    els.viewerDays.innerHTML = availableDays.map((day) => {
+      const hasNotes = sheets.some((sheet) => {
+        const parts = jrRawObservationPartsV413(
+          sheet.days[day - 1],
+          draftFor(sheet.key),
+          state.metric,
+        )
+        return Boolean(
+          smartObservationSummaryV413(parts.automatic) ||
+          String(parts.manual || '').trim() ||
+          parts.manualImportant
+        )
       })
-      .join('')
+
+      return `<button type="button"
+        class="${day === dayNumber ? 'is-active' : ''} ${hasNotes ? 'has-notes' : ''}"
+        data-viewer-day="${day}"
+        title="Abrir observações do dia ${String(day).padStart(2, '0')}">
+        ${String(day).padStart(2, '0')}
+      </button>`
+    }).join('')
   }
 
   const cards = sheets.map((sheet) => {
     const day = sheet.days[dayNumber - 1]
-    const parts = compactEffectiveObservationPartsV412(
+    const parts = jrRawObservationPartsV413(
       day,
       draftFor(sheet.key),
       state.metric,
     )
-    const score = effectiveScore(
-      day,
-      draftFor(sheet.key),
-      state.metric,
-    )
+    const automaticSummary = smartObservationSummaryV413(parts.automatic)
+    const manual = String(parts.manual || '').trim()
+    const important = Boolean(automaticSummary) || Boolean(parts.manualImportant)
+    const hasText = Boolean(automaticSummary || manual || parts.manualImportant)
+    const score = effectiveScore(day, draftFor(sheet.key), state.metric)
 
-    return `<article class="services-viewer-team ${parts.hasImportant ? 'is-important' : ''} ${parts.text ? '' : 'is-empty'}">
+    return `<article class="services-viewer-team ${important ? 'is-important' : ''} ${hasText ? '' : 'is-empty'}">
       <header>
         <div>
           <strong>${escapeHtml(displayNameFor(sheet))}</strong>
           <span>${escapeHtml(metric.shortLabel)}: <b>${score}</b></span>
         </div>
-        ${
-          parts.hasImportant
-            ? '<span class="services-viewer-important-badge">✦ Serviço importante desta planilha</span>'
-            : ''
-        }
+        ${important ? '<span class="services-viewer-important-badge">✦ Serviço importante desta planilha</span>' : ''}
       </header>
 
       <div class="services-viewer-team-content">
-        ${
-          parts.automatic
-            ? `<div class="services-viewer-service"><small>SERVIÇO • ${escapeHtml(metric.label)}</small><p>${escapeHtml(parts.automatic)}</p></div>`
-            : ''
-        }
+        ${automaticSummary
+          ? `<div class="services-viewer-service"><small>SERVIÇO • ${escapeHtml(metric.label)}</small><p>${escapeHtml(automaticSummary)}</p></div>`
+          : ''}
 
-        ${
-          parts.imported
-            ? `<div class="services-viewer-imported"><small>PLANILHA IMPORTADA • ${escapeHtml(metric.label)}</small><p>${escapeHtml(importedObservationDisplayV26(parts.imported))}</p></div>`
-            : ''
-        }
+        ${manual
+          ? `<div class="services-viewer-manual"><small>COMUNICADO • ${escapeHtml(metric.label)}</small><p>${escapeHtml(manual)}</p></div>`
+          : ''}
 
-        ${
-          parts.manual
-            ? `<div class="services-viewer-manual"><small>COMUNICADO • ${escapeHtml(metric.label)}</small><p>${escapeHtml(parts.manual)}</p></div>`
-            : ''
-        }
+        ${parts.manualImportant && !automaticSummary
+          ? '<div class="services-viewer-manual-important">✦ Destaque manual como serviço importante</div>'
+          : ''}
 
-        ${
-          parts.manualImportant &&
-          !parts.automatic &&
-          !parts.imported
-            ? '<div class="services-viewer-manual-important">✦ Destaque manual como serviço importante</div>'
-            : ''
-        }
-
-        ${
-          !parts.text && !parts.manualImportant
-            ? `<div class="services-viewer-empty">Sem observações em ${escapeHtml(metric.label)}.</div>`
-            : ''
-        }
+        ${!automaticSummary && !manual && !parts.manualImportant
+          ? `<div class="services-viewer-empty">Sem observações em ${escapeHtml(metric.label)}.</div>`
+          : ''}
       </div>
     </article>`
   }).join('')
@@ -2783,19 +3033,13 @@ function renderObservationViewer() {
     cards ||
     '<div class="services-empty"><strong>Nenhuma equipe encontrada</strong></div>'
 
-  const activeButton =
-    els.viewerDays?.querySelector(
-      '[data-viewer-day].is-active',
-    )
-
+  const activeButton = els.viewerDays?.querySelector('[data-viewer-day].is-active')
   activeButton?.scrollIntoView?.({
     behavior: 'smooth',
     block: 'nearest',
     inline: 'center',
   })
 }
-
-
 function availableNoteEditorSheets() {
   return buildTeamSheets()
     .filter(
