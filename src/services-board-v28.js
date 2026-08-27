@@ -44,6 +44,308 @@ const $ = (selector) => document.querySelector(selector)
 const GLOBAL_KEY = '__matrix__'
 
 // JR_GESTAO_OBSERVACOES_RESTAURADAS_ANTES_V40_13=20260827
+
+// JR_GESTAO_OBSERVACOES_DENTRO_CAIXA_V40_14_7=20260827
+function jrObservationHasUsefulContentV4147(team){
+  if(!team)return false
+
+  const automatic=team.querySelector(
+    '.services-viewer-service'
+  )
+  const manual=team.querySelector(
+    '.services-viewer-manual'
+  )
+  const manualImportant=team.querySelector(
+    '.services-viewer-manual-important'
+  )
+
+  const hasText=(node)=>Boolean(
+    String(node?.textContent||'')
+      .replace(/\s+/g,' ')
+      .trim()
+  )
+
+  return (
+    hasText(automatic) ||
+    hasText(manual) ||
+    hasText(manualImportant)
+  )
+}
+
+function jrNormalizeObservationViewerV4147(){
+  const viewer=document.getElementById(
+    'services-observation-viewer'
+  )
+  if(!viewer)return
+
+  // O modal continua escondido ate o olhinho realmente abrir o dialog.
+  if(
+    viewer.tagName==='DIALOG' &&
+    !viewer.hasAttribute('open')
+  ){
+    return
+  }
+
+  const body=viewer.querySelector(
+    '.services-observation-viewer-body'
+  )
+  if(!body)return
+
+  const teams=[
+    ...body.querySelectorAll(
+      '.services-viewer-team'
+    ),
+  ]
+
+  teams.forEach((team)=>{
+    const useful=
+      jrObservationHasUsefulContentV4147(team)
+
+    team.hidden=!useful
+    team.setAttribute(
+      'aria-hidden',
+      useful ? 'false' : 'true',
+    )
+  })
+}
+
+function jrInstallObservationContainedV4147(){
+  let style=document.getElementById(
+    'jr-observation-contained-v4147'
+  )
+
+  if(!style){
+    style=document.createElement('style')
+    style.id='jr-observation-contained-v4147'
+    document.head.appendChild(style)
+  }
+
+  style.textContent=`
+    /*
+      V40.14.7:
+      NAO redesenha o modal.
+      So impede vazamento horizontal e esconde cards sem observacao util.
+    */
+
+    dialog#services-observation-viewer:not([open]){
+      display:none!important;
+    }
+
+    #services-observation-viewer.services-observation-viewer{
+      max-width:calc(100vw - 24px)!important;
+      box-sizing:border-box!important;
+      overflow-x:hidden!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-card{
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+      box-sizing:border-box!important;
+      overflow-x:hidden!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-header,
+    #services-observation-viewer .services-viewer-days,
+    #services-observation-viewer .services-observation-viewer-footer{
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+      box-sizing:border-box!important;
+      overflow-x:hidden!important;
+    }
+
+    /*
+      ESSA ERA A CAUSA PRINCIPAL DA BARRA:
+      colunas precisam ser minmax(0,1fr), nunca 1fr puro com conteudo largo.
+    */
+    #services-observation-viewer .services-observation-viewer-body{
+      display:grid!important;
+      grid-template-columns:repeat(2,minmax(0,1fr))!important;
+      align-items:start!important;
+      gap:12px!important;
+
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+
+      margin:0!important;
+      padding:12px!important;
+      box-sizing:border-box!important;
+
+      overflow-x:hidden!important;
+      overflow-y:auto!important;
+      overscroll-behavior-x:none!important;
+    }
+
+    #services-observation-viewer .services-viewer-team{
+      position:relative!important;
+      inset:auto!important;
+      left:auto!important;
+      right:auto!important;
+      top:auto!important;
+      bottom:auto!important;
+
+      transform:none!important;
+      translate:none!important;
+      float:none!important;
+
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+
+      height:auto!important;
+      min-height:0!important;
+      max-height:none!important;
+
+      margin:0!important;
+      box-sizing:border-box!important;
+
+      overflow-x:hidden!important;
+      overflow-y:visible!important;
+    }
+
+    #services-observation-viewer .services-viewer-team[hidden]{
+      display:none!important;
+    }
+
+    #services-observation-viewer .services-viewer-team > header,
+    #services-observation-viewer .services-viewer-team-content,
+    #services-observation-viewer .services-viewer-service,
+    #services-observation-viewer .services-viewer-manual,
+    #services-observation-viewer .services-viewer-manual-important{
+      position:relative!important;
+      inset:auto!important;
+      left:auto!important;
+      right:auto!important;
+      transform:none!important;
+      translate:none!important;
+
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+      box-sizing:border-box!important;
+
+      overflow-x:hidden!important;
+      overflow-y:visible!important;
+    }
+
+    #services-observation-viewer .services-viewer-service,
+    #services-observation-viewer .services-viewer-manual,
+    #services-observation-viewer .services-viewer-manual-important{
+      text-align:center!important;
+    }
+
+    #services-observation-viewer .services-viewer-team p,
+    #services-observation-viewer .services-viewer-team strong,
+    #services-observation-viewer .services-viewer-team span,
+    #services-observation-viewer .services-viewer-team small,
+    #services-observation-viewer .services-viewer-team b{
+      max-width:100%!important;
+      min-width:0!important;
+
+      white-space:normal!important;
+      overflow-wrap:anywhere!important;
+      word-break:normal!important;
+
+      box-sizing:border-box!important;
+    }
+
+    #services-observation-viewer .services-viewer-service p,
+    #services-observation-viewer .services-viewer-manual p{
+      margin-left:auto!important;
+      margin-right:auto!important;
+      max-width:100%!important;
+      font-size:12px!important;
+      line-height:1.4!important;
+      text-align:center!important;
+    }
+
+    #services-observation-viewer .services-viewer-days{
+      display:flex!important;
+      flex-wrap:wrap!important;
+      justify-content:center!important;
+      gap:5px!important;
+      white-space:normal!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-footer{
+      display:flex!important;
+      flex-wrap:wrap!important;
+      gap:8px!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-footer > *{
+      min-width:0!important;
+      max-width:100%!important;
+      box-sizing:border-box!important;
+    }
+
+    @media(max-width:760px){
+      #services-observation-viewer .services-observation-viewer-body{
+        grid-template-columns:minmax(0,1fr)!important;
+        gap:9px!important;
+        padding:9px!important;
+      }
+
+      #services-observation-viewer .services-viewer-service p,
+      #services-observation-viewer .services-viewer-manual p{
+        font-size:11px!important;
+      }
+    }
+  `
+
+  const attach=()=>{
+    const viewer=document.getElementById(
+      'services-observation-viewer'
+    )
+    if(!viewer)return false
+
+    if(!viewer.__jrObsContainedV4147){
+      viewer.__jrObsContainedV4147=true
+
+      const observer=new MutationObserver(()=>{
+        jrNormalizeObservationViewerV4147()
+      })
+
+      observer.observe(viewer,{
+        childList:true,
+        subtree:true,
+      })
+
+      viewer.addEventListener(
+        'click',
+        ()=>requestAnimationFrame(
+          jrNormalizeObservationViewerV4147
+        ),
+        true,
+      )
+    }
+
+    requestAnimationFrame(
+      jrNormalizeObservationViewerV4147
+    )
+
+    return true
+  }
+
+  if(attach())return
+
+  const pageObserver=new MutationObserver(()=>{
+    if(attach())pageObserver.disconnect()
+  })
+
+  pageObserver.observe(
+    document.documentElement,
+    {
+      childList:true,
+      subtree:true,
+    },
+  )
+}
+
+jrInstallObservationContainedV4147()
+
 function jrRestoreOldObservationVisibilityVPre4013(){
   let style=document.getElementById('jr-observation-old-visibility')
   if(!style){
