@@ -397,6 +397,57 @@ function jrPerfYieldV411() {
   })
 }
 
+// JR_GESTAO_PERFORMANCE_IDLE_V40_11_1=20260827
+let jrPerfWarmTokenV411 = 0
+
+function jrPerfScheduleIdleV411(callback) {
+  if (typeof window.requestIdleCallback === 'function') {
+    return window.requestIdleCallback(callback, { timeout: 700 })
+  }
+  return window.setTimeout(() => callback(null), 28)
+}
+
+function jrPerfWarmRangeV411() {
+  const signature = jrPerfRangeSignatureV411()
+  const teams = jrPerfTeamsForRangeV411()
+  const token = ++jrPerfWarmTokenV411
+  let index = 0
+
+  const step = (deadline) => {
+    if (token !== jrPerfWarmTokenV411) return
+    if (signature !== jrPerfRangeSignatureV411()) return
+    if (state.rangeLoading) {
+      jrPerfScheduleIdleV411(step)
+      return
+    }
+
+    let processed = 0
+    while (index < teams.length) {
+      const team = teams[index++]
+      try {
+        jrPerfRangeSummaryV411(team)
+        jrPerfCodesRowsV411(team)
+        jrPerfReportRowsV411(team)
+      } catch (error) {
+        console.warn('[JR V40.12.1] Pre-aquecimento ignorado para', team, error)
+      }
+      processed += 1
+
+      if (!deadline || typeof deadline.timeRemaining !== 'function') break
+      if (processed >= 2 || deadline.timeRemaining() < 7) break
+    }
+
+    if (index < teams.length) jrPerfScheduleIdleV411(step)
+  }
+
+  if (teams.length) jrPerfScheduleIdleV411(step)
+}
+
+function jrPerfHandleImportedV411() {
+  jrPerfInvalidateImportedV411()
+  window.setTimeout(jrPerfWarmRangeV411, 90)
+}
+
 function jrPerfQueueModuleV411(target) {
   if (!['photos', 'codes', 'reports', 'orders'].includes(target)) return
 
@@ -432,9 +483,9 @@ function jrPerfQueueModuleV411(target) {
   }
 }
 
-document.addEventListener('jr:imported-v21-ready', jrPerfInvalidateImportedV411)
-document.addEventListener('jr:imported-records-v21', jrPerfInvalidateImportedV411)
-document.addEventListener('jr:services-settings-updated', jrPerfInvalidateImportedV411)
+document.addEventListener('jr:imported-v21-ready', jrPerfHandleImportedV411)
+document.addEventListener('jr:imported-records-v21', jrPerfHandleImportedV411)
+document.addEventListener('jr:services-settings-updated', jrPerfHandleImportedV411)
 // JR_GESTAO_CONTAGEM_PLANILHA_UNIFICADA_V36_BEGIN
 const IMPORTED_BRIDGE_URL_V36 = './services-import-bridge-v21.js?v=bridge-v21-20260807'
 let importedDashboardRefreshTimerV36 = 0
@@ -3471,6 +3522,7 @@ async function loadRangeData(showSuccessToast = false, throwOnError = false) {
     jrPerfShowBusyV411('range', 'Organizando dados do período...')
     await jrPerfYieldV411()
     renderModulePages()
+    window.setTimeout(jrPerfWarmRangeV411, 120)
     if (showSuccessToast) toast(`Período ${periodLabel()} carregado.`)
     return true
   } catch (error) {
