@@ -42,6 +42,23 @@ import {
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 const $ = (selector) => document.querySelector(selector)
 const GLOBAL_KEY = '__matrix__'
+
+// JR_GESTAO_OBSERVACOES_RESTAURADAS_ANTES_V40_13=20260827
+function jrRestoreOldObservationVisibilityVPre4013(){
+  let style=document.getElementById('jr-observation-old-visibility')
+  if(!style){
+    style=document.createElement('style')
+    style.id='jr-observation-old-visibility'
+    document.head.appendChild(style)
+  }
+  style.textContent=`
+    dialog#services-observation-viewer:not([open]){
+      display:none!important;
+    }
+  `
+}
+jrRestoreOldObservationVisibilityVPre4013()
+
 // JR_GESTAO_OBSERVACOES_INTELIGENTES_V40_13=20260827
 
 // JR_GESTAO_OBSERVACOES_SEM_CORTE_V40_14_3=20260827
@@ -355,7 +372,7 @@ function jrInstallObservationFixedCentralV4146(){
   `
 }
 
-jrInstallObservationFixedCentralV4146()
+void 0 // jrInstallObservationFixedCentralV4146 desativado: restaurado para antes da V40.13
 
 function jrInstallObservationNoClipV4142() {
   let style = document.getElementById('jr-observation-no-clip-v4142')
@@ -632,7 +649,7 @@ function jrInstallObservationNoClipV4142() {
   `
 }
 
-jrInstallObservationNoClipV4142()
+void 0 // jrInstallObservationNoClipV4142 desativado: restaurado para antes da V40.13
 
 function jrObsNormalizeV413(value) {
   return String(value || '')
@@ -1351,7 +1368,7 @@ const state = {
 
 initializeUiControls()
 installObservationLayoutV412()
-installObservationLayoutV413()
+void 0 // installObservationLayoutV413 desativado: restaurado para antes da V40.13
 moveObservationHoverToBody()
 moveDirtyActionsToBody()
 bindEvents()
@@ -3530,6 +3547,7 @@ function renderObservationViewer() {
   if (!els.viewerBody || !state.viewerDay) return
 
   const availableDays = availableObservationDays()
+
   if (!availableDays.length) {
     els.viewerBody.innerHTML =
       '<div class="services-empty"><strong>Nenhum dia visível</strong><span>Desoculte pelo menos um dia para consultar observações.</span></div>'
@@ -3539,7 +3557,9 @@ function renderObservationViewer() {
     return
   }
 
-  if (!availableDays.includes(state.viewerDay)) state.viewerDay = availableDays[0]
+  if (!availableDays.includes(state.viewerDay)) {
+    state.viewerDay = availableDays[0]
+  }
 
   const dayNumber = state.viewerDay
   const currentIndex = availableDays.indexOf(dayNumber)
@@ -3548,74 +3568,112 @@ function renderObservationViewer() {
   const periodLabel = SERVICE_PERIOD_LABELS[period]
   const sheets = buildTeamSheets()
 
-  if (els.viewerTitle) els.viewerTitle.textContent = `DIA ${String(dayNumber).padStart(2, '0')}`
-  if (els.viewerPeriod) els.viewerPeriod.textContent = `${metric.label} • ${periodLabel}`
-  if (els.viewerPrev) els.viewerPrev.disabled = currentIndex <= 0
-  if (els.viewerNext) els.viewerNext.disabled = currentIndex >= availableDays.length - 1
-  if (els.viewerEdit) els.viewerEdit.classList.toggle('hidden', !isAdmin())
+  if (els.viewerTitle) {
+    els.viewerTitle.textContent =
+      `DIA ${String(dayNumber).padStart(2, '0')}`
+  }
+
+  if (els.viewerPeriod) {
+    els.viewerPeriod.textContent =
+      `${metric.label} • ${periodLabel}`
+  }
+
+  if (els.viewerPrev) {
+    els.viewerPrev.disabled = currentIndex <= 0
+  }
+
+  if (els.viewerNext) {
+    els.viewerNext.disabled =
+      currentIndex >= availableDays.length - 1
+  }
+
+  if (els.viewerEdit) {
+    els.viewerEdit.classList.toggle(
+      'hidden',
+      !isAdmin(),
+    )
+  }
 
   if (els.viewerDays) {
-    els.viewerDays.innerHTML = availableDays.map((day) => {
-      const hasNotes = sheets.some((sheet) => {
-        const parts = jrRawObservationPartsV413(
-          sheet.days[day - 1],
-          draftFor(sheet.key),
-          state.metric,
-        )
-        return Boolean(
-          smartObservationSummaryV413(parts.automatic) ||
-          String(parts.manual || '').trim() ||
-          parts.manualImportant
-        )
-      })
+    els.viewerDays.innerHTML = availableDays
+      .map((day) => {
+        const hasNotes = sheets.some((sheet) => {
+          const parts = compactEffectiveObservationPartsV412(
+            sheet.days[day - 1],
+            draftFor(sheet.key),
+            state.metric,
+          )
+          return Boolean(parts.text)
+        })
 
-      return `<button type="button"
-        class="${day === dayNumber ? 'is-active' : ''} ${hasNotes ? 'has-notes' : ''}"
-        data-viewer-day="${day}"
-        title="Abrir observações do dia ${String(day).padStart(2, '0')}">
-        ${String(day).padStart(2, '0')}
-      </button>`
-    }).join('')
+        return `<button type="button"
+          class="${day === dayNumber ? 'is-active' : ''} ${hasNotes ? 'has-notes' : ''}"
+          data-viewer-day="${day}"
+          title="Abrir observações do dia ${String(day).padStart(2, '0')}">
+          ${String(day).padStart(2, '0')}
+        </button>`
+      })
+      .join('')
   }
 
   const cards = sheets.map((sheet) => {
     const day = sheet.days[dayNumber - 1]
-    const parts = jrRawObservationPartsV413(
+    const parts = compactEffectiveObservationPartsV412(
       day,
       draftFor(sheet.key),
       state.metric,
     )
-    const automaticSummary = smartObservationSummaryV413(parts.automatic)
-    const manual = String(parts.manual || '').trim()
-    const important = Boolean(automaticSummary) || Boolean(parts.manualImportant)
-    const hasText = Boolean(automaticSummary || manual || parts.manualImportant)
-    const score = effectiveScore(day, draftFor(sheet.key), state.metric)
+    const score = effectiveScore(
+      day,
+      draftFor(sheet.key),
+      state.metric,
+    )
 
-    return `<article class="services-viewer-team ${important ? 'is-important' : ''} ${hasText ? '' : 'is-empty'}">
+    return `<article class="services-viewer-team ${parts.hasImportant ? 'is-important' : ''} ${parts.text ? '' : 'is-empty'}">
       <header>
         <div>
           <strong>${escapeHtml(displayNameFor(sheet))}</strong>
           <span>${escapeHtml(metric.shortLabel)}: <b>${score}</b></span>
         </div>
-        ${important ? '<span class="services-viewer-important-badge">✦ Serviço importante desta planilha</span>' : ''}
+        ${
+          parts.hasImportant
+            ? '<span class="services-viewer-important-badge">✦ Serviço importante desta planilha</span>'
+            : ''
+        }
       </header>
 
       <div class="services-viewer-team-content">
-        ${automaticSummary
-          ? `<div class="services-viewer-service"><small>SERVIÇO • ${escapeHtml(metric.label)}</small><p>${escapeHtml(automaticSummary)}</p></div>`
-          : ''}
+        ${
+          parts.automatic
+            ? `<div class="services-viewer-service"><small>SERVIÇO • ${escapeHtml(metric.label)}</small><p>${escapeHtml(parts.automatic)}</p></div>`
+            : ''
+        }
 
-        ${manual
-          ? `<div class="services-viewer-manual"><small>COMUNICADO • ${escapeHtml(metric.label)}</small><p>${escapeHtml(manual)}</p></div>`
-          : ''}
+        ${
+          parts.imported
+            ? `<div class="services-viewer-imported"><small>PLANILHA IMPORTADA • ${escapeHtml(metric.label)}</small><p>${escapeHtml(importedObservationDisplayV26(parts.imported))}</p></div>`
+            : ''
+        }
 
-        ${parts.manualImportant && !automaticSummary
-          ? '<div class="services-viewer-manual-important">✦ Destaque manual como serviço importante</div>'
-          : ''}
+        ${
+          parts.manual
+            ? `<div class="services-viewer-manual"><small>COMUNICADO • ${escapeHtml(metric.label)}</small><p>${escapeHtml(parts.manual)}</p></div>`
+            : ''
+        }
 
-        ${!automaticSummary && !manual && !parts.manualImportant
-          ? `<div class="services-viewer-empty">Sem observações em ${escapeHtml(metric.label)}.</div>`
-          : ''}
+        ${
+          parts.manualImportant &&
+          !parts.automatic &&
+          !parts.imported
+            ? '<div class="services-viewer-manual-important">✦ Destaque manual como serviço importante</div>'
+            : ''
+        }
+
+        ${
+          !parts.text && !parts.manualImportant
+            ? `<div class="services-viewer-empty">Sem observações em ${escapeHtml(metric.label)}.</div>`
+            : ''
+        }
       </div>
     </article>`
   }).join('')
@@ -3624,13 +3682,19 @@ function renderObservationViewer() {
     cards ||
     '<div class="services-empty"><strong>Nenhuma equipe encontrada</strong></div>'
 
-  const activeButton = els.viewerDays?.querySelector('[data-viewer-day].is-active')
+  const activeButton =
+    els.viewerDays?.querySelector(
+      '[data-viewer-day].is-active',
+    )
+
   activeButton?.scrollIntoView?.({
     behavior: 'smooth',
     block: 'nearest',
     inline: 'center',
   })
 }
+
+
 function availableNoteEditorSheets() {
   return buildTeamSheets()
     .filter(
