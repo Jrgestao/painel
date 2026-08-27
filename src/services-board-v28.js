@@ -43,6 +43,285 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 const $ = (selector) => document.querySelector(selector)
 const GLOBAL_KEY = '__matrix__'
 // JR_GESTAO_OBSERVACOES_INTELIGENTES_V40_13=20260827
+
+// JR_GESTAO_OBSERVACOES_SEM_CORTE_V40_14_3=20260827
+function jrInstallObservationNoClipV4142() {
+  let style = document.getElementById('jr-observation-no-clip-v4142')
+  if (!style) {
+    style = document.createElement('style')
+    style.id = 'jr-observation-no-clip-v4142'
+    document.head.appendChild(style)
+  }
+
+  style.textContent = `
+    #services-observation-viewer.services-observation-viewer{
+      position:fixed!important;
+      inset:0!important;
+      width:100vw!important;
+      max-width:100vw!important;
+      height:100dvh!important;
+      max-height:100dvh!important;
+      box-sizing:border-box!important;
+      padding:16px!important;
+      overflow:hidden!important;
+      display:flex!important;
+      align-items:center!important;
+      justify-content:center!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-card{
+      position:relative!important;
+      inset:auto!important;
+      left:auto!important;
+      right:auto!important;
+      top:auto!important;
+      bottom:auto!important;
+      transform:none!important;
+      translate:none!important;
+      width:min(1080px,calc(100vw - 32px))!important;
+      max-width:calc(100vw - 32px)!important;
+      min-width:0!important;
+      height:min(900px,calc(100dvh - 32px))!important;
+      max-height:calc(100dvh - 32px)!important;
+      min-height:0!important;
+      margin:0 auto!important;
+      padding:0!important;
+      box-sizing:border-box!important;
+      overflow:hidden!important;
+      display:flex!important;
+      flex-direction:column!important;
+      align-items:stretch!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-header{
+      position:relative!important;
+      inset:auto!important;
+      transform:none!important;
+      flex:0 0 auto!important;
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+      box-sizing:border-box!important;
+      margin:0!important;
+      padding:14px 16px 12px!important;
+      overflow:hidden!important;
+    }
+
+    #services-observation-viewer .services-viewer-days{
+      position:relative!important;
+      inset:auto!important;
+      transform:none!important;
+      flex:0 0 auto!important;
+      display:flex!important;
+      flex-wrap:wrap!important;
+      align-items:center!important;
+      align-content:flex-start!important;
+      justify-content:flex-start!important;
+      gap:6px!important;
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+      box-sizing:border-box!important;
+      margin:0!important;
+      padding:10px 14px!important;
+      overflow:hidden!important;
+      white-space:normal!important;
+    }
+
+    #services-observation-viewer .services-viewer-days > *{
+      position:relative!important;
+      inset:auto!important;
+      transform:none!important;
+      flex:0 0 auto!important;
+      margin:0!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-body{
+      position:relative!important;
+      inset:auto!important;
+      transform:none!important;
+      flex:1 1 auto!important;
+      display:flex!important;
+      flex-direction:column!important;
+      align-items:stretch!important;
+      gap:10px!important;
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+      min-height:0!important;
+      box-sizing:border-box!important;
+      margin:0!important;
+      padding:12px 14px 16px!important;
+      overflow-x:hidden!important;
+      overflow-y:auto!important;
+      overscroll-behavior:contain!important;
+      scrollbar-gutter:stable!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-body > *{
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+      box-sizing:border-box!important;
+    }
+
+    #services-observation-viewer .services-viewer-team{
+      position:relative!important;
+      inset:auto!important;
+      left:auto!important;
+      right:auto!important;
+      top:auto!important;
+      bottom:auto!important;
+      transform:none!important;
+      translate:none!important;
+      float:none!important;
+      clear:both!important;
+      display:block!important;
+      flex:0 0 auto!important;
+      grid-column:1 / -1!important;
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+      height:auto!important;
+      min-height:0!important;
+      max-height:none!important;
+      box-sizing:border-box!important;
+      margin:0!important;
+      padding:12px!important;
+      overflow:hidden!important;
+    }
+
+    #services-observation-viewer .services-viewer-team > header{
+      position:relative!important;
+      inset:auto!important;
+      transform:none!important;
+      display:flex!important;
+      flex-wrap:wrap!important;
+      align-items:flex-start!important;
+      justify-content:space-between!important;
+      gap:8px!important;
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+      box-sizing:border-box!important;
+      margin:0 0 9px!important;
+      padding:0!important;
+      overflow:hidden!important;
+    }
+
+    #services-observation-viewer .services-viewer-team > header > *{
+      min-width:0!important;
+      max-width:100%!important;
+    }
+
+    #services-observation-viewer .services-viewer-team-content,
+    #services-observation-viewer .services-viewer-service,
+    #services-observation-viewer .services-viewer-manual,
+    #services-observation-viewer .services-viewer-empty,
+    #services-observation-viewer .services-viewer-manual-important{
+      position:relative!important;
+      inset:auto!important;
+      transform:none!important;
+      translate:none!important;
+      display:block!important;
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+      height:auto!important;
+      min-height:0!important;
+      max-height:none!important;
+      box-sizing:border-box!important;
+      margin-left:0!important;
+      margin-right:0!important;
+      overflow-x:hidden!important;
+      overflow-y:visible!important;
+    }
+
+    #services-observation-viewer .services-viewer-team p,
+    #services-observation-viewer .services-viewer-team span,
+    #services-observation-viewer .services-viewer-team strong,
+    #services-observation-viewer .services-viewer-team small{
+      max-width:100%!important;
+      min-width:0!important;
+      white-space:normal!important;
+      overflow-wrap:anywhere!important;
+      word-break:normal!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-footer{
+      position:relative!important;
+      inset:auto!important;
+      transform:none!important;
+      flex:0 0 auto!important;
+      display:flex!important;
+      flex-wrap:wrap!important;
+      align-items:center!important;
+      justify-content:space-between!important;
+      gap:8px!important;
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+      box-sizing:border-box!important;
+      margin:0!important;
+      padding:10px 14px 12px!important;
+      overflow:hidden!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-footer > *{
+      min-width:0!important;
+      max-width:100%!important;
+      box-sizing:border-box!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-footer button{
+      flex:0 1 auto!important;
+      max-width:100%!important;
+      white-space:normal!important;
+    }
+
+    @media(max-width:700px){
+      #services-observation-viewer.services-observation-viewer{
+        padding:7px!important;
+      }
+
+      #services-observation-viewer .services-observation-viewer-card{
+        width:calc(100vw - 14px)!important;
+        max-width:calc(100vw - 14px)!important;
+        height:calc(100dvh - 14px)!important;
+        max-height:calc(100dvh - 14px)!important;
+      }
+
+      #services-observation-viewer .services-observation-viewer-header{
+        padding:11px 10px 9px!important;
+      }
+
+      #services-observation-viewer .services-viewer-days{
+        padding:8px 9px!important;
+        gap:5px!important;
+      }
+
+      #services-observation-viewer .services-observation-viewer-body{
+        padding:9px!important;
+      }
+
+      #services-observation-viewer .services-viewer-team{
+        padding:10px!important;
+      }
+
+      #services-observation-viewer .services-observation-viewer-footer{
+        padding:8px 9px!important;
+      }
+
+      #services-observation-viewer .services-observation-viewer-footer button{
+        flex:1 1 100%!important;
+        width:100%!important;
+      }
+    }
+  `
+}
+
+jrInstallObservationNoClipV4142()
+
 function jrObsNormalizeV413(value) {
   return String(value || '')
     .normalize('NFD')

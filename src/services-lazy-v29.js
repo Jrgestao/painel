@@ -53,7 +53,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v28.js?v=v40-13-20260827-1112'
+        './services-board-v28.js?v=v40-14-3-20260827-obs'
       )
         .then((module) => {
           const first =
