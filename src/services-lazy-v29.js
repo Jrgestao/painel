@@ -53,7 +53,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v28.js?v=v40-14-5-20260827-dialog-box'
+        './services-board-v28.js?v=v40-14-4-20260827-obs-square'
       )
         .then((module) => {
           const first =
