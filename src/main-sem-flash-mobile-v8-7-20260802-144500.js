@@ -72,6 +72,369 @@ let serviceDateScrollLockUntilV38 = 0
 let serviceDateObserverV38 = null
 let photoOpenTokenV37 = 0
 const teamSummaryCacheV37 = new Map()
+// JR_GESTAO_PERFORMANCE_PRO_V40_11=20260827
+const jrPerfV411 = {
+  rangeKey: '',
+  recordsByTeam: new Map(),
+  manifestsByTeam: new Map(),
+  summariesByTeam: new Map(),
+  teamNames: [],
+  codesCache: new Map(),
+  reportsCache: new Map(),
+  importedVersion: 0,
+  monthKey: '',
+  monthSummary: null,
+  renderToken: 0,
+  busyOwner: '',
+  busyTimer: 0,
+}
+
+function jrPerfProfileSignatureV411() {
+  return (state.profiles || [])
+    .map((profile) => `${profile?.id || ''}:${profile?.team_name || ''}:${profile?.active === false ? 0 : 1}`)
+    .join('|')
+}
+
+function jrPerfRangeSignatureV411() {
+  return [
+    state.range.loadedKey,
+    state.range.records.length,
+    state.range.manifests.length,
+    jrPerfProfileSignatureV411(),
+  ].join('|')
+}
+
+function jrPerfResetRangeV411() {
+  jrPerfV411.rangeKey = ''
+  jrPerfV411.recordsByTeam.clear()
+  jrPerfV411.manifestsByTeam.clear()
+  jrPerfV411.summariesByTeam.clear()
+  jrPerfV411.teamNames = []
+  jrPerfV411.codesCache.clear()
+  jrPerfV411.reportsCache.clear()
+}
+
+function jrPerfInvalidateImportedV411() {
+  jrPerfV411.importedVersion += 1
+  jrPerfV411.codesCache.clear()
+  jrPerfV411.reportsCache.clear()
+  jrPerfV411.monthKey = ''
+  jrPerfV411.monthSummary = null
+}
+
+function jrPerfEnsureRangeIndexV411() {
+  const key = jrPerfRangeSignatureV411()
+  if (jrPerfV411.rangeKey === key) return jrPerfV411
+
+  const profileMap = profileMapById()
+  const recordsByTeam = new Map()
+  const manifestsByTeam = new Map()
+  const names = new Map()
+
+  const registerTeam = (rawName) => {
+    const display = String(rawName || '').trim()
+    const normalized = normalizeText(display)
+    if (normalized && !names.has(normalized)) names.set(normalized, display)
+    return normalized
+  }
+
+  for (const name of configuredTeamNames()) registerTeam(name)
+
+  for (const row of state.range.records) {
+    const normalized = registerTeam(recordTeam(row, profileMap))
+    if (!normalized) continue
+    if (!recordsByTeam.has(normalized)) recordsByTeam.set(normalized, [])
+    recordsByTeam.get(normalized).push(row)
+  }
+
+  for (const manifest of state.range.manifests) {
+    const team = profileMap.get(manifest.user_id)?.team_name || manifest.team_name || ''
+    const normalized = registerTeam(team)
+    if (!normalized) continue
+    if (!manifestsByTeam.has(normalized)) manifestsByTeam.set(normalized, [])
+    manifestsByTeam.get(normalized).push(manifest)
+  }
+
+  jrPerfV411.rangeKey = key
+  jrPerfV411.recordsByTeam = recordsByTeam
+  jrPerfV411.manifestsByTeam = manifestsByTeam
+  jrPerfV411.summariesByTeam = new Map()
+  jrPerfV411.teamNames = [...names.values()]
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  jrPerfV411.codesCache.clear()
+  jrPerfV411.reportsCache.clear()
+
+  return jrPerfV411
+}
+
+function jrPerfRangeSummaryV411(team) {
+  const index = jrPerfEnsureRangeIndexV411()
+  const normalized = normalizeText(team)
+
+  if (index.summariesByTeam.has(normalized)) {
+    return index.summariesByTeam.get(normalized)
+  }
+
+  const summary = buildSummary(
+    index.recordsByTeam.get(normalized) || [],
+    index.manifestsByTeam.get(normalized) || [],
+    profileMapById(),
+  )
+
+  index.summariesByTeam.set(normalized, summary)
+  return summary
+}
+
+function jrPerfTeamsForRangeV411() {
+  return [...jrPerfEnsureRangeIndexV411().teamNames]
+}
+
+function jrPerfImportedCountV411() {
+  return importedRecordsForRangeV21(state.range.start, state.range.end).length
+}
+
+function jrPerfCodesRowsV411(team) {
+  const key = [
+    jrPerfRangeSignatureV411(),
+    jrPerfImportedCountV411(),
+    jrPerfV411.importedVersion,
+    normalizeText(team),
+  ].join('|')
+
+  if (jrPerfV411.codesCache.has(key)) return jrPerfV411.codesCache.get(key)
+  const rows = codesRecordsForTeamV21(team)
+  jrPerfV411.codesCache.set(key, rows)
+  if (jrPerfV411.codesCache.size > 64) {
+    jrPerfV411.codesCache.delete(jrPerfV411.codesCache.keys().next().value)
+  }
+  return rows
+}
+
+function jrPerfReportRowsV411(team) {
+  const key = [
+    jrPerfRangeSignatureV411(),
+    jrPerfImportedCountV411(),
+    jrPerfV411.importedVersion,
+    state.reportKind,
+    state.reportObservation,
+    normalizeText(team),
+  ].join('|')
+
+  if (jrPerfV411.reportsCache.has(key)) return jrPerfV411.reportsCache.get(key)
+  const rows = reportRecordsForTeam(team)
+  jrPerfV411.reportsCache.set(key, rows)
+  if (jrPerfV411.reportsCache.size > 64) {
+    jrPerfV411.reportsCache.delete(jrPerfV411.reportsCache.keys().next().value)
+  }
+  return rows
+}
+
+function jrPerfMonthSummaryV411(profileMap, monthRange) {
+  const end = addDays(monthRange.next, -1)
+  const importedCount = importedRecordsForRangeV21(monthRange.start, end).length
+  const key = [
+    monthRange.start,
+    state.monthLoadedKeyV6,
+    Number(state.monthLoadedAtV6 || 0),
+    state.monthRecords.length,
+    state.monthManifests.length,
+    importedCount,
+    jrPerfV411.importedVersion,
+    jrPerfProfileSignatureV411(),
+  ].join('|')
+
+  if (jrPerfV411.monthKey === key && jrPerfV411.monthSummary) {
+    return jrPerfV411.monthSummary
+  }
+
+  const summary = buildSummaryWithExportScoreV36(
+    state.monthRecords,
+    state.monthManifests,
+    profileMap,
+    monthRange.start,
+    end,
+    '',
+  )
+
+  jrPerfV411.monthKey = key
+  jrPerfV411.monthSummary = summary
+  return summary
+}
+
+function jrPerfEnsureUiV411() {
+  let indicator = document.getElementById('jr-perf-indicator-v411')
+  if (!indicator) {
+    indicator = document.createElement('div')
+    indicator.id = 'jr-perf-indicator-v411'
+    indicator.setAttribute('role', 'status')
+    indicator.setAttribute('aria-live', 'polite')
+    indicator.innerHTML = `
+      <span class="jr-perf-spinner-v411" aria-hidden="true"></span>
+      <div><strong>JR GESTÃO</strong><small id="jr-perf-message-v411">Carregando...</small></div>
+    `
+    document.body.appendChild(indicator)
+  }
+
+  if (!document.getElementById('jr-perf-style-v411')) {
+    const style = document.createElement('style')
+    style.id = 'jr-perf-style-v411'
+    style.textContent = `
+      #jr-perf-indicator-v411{
+        position:fixed;top:14px;right:18px;z-index:2147483000;
+        display:flex;align-items:center;gap:10px;min-width:225px;
+        max-width:min(360px,calc(100vw - 28px));padding:10px 13px;
+        border:1px solid rgba(255,255,255,.14);border-radius:12px;
+        background:#10151b;box-shadow:0 10px 32px rgba(0,0,0,.32);
+        opacity:0;transform:translateY(-8px);pointer-events:none;
+        transition:opacity .16s ease,transform .16s ease
+      }
+      #jr-perf-indicator-v411.show{opacity:1;transform:translateY(0)}
+      #jr-perf-indicator-v411 div{display:flex;min-width:0;flex-direction:column;gap:1px}
+      #jr-perf-indicator-v411 strong{font-size:10px;letter-spacing:.07em;opacity:.65}
+      #jr-perf-indicator-v411 small{font-size:12px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .jr-perf-spinner-v411{
+        width:18px;height:18px;flex:0 0 18px;border-radius:50%;
+        border:2px solid rgba(255,255,255,.16);border-top-color:currentColor;
+        animation:jr-perf-spin-v411 .7s linear infinite
+      }
+      @keyframes jr-perf-spin-v411{to{transform:rotate(360deg)}}
+
+      .jr-module-skeleton-v411{display:grid;gap:10px;padding:2px 0}
+      .jr-module-skeleton-card-v411{
+        height:78px;border-radius:13px;border:1px solid rgba(255,255,255,.07);
+        background:rgba(255,255,255,.035);position:relative;overflow:hidden;
+        animation:jr-perf-pulse-v411 1.05s ease-in-out infinite
+      }
+      .jr-module-skeleton-card-v411::before,
+      .jr-module-skeleton-card-v411::after{
+        content:"";position:absolute;left:18px;border-radius:999px;background:rgba(255,255,255,.085)
+      }
+      .jr-module-skeleton-card-v411::before{top:20px;width:34%;height:12px}
+      .jr-module-skeleton-card-v411::after{top:43px;width:57%;height:8px}
+      @keyframes jr-perf-pulse-v411{50%{opacity:.55}}
+
+      body.jr-render-busy-v411 [class*="liquid-metal"],
+      body.jr-render-busy-v411 [class*="metal-liquid"]{
+        animation-play-state:paused!important
+      }
+
+      @media(max-width:700px){
+        #jr-perf-indicator-v411{top:10px;left:12px;right:12px;min-width:0;max-width:none}
+        .jr-module-skeleton-card-v411{height:70px}
+      }
+    `
+    document.head.appendChild(style)
+  }
+  return indicator
+}
+
+function jrPerfShowBusyV411(owner, message) {
+  const indicator = jrPerfEnsureUiV411()
+  jrPerfV411.busyOwner = String(owner || 'busy')
+  window.clearTimeout(jrPerfV411.busyTimer)
+  const text = indicator.querySelector('#jr-perf-message-v411')
+  if (text) text.textContent = String(message || 'Carregando...')
+  document.body.classList.add('jr-render-busy-v411')
+  indicator.classList.add('show')
+}
+
+function jrPerfHideBusyV411(owner = '') {
+  if (owner && jrPerfV411.busyOwner !== String(owner)) return
+  jrPerfV411.busyOwner = ''
+  document.body.classList.remove('jr-render-busy-v411')
+  const indicator = document.getElementById('jr-perf-indicator-v411')
+  if (!indicator) return
+  window.clearTimeout(jrPerfV411.busyTimer)
+  jrPerfV411.busyTimer = window.setTimeout(() => {
+    if (!jrPerfV411.busyOwner) indicator.classList.remove('show')
+  }, 80)
+}
+
+function jrPerfModuleLabelV411(target) {
+  if (target === 'photos') return 'Carregando fotos...'
+  if (target === 'codes') return 'Preparando códigos...'
+  if (target === 'reports') return 'Preparando relatórios...'
+  if (target === 'orders') return 'Carregando ordens...'
+  return 'Carregando módulo...'
+}
+
+function jrPerfListV411(target) {
+  if (target === 'photos') return els.photosTeamList
+  if (target === 'codes') return els.codesTeamList
+  if (target === 'reports') return els.reportsTeamList
+  return null
+}
+
+function jrPerfShowSkeletonV411(target) {
+  const list = jrPerfListV411(target)
+  if (!list) return
+
+  const detailOpen =
+    target === 'photos' ? Boolean(state.moduleTeams.photos) :
+    target === 'codes' ? Boolean(state.moduleTeams.codes) :
+    target === 'reports' ? Boolean(state.moduleTeams.reports) :
+    false
+  if (detailOpen) return
+
+  list.innerHTML = `
+    <div class="jr-module-skeleton-v411" aria-label="Carregando">
+      <div class="jr-module-skeleton-card-v411"></div>
+      <div class="jr-module-skeleton-card-v411"></div>
+      <div class="jr-module-skeleton-card-v411"></div>
+      <div class="jr-module-skeleton-card-v411"></div>
+    </div>
+  `
+}
+
+function jrPerfYieldV411() {
+  return new Promise((resolve) => {
+    if (typeof requestAnimationFrame !== 'function') {
+      window.setTimeout(resolve, 0)
+      return
+    }
+    requestAnimationFrame(() => requestAnimationFrame(() => window.setTimeout(resolve, 0)))
+  })
+}
+
+function jrPerfQueueModuleV411(target) {
+  if (!['photos', 'codes', 'reports', 'orders'].includes(target)) return
+
+  const key = moduleRenderKeyV31(target)
+  if (moduleRenderCacheV31.get(target) === key) return
+
+  const token = ++jrPerfV411.renderToken
+  const owner = `module:${target}`
+  jrPerfShowBusyV411(owner, jrPerfModuleLabelV411(target))
+  jrPerfShowSkeletonV411(target)
+
+  const execute = () => {
+    window.setTimeout(() => {
+      if (token !== jrPerfV411.renderToken || state.page !== target) {
+        jrPerfHideBusyV411(owner)
+        return
+      }
+      try {
+        renderCurrentModuleV31(target, false)
+      } catch (error) {
+        console.error('[JR V40.11] render:', target, error)
+        toast(friendlyError(error), true)
+      } finally {
+        jrPerfHideBusyV411(owner)
+      }
+    }, 0)
+  }
+
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(() => requestAnimationFrame(execute))
+  } else {
+    execute()
+  }
+}
+
+document.addEventListener('jr:imported-v21-ready', jrPerfInvalidateImportedV411)
+document.addEventListener('jr:imported-records-v21', jrPerfInvalidateImportedV411)
+document.addEventListener('jr:services-settings-updated', jrPerfInvalidateImportedV411)
 // JR_GESTAO_CONTAGEM_PLANILHA_UNIFICADA_V36_BEGIN
 const IMPORTED_BRIDGE_URL_V36 = './services-import-bridge-v21.js?v=bridge-v21-20260807'
 let importedDashboardRefreshTimerV36 = 0
@@ -1414,14 +1777,8 @@ function renderCurrentModuleV31(target, force = false) {
 }
 
 function scheduleCurrentModuleRenderV31(target) {
-  if (!['photos', 'codes', 'reports', 'orders'].includes(target)) return
-
-  window.requestAnimationFrame(() => {
-    renderCurrentModuleV31(target, false)
-  })
+  jrPerfQueueModuleV411(target)
 }
-
-
 function updateMobileViewportV32() {
   cancelAnimationFrame(mobileViewportFrameV32)
 
@@ -2900,7 +3257,10 @@ async function loadMonthDashboardV6(date, month, token, showSuccessToast, automa
       setOrdersRangeFilters(currentOrdersMonth.start, currentOrdersMonth.end)
     }
 
+    jrPerfShowBusyV411('month', 'Atualizando pontuação do mês...')
+    await jrPerfYieldV411()
     renderDashboard({ renderModules: false, forceHome: state.page === 'home' })
+    jrPerfHideBusyV411('month')
     if (state.page === 'orders') scheduleCurrentModuleRenderV31('orders')
     setConnection(true)
     if (showSuccessToast) toast('Dados atualizados com sucesso.')
@@ -3106,7 +3466,10 @@ async function loadRangeData(showSuccessToast = false, throwOnError = false) {
       loadedKey: `${start}|${end}`,
     }
 
+    jrPerfResetRangeV411()
     closeAllModuleDetails()
+    jrPerfShowBusyV411('range', 'Organizando dados do período...')
+    await jrPerfYieldV411()
     renderModulePages()
     if (showSuccessToast) toast(`Período ${periodLabel()} carregado.`)
     return true
@@ -3468,9 +3831,16 @@ function validateRange(start, end) {
 }
 
 function setRangeLoading(value) {
-  ;[els.photosRefreshButton, els.codesRefreshButton, els.reportsRefreshButton].forEach((button) => { if (button) button.disabled = value })
+  ;[els.photosRefreshButton, els.codesRefreshButton, els.reportsRefreshButton].forEach((button) => {
+    if (button) button.disabled = value
+  })
+  if (value) {
+    jrPerfShowBusyV411('range', 'Carregando período selecionado...')
+    if (['photos', 'codes', 'reports'].includes(state.page)) jrPerfShowSkeletonV411(state.page)
+  } else {
+    jrPerfHideBusyV411('range')
+  }
 }
-
 function setOrdersRangeLoading(value) {
   if (els.ordersRefreshButton) els.ordersRefreshButton.disabled = value
   document.querySelector('[data-open-period-selector="orders"]')?.toggleAttribute('disabled', value)
@@ -3488,14 +3858,7 @@ function renderDashboard(options = {}) {
     // O calendario de mes/ano controla sozinho o resumo mensal.
     // O seletor diario de equipe nao filtra os totais do mes.
     const monthRangeV36 = monthRangeFromValue(currentMonth())
-    state.monthSummary = buildSummaryWithExportScoreV36(
-      state.monthRecords,
-      state.monthManifests,
-      profileMap,
-      monthRangeV36.start,
-      addDays(monthRangeV36.next, -1),
-      '',
-    )
+    state.monthSummary = jrPerfMonthSummaryV411(profileMap, monthRangeV36)
   }
   if (homeActive) {
     renderMetrics()
@@ -4550,7 +4913,7 @@ function renderCodeTeams(teams) {
   const visibleTeams=codesTeamsForRangeV21(teams)
   if (visibleTeams.length === 0) { els.codesTeamList.innerHTML=moduleEmpty('Nenhuma equipe com pontos neste período.'); return }
   els.codesTeamList.innerHTML=visibleTeams.map((team)=>{
-    const records=codesRecordsForTeamV21(team)
+    const records=jrPerfCodesRowsV411(team)
     const score=scoreBreakdown(records)
     return teamFolderCard({team,action:'data-open-code-team',iconName:'table',headline:String(score.total)+' ponto(s) contabilizado(s)',detail:String(records.length)+' registro(s) válido(s) • importações incluídas',badge:records.length>0?'PRONTO':'VAZIO',badgeClass:records.length>0?'confirmed':'pending'})
   }).join('')
@@ -4564,7 +4927,7 @@ function renderReportTeams(teams) {
   }
   els.reportsTeamList.innerHTML = teams.map((team) => {
     const summary = rangeSummaryForTeam(team)
-    const filtered = reportRecordsForTeam(team)
+    const filtered = jrPerfReportRowsV411(team)
     return teamFolderCard({
       team,
       action: 'data-open-report-team',
@@ -4673,7 +5036,7 @@ function openCodesTeam(team, silent = false) {
   state.moduleTeams.codes=team
   els.codesTeamList.classList.add('hidden')
   els.codesTeamDetail.classList.remove('hidden')
-  const records=codesRecordsForTeamV21(team)
+  const records=jrPerfCodesRowsV411(team)
   els.codesTeamTitle.textContent=String(team)+' — '+periodLabel()
   els.codesTeamSummary.textContent=String(records.length)+' ponto(s) válido(s). Registros importados também entram na planilha em códigos.'
   els.codesTeamDownload.disabled=codesWorkbookBusyV35 || records.length===0
@@ -4693,7 +5056,7 @@ function openReportsTeam(team, silent = false) {
   els.reportsTeamList.classList.add('hidden')
   els.reportsTeamDetail.classList.remove('hidden')
   syncReportSearchAvailability()
-  const records = reportRecordsForTeam(team)
+  const records = jrPerfReportRowsV411(team)
   const allSummary = rangeSummaryForTeam(team)
   els.reportsTeamTitle.textContent = `${team} — ${periodLabel()}`
   els.reportsTeamSummary.textContent = `${records.length} registro(s) após os filtros. ${allSummary.deleted.length} excluído(s) não entram no arquivo.`
@@ -5238,22 +5601,11 @@ function summaryForTeam(team) {
 }
 
 function rangeSummaryForTeam(team) {
-  const profileMap = profileMapById()
-  return buildSummary(
-    recordsForTeam(team, profileMap, state.range.records),
-    manifestsForTeam(team, profileMap, state.range.manifests),
-    profileMap,
-  )
+  return jrPerfRangeSummaryV411(team)
 }
-
 function teamsForRange() {
-  const profileMap = profileMapById()
-  const names = new Set(configuredTeamNames())
-  state.range.records.forEach((row) => { const team = recordTeam(row, profileMap); if (team) names.add(team) })
-  state.range.manifests.forEach((manifest) => { const team = profileMap.get(manifest.user_id)?.team_name || manifest.team_name; if (team) names.add(String(team).trim()) })
-  return [...names].filter(Boolean).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  return jrPerfTeamsForRangeV411()
 }
-
 function reportRecordsForTeam(team) {
   const summary = rangeSummaryForTeam(team)
   return summary.active
