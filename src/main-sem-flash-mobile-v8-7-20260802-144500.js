@@ -956,7 +956,6 @@ initializeOrdersCurrentMonth()
 initializePersistentUi()
 bindEvents()
 installPhotoTimeFilterV4061()
-installStorageRecoveryV409()
 installPhotoTimeLayoutFixV4063()
 bootstrap()
 startDayRolloverWatcher()
@@ -3108,8 +3107,6 @@ async function loadRangeData(showSuccessToast = false, throwOnError = false) {
     }
 
     closeAllModuleDetails()
-    clearRangePerformanceV409()
-    await nextPaintV7()
     renderModulePages()
     if (showSuccessToast) toast(`Período ${periodLabel()} carregado.`)
     return true
@@ -5240,356 +5237,38 @@ function summaryForTeam(team) {
   return summary
 }
 
-// JR_GESTAO_RECUPERACAO_PERFORMANCE_V40_9=20260827
-const rangePerformanceV409 = {
-  key: '',
-  recordsByTeam: new Map(),
-  manifestsByTeam: new Map(),
-  teamNames: [],
-  summaryByTeam: new Map(),
-}
-
-function rangePerformanceProfileKeyV409() {
-  return (state.profiles || [])
-    .map((profile) => `${profile?.id || ''}:${profile?.team_name || ''}:${profile?.active === false ? 0 : 1}`)
-    .join('|')
-}
-
-function clearRangePerformanceV409() {
-  rangePerformanceV409.key = ''
-  rangePerformanceV409.recordsByTeam.clear()
-  rangePerformanceV409.manifestsByTeam.clear()
-  rangePerformanceV409.teamNames = []
-  rangePerformanceV409.summaryByTeam.clear()
-}
-
-function ensureRangePerformanceV409() {
-  const key = [
-    state.range.loadedKey,
-    state.range.records.length,
-    state.range.manifests.length,
-    rangePerformanceProfileKeyV409(),
-  ].join('|')
-
-  if (rangePerformanceV409.key === key) return rangePerformanceV409
-
-  const profileMap = profileMapById()
-  const recordsByTeam = new Map()
-  const manifestsByTeam = new Map()
-  const displayNames = new Map()
-
-  const addName = (value) => {
-    const display = String(value || '').trim()
-    const normalized = normalizeText(display)
-    if (normalized && !displayNames.has(normalized)) displayNames.set(normalized, display)
-  }
-
-  for (const team of configuredTeamNames()) addName(team)
-
-  for (const row of state.range.records) {
-    const team = String(recordTeam(row, profileMap) || '').trim()
-    const normalized = normalizeText(team)
-    if (!normalized) continue
-    addName(team)
-    if (!recordsByTeam.has(normalized)) recordsByTeam.set(normalized, [])
-    recordsByTeam.get(normalized).push(row)
-  }
-
-  for (const manifest of state.range.manifests) {
-    const team = String(profileMap.get(manifest.user_id)?.team_name || manifest.team_name || '').trim()
-    const normalized = normalizeText(team)
-    if (!normalized) continue
-    addName(team)
-    if (!manifestsByTeam.has(normalized)) manifestsByTeam.set(normalized, [])
-    manifestsByTeam.get(normalized).push(manifest)
-  }
-
-  rangePerformanceV409.key = key
-  rangePerformanceV409.recordsByTeam = recordsByTeam
-  rangePerformanceV409.manifestsByTeam = manifestsByTeam
-  rangePerformanceV409.teamNames = [...displayNames.values()]
-    .filter(Boolean)
-    .sort((a, b) => a.localeCompare(b, 'pt-BR'))
-  rangePerformanceV409.summaryByTeam = new Map()
-  return rangePerformanceV409
-}
-
-const storageRecoveryV409 = {
-  busy: false,
-  orphanEntries: [],
-}
-
-function installStorageRecoveryV409() {
-  if (document.getElementById('storage-recovery-v409')) return
-  const list = els.photosTeamList || document.getElementById('photos-team-list')
-  if (!list?.parentElement) return
-
-  const box = document.createElement('div')
-  box.id = 'storage-recovery-v409'
-  box.className = 'storage-recovery-v409'
-  box.innerHTML = `
-    <div>
-      <strong>RECUPERAÇÃO DE FOTOS</strong>
-      <small>A busca pesada no Storage só roda quando você mandar.</small>
-    </div>
-    <button id="storage-recovery-scan-v409" class="outline-button" type="button">
-      ${icon('search')} PROCURAR FOTOS ÓRFÃS
-    </button>
-    <button id="storage-recovery-download-v409" class="outline-button hidden" type="button">
-      ${icon('download')} BAIXAR TODAS EXISTENTES
-    </button>
-    <span id="storage-recovery-status-v409"></span>
-  `
-  list.insertAdjacentElement('beforebegin', box)
-
-  const style = document.createElement('style')
-  style.id = 'storage-recovery-style-v409'
-  style.textContent = `
-    .storage-recovery-v409{
-      display:flex;align-items:center;gap:9px;flex-wrap:wrap;
-      margin:10px 0 14px;padding:10px 12px;border:1px solid rgba(255,255,255,.09);
-      border-radius:12px;background:rgba(255,255,255,.025)
-    }
-    .storage-recovery-v409>div{display:flex;flex-direction:column;gap:2px;margin-right:auto}
-    .storage-recovery-v409 strong{font-size:11px;letter-spacing:.06em}
-    .storage-recovery-v409 small,.storage-recovery-v409>span{font-size:10px;opacity:.68}
-    .storage-recovery-v409 button{min-height:38px}
-    @media(max-width:650px){
-      .storage-recovery-v409{display:grid;grid-template-columns:1fr}
-      .storage-recovery-v409 button{width:100%}
-    }
-  `
-  document.head.appendChild(style)
-
-  document.getElementById('storage-recovery-scan-v409')?.addEventListener('click', scanStorageOrphansV409)
-  document.getElementById('storage-recovery-download-v409')?.addEventListener('click', downloadAllExistingStoragePhotosV409)
-  hydrateIcons()
-}
-
-function knownPhotoPathsV409() {
-  const paths = new Set()
-  for (const row of state.range.records) {
-    const record = row?.registro || {}
-    for (const value of [record.timePhotoStoragePath, record.surveyPhotoStoragePath]) {
-      const path = String(value || '').trim()
-      if (path) paths.add(path)
-    }
-  }
-  return paths
-}
-
-function linkedPhotoEntriesV409() {
-  const entries = []
-  const seen = new Set()
-  const profileMap = profileMapById()
-
-  for (const row of state.range.records) {
-    if (row?.deleted_at) continue
-    const record = row?.registro || {}
-    const team = recordTeam(row, profileMap) || 'Sem equipe'
-    const workDate = serviceDateKey(row)
-
-    const add = (kind, bucket, path, fileName, takenAt) => {
-      path = String(path || '').trim()
-      if (!path) return
-      const key = `${bucket || 'fotos'}|${path}`
-      if (seen.has(key)) return
-      seen.add(key)
-      const minute = photoMinuteFromFileNameV4061(fileName || path)
-      entries.push({
-        rowId: row.id,
-        bucket: bucket || 'fotos',
-        path,
-        fileName: fileName || path.split('/').pop() || `${row.id}.jpg`,
-        label: kind === 'survey' ? 'Foto de levantamento' : 'Foto de horário',
-        order: record.orderNumber || '',
-        street: streetName(record) || '',
-        team,
-        workDate,
-        minute,
-        timeText: Number.isFinite(minute) ? photoTimeTextFromMinuteV4061(minute) : '',
-        takenAt,
-      })
-    }
-
-    add('time', record.timePhotoStorageBucket, record.timePhotoStoragePath, record.timePhotoFileName, record.timePhotoTakenAt)
-    add('survey', record.surveyPhotoStorageBucket, record.surveyPhotoStoragePath, record.surveyPhotoFileName, record.surveyPhotoTakenAt)
-  }
-
-  return entries
-}
-
-function storageFoldersKnownV409() {
-  const folders = new Set()
-  for (const path of knownPhotoPathsV409()) {
-    const normalized = path.replaceAll('\\', '/')
-    const index = normalized.lastIndexOf('/')
-    if (index > 0) folders.add(normalized.slice(0, index))
-  }
-  return [...folders]
-}
-
-async function listStorageFolderV409(prefix) {
-  const files = []
-  let offset = 0
-  const limit = 1000
-  while (offset < 20000) {
-    const { data, error } = await supabase.storage.from('fotos').list(prefix, {
-      limit,
-      offset,
-      sortBy: { column: 'name', order: 'asc' },
-    })
-    if (error) throw error
-    const page = Array.isArray(data) ? data : []
-    files.push(...page)
-    if (page.length < limit) break
-    offset += limit
-  }
-  return files
-}
-
-async function scanStorageOrphansV409() {
-  if (storageRecoveryV409.busy) return
-  storageRecoveryV409.busy = true
-
-  const scan = document.getElementById('storage-recovery-scan-v409')
-  const status = document.getElementById('storage-recovery-status-v409')
-  const download = document.getElementById('storage-recovery-download-v409')
-  if (scan) scan.disabled = true
-  if (status) status.textContent = 'Procurando...'
-
-  try {
-    const known = knownPhotoPathsV409()
-    const folders = storageFoldersKnownV409()
-    const orphanEntries = []
-    const seen = new Set()
-
-    for (const folder of folders) {
-      let files
-      try {
-        files = await listStorageFolderV409(folder)
-      } catch (error) {
-        console.warn('[JR V40.9] Falha ao listar pasta', folder, error)
-        continue
-      }
-
-      for (const file of files) {
-        const name = String(file?.name || '')
-        if (!/\.(?:jpe?g|png|webp|heic)$/i.test(name)) continue
-        const path = `${folder}/${name}`
-        if (known.has(path) || seen.has(path)) continue
-        seen.add(path)
-
-        const parts = folder.split('/')
-        const workDate = parts[parts.length - 1] || ''
-        const minute = photoMinuteFromFileNameV4061(name)
-        orphanEntries.push({
-          rowId: `orphan:${path}`,
-          bucket: 'fotos',
-          path,
-          fileName: name,
-          label: 'Foto órfã encontrada no Storage',
-          order: '',
-          street: '',
-          team: parts.length >= 2 ? parts[parts.length - 2] : 'Storage',
-          workDate,
-          minute,
-          timeText: Number.isFinite(minute) ? photoTimeTextFromMinuteV4061(minute) : '',
-          takenAt: file?.created_at || file?.updated_at || '',
-        })
-      }
-    }
-
-    storageRecoveryV409.orphanEntries = orphanEntries
-    if (status) status.textContent = `${orphanEntries.length} foto(s) órfã(s) encontrada(s).`
-    if (download) download.classList.toggle('hidden', linkedPhotoEntriesV409().length + orphanEntries.length === 0)
-    toast(`Conferência concluída: ${orphanEntries.length} foto(s) órfã(s) encontrada(s).`)
-  } catch (error) {
-    if (status) status.textContent = 'Falha na busca.'
-    toast(friendlyError(error), true)
-  } finally {
-    storageRecoveryV409.busy = false
-    if (scan) scan.disabled = false
-  }
-}
-
-async function downloadAllExistingStoragePhotosV409() {
-  try {
-    const map = new Map()
-    for (const entry of [...linkedPhotoEntriesV409(), ...storageRecoveryV409.orphanEntries]) {
-      const key = `${entry.bucket}|${entry.path}`
-      if (!map.has(key)) map.set(key, entry)
-    }
-    const entries = [...map.values()]
-    if (!entries.length) throw new Error('Nenhuma foto existente foi encontrada no período.')
-
-    toast(`Baixando ${entries.length} foto(s) existentes...`)
-    const downloaded = await downloadPhotoSetV4061(entries)
-    if (downloaded.length !== entries.length) {
-      throw new Error(`Esperadas ${entries.length} fotos, mas ${downloaded.length} foram baixadas.`)
-    }
-
-    const used = new Set()
-    for (const item of downloaded) {
-      const entry = item.entry
-      const team = zipSafePartV4061(entry.team || 'SEM_EQUIPE')
-      const date = zipSafePartV4061(entry.workDate || 'SEM_DATA')
-      const base = zipSafePartV4061(entry.fileName || 'foto.jpg', 'foto.jpg')
-      let candidate = `${team}/${date}/${base}`
-      let index = 1
-      const dot = candidate.lastIndexOf('.')
-      const stem = dot > 0 ? candidate.slice(0, dot) : candidate
-      const ext = dot > 0 ? candidate.slice(dot) : ''
-      while (used.has(candidate.toLowerCase())) candidate = `${stem}_${index++}${ext}`
-      used.add(candidate.toLowerCase())
-      item.zipPath = candidate
-    }
-
-    const zip = buildZipBlobV4061(downloaded)
-    await downloadBlob(zip, `TODAS_FOTOS_EXISTENTES_${state.range.start}_A_${state.range.end}.zip`)
-    toast(`${downloaded.length} foto(s) existentes incluídas no ZIP.`)
-  } catch (error) {
-    toast(friendlyError(error), true)
-  }
-}
-
-document.addEventListener('jr:imported-records-v21', () => {
-  moduleRenderCacheV31.delete('codes')
-  moduleRenderCacheV31.delete('reports')
-})
-
 function rangeSummaryForTeam(team) {
-  const perf = ensureRangePerformanceV409()
-  const normalized = normalizeText(team)
-  if (perf.summaryByTeam.has(normalized)) return perf.summaryByTeam.get(normalized)
-
   const profileMap = profileMapById()
-  const summary = buildSummary(
-    perf.recordsByTeam.get(normalized) || [],
-    perf.manifestsByTeam.get(normalized) || [],
+  return buildSummary(
+    recordsForTeam(team, profileMap, state.range.records),
+    manifestsForTeam(team, profileMap, state.range.manifests),
     profileMap,
   )
+}
 
-  perf.summaryByTeam.set(normalized, summary)
-  return summary
-}
 function teamsForRange() {
-  return [...ensureRangePerformanceV409().teamNames]
-}
-function reportRecordsForTeam(team) {
   const profileMap = profileMapById()
-  return codesRecordsForTeamV21(team)
+  const names = new Set(configuredTeamNames())
+  state.range.records.forEach((row) => { const team = recordTeam(row, profileMap); if (team) names.add(team) })
+  state.range.manifests.forEach((manifest) => { const team = profileMap.get(manifest.user_id)?.team_name || manifest.team_name; if (team) names.add(String(team).trim()) })
+  return [...names].filter(Boolean).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+}
+
+function reportRecordsForTeam(team) {
+  const summary = rangeSummaryForTeam(team)
+  return summary.active
     .filter((row) => {
       const score = recordScore(row)
       if (state.reportKind === 'points' && score.normal === 0) return false
       if (state.reportKind === 'surveys' && score.levantamento === 0) return false
       if (state.reportObservation && state.range.start === state.range.end) {
-        if (!recordSearchText(row, profileMap).includes(state.reportObservation)) return false
+        if (!recordSearchText(row, summary.profileMap).includes(state.reportObservation)) return false
       }
       return true
     })
     .sort((a, b) => recordSortTimestamp(a) - recordSortTimestamp(b) || String(a.id || '').localeCompare(String(b.id || '')))
 }
+
 function renderObservationSuggestions() {
   // V19: sugestões removidas para evitar trabalho desnecessário no navegador.
   if (els.reportsObservationOptions) els.reportsObservationOptions.innerHTML = ''
@@ -6476,10 +6155,12 @@ function recordLabel(row, profileMap) {
 }
 
 function photoExpected(record, type) {
-  const score = recordScore(record)
-  if (type === 'time') return score.normal > 0
-  return score.levantamento > 0
+  if (type === 'time') return hasText(record.timePhotoFileName) || hasText(record.timePhotoTakenAt) || hasText(record.timePhotoStoragePath)
+  return hasText(record.surveyPhotoFileName) || hasText(record.surveyPhotoTakenAt) || hasText(record.surveyPhotoStoragePath)
 }
+
+
+
 function manifestIssueOwners(manifests, profileMap) {
   const maps = {
     active: new Map(),
