@@ -45,6 +45,318 @@ const GLOBAL_KEY = '__matrix__'
 // JR_GESTAO_OBSERVACOES_INTELIGENTES_V40_13=20260827
 
 // JR_GESTAO_OBSERVACOES_SEM_CORTE_V40_14_3=20260827
+
+// JR_GESTAO_OBSERVACOES_FIXA_CENTRAL_V40_14_6=20260827
+function jrInstallObservationFixedCentralV4146(){
+  let style=document.getElementById('jr-observation-fixed-central-v4146')
+  if(!style){
+    style=document.createElement('style')
+    style.id='jr-observation-fixed-central-v4146'
+    document.head.appendChild(style)
+  }
+
+  style.textContent=`
+    /* V40.14.6: SOMENTE CONTENCAO/CENTRALIZACAO DO MODAL EXISTENTE */
+
+    #services-observation-viewer.services-observation-viewer{
+      width:min(820px,calc(100vw - 24px))!important;
+      max-width:min(820px,calc(100vw - 24px))!important;
+      min-width:0!important;
+
+      margin-left:auto!important;
+      margin-right:auto!important;
+
+      box-sizing:border-box!important;
+
+      overflow-x:hidden!important;
+      overflow-y:hidden!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-card{
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+
+      margin-left:auto!important;
+      margin-right:auto!important;
+
+      box-sizing:border-box!important;
+
+      overflow-x:hidden!important;
+      overflow-y:hidden!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-header{
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+
+      margin-left:0!important;
+      margin-right:0!important;
+      padding-left:14px!important;
+      padding-right:14px!important;
+
+      box-sizing:border-box!important;
+      text-align:center!important;
+
+      overflow-x:hidden!important;
+    }
+
+    #services-observation-viewer .services-viewer-days{
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+
+      display:flex!important;
+      flex-wrap:wrap!important;
+      justify-content:center!important;
+      align-items:center!important;
+      gap:5px!important;
+
+      margin-left:0!important;
+      margin-right:0!important;
+      padding:8px 12px!important;
+
+      box-sizing:border-box!important;
+
+      white-space:normal!important;
+      overflow-x:hidden!important;
+      overflow-y:visible!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-body{
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+
+      display:flex!important;
+      flex-direction:column!important;
+      align-items:center!important;
+      gap:10px!important;
+
+      margin:0!important;
+      padding:10px 0 14px!important;
+
+      box-sizing:border-box!important;
+
+      overflow-x:hidden!important;
+      overflow-y:auto!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-body > *{
+      min-width:0!important;
+      max-width:calc(100% - 20px)!important;
+      box-sizing:border-box!important;
+    }
+
+    /* CARD DE CADA EQUIPE: SEMPRE DENTRO DO RETANGULO E CENTRALIZADO */
+    #services-observation-viewer .services-viewer-team{
+      position:relative!important;
+      inset:auto!important;
+      left:auto!important;
+      right:auto!important;
+      top:auto!important;
+      bottom:auto!important;
+
+      transform:none!important;
+      translate:none!important;
+      float:none!important;
+      clear:both!important;
+
+      display:block!important;
+      grid-column:1 / -1!important;
+
+      width:calc(100% - 20px)!important;
+      max-width:calc(100% - 20px)!important;
+      min-width:0!important;
+
+      height:auto!important;
+      min-height:0!important;
+      max-height:none!important;
+
+      margin:0 auto!important;
+      padding:10px 12px!important;
+
+      box-sizing:border-box!important;
+
+      text-align:center!important;
+
+      overflow-x:hidden!important;
+      overflow-y:visible!important;
+    }
+
+    /* CABECALHO DA EQUIPE NAO PODE MAIS IR PARA ESQUERDA/DIREITA */
+    #services-observation-viewer .services-viewer-team > header{
+      position:relative!important;
+      inset:auto!important;
+      left:auto!important;
+      right:auto!important;
+
+      transform:none!important;
+      translate:none!important;
+
+      display:flex!important;
+      flex-direction:column!important;
+      align-items:center!important;
+      justify-content:center!important;
+      flex-wrap:nowrap!important;
+      gap:4px!important;
+
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+
+      margin:0 auto 7px!important;
+      padding:0!important;
+
+      box-sizing:border-box!important;
+      text-align:center!important;
+
+      overflow-x:hidden!important;
+      overflow-y:visible!important;
+    }
+
+    #services-observation-viewer .services-viewer-team > header > *{
+      width:auto!important;
+      max-width:100%!important;
+      min-width:0!important;
+
+      margin-left:auto!important;
+      margin-right:auto!important;
+
+      text-align:center!important;
+      box-sizing:border-box!important;
+    }
+
+    /* CONTEUDO SEM DESLOCAMENTO LATERAL */
+    #services-observation-viewer .services-viewer-team-content,
+    #services-observation-viewer .services-viewer-service,
+    #services-observation-viewer .services-viewer-manual,
+    #services-observation-viewer .services-viewer-empty,
+    #services-observation-viewer .services-viewer-manual-important{
+      position:relative!important;
+      inset:auto!important;
+      left:auto!important;
+      right:auto!important;
+
+      transform:none!important;
+      translate:none!important;
+
+      display:block!important;
+
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+
+      height:auto!important;
+      min-height:0!important;
+      max-height:none!important;
+
+      margin-left:auto!important;
+      margin-right:auto!important;
+      padding-left:8px!important;
+      padding-right:8px!important;
+
+      box-sizing:border-box!important;
+
+      text-align:center!important;
+
+      overflow-x:hidden!important;
+      overflow-y:visible!important;
+    }
+
+    /* TEXTO: CABE SEM VAZAR */
+    #services-observation-viewer .services-viewer-team p,
+    #services-observation-viewer .services-viewer-team strong,
+    #services-observation-viewer .services-viewer-team span,
+    #services-observation-viewer .services-viewer-team small,
+    #services-observation-viewer .services-viewer-team b{
+      position:relative!important;
+      left:auto!important;
+      right:auto!important;
+      transform:none!important;
+
+      display:block!important;
+
+      width:auto!important;
+      max-width:100%!important;
+      min-width:0!important;
+
+      margin-left:auto!important;
+      margin-right:auto!important;
+
+      box-sizing:border-box!important;
+
+      white-space:normal!important;
+      overflow-wrap:anywhere!important;
+      word-break:normal!important;
+
+      text-align:center!important;
+    }
+
+    #services-observation-viewer .services-viewer-service p,
+    #services-observation-viewer .services-viewer-manual p{
+      font-size:12px!important;
+      line-height:1.4!important;
+    }
+
+    #services-observation-viewer .services-viewer-service small,
+    #services-observation-viewer .services-viewer-manual small{
+      font-size:10px!important;
+      line-height:1.3!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-footer{
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+
+      margin-left:0!important;
+      margin-right:0!important;
+      padding-left:12px!important;
+      padding-right:12px!important;
+
+      box-sizing:border-box!important;
+
+      text-align:center!important;
+
+      overflow-x:hidden!important;
+    }
+
+    #services-observation-viewer .services-observation-viewer-footer > *{
+      max-width:100%!important;
+      min-width:0!important;
+      margin-left:auto!important;
+      margin-right:auto!important;
+      box-sizing:border-box!important;
+    }
+
+    @media(max-width:700px){
+      #services-observation-viewer.services-observation-viewer{
+        width:calc(100vw - 12px)!important;
+        max-width:calc(100vw - 12px)!important;
+      }
+
+      #services-observation-viewer .services-viewer-team{
+        width:calc(100% - 12px)!important;
+        max-width:calc(100% - 12px)!important;
+        padding:9px 8px!important;
+      }
+
+      #services-observation-viewer .services-observation-viewer-body > *{
+        max-width:calc(100% - 12px)!important;
+      }
+
+      #services-observation-viewer .services-viewer-service p,
+      #services-observation-viewer .services-viewer-manual p{
+        font-size:11px!important;
+      }
+    }
+  `
+}
+
+jrInstallObservationFixedCentralV4146()
+
 function jrInstallObservationNoClipV4142() {
   let style = document.getElementById('jr-observation-no-clip-v4142')
   if (!style) {
