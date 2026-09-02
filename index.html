@@ -1325,30 +1325,24 @@
 <script defer src="./src/ajuste-rede-desempenho-v6-20260801-221649.js?v=20260801-221649"></script>
   <!-- JR_GESTAO_OBS_CACHE_V40_12=20260827 -->
 
-<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_16_INICIO -->
-<script type="module" id="jr-services-boot-v40-16-16">
-  const jrServicesBootUrlV401616 =
-    './src/services-lazy-v40-16-16.js?v=v40-16-16-20260902-matriz-atomica-pontuacao-fresca-' + Date.now();
-
-  import(jrServicesBootUrlV401616).catch((error) => {
+<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_18_INICIO -->
+<script type="module" id="jr-services-boot-v40-16-18">
+  const jrServicesBootUrlV401618 =
+    './src/services-lazy-v40-16-18.js?v=v40-16-18-20260902-observacoes-delegadas-' + Date.now();
+  import(jrServicesBootUrlV401618).catch((error) => {
     const detail = String(error?.message || error || 'Falha desconhecida');
-    const loading = document.getElementById('services-loading');
+    document.getElementById('services-loading')?.classList.add('hidden');
     const state = document.getElementById('services-save-state');
     const errorNode = document.getElementById('services-error');
-    loading?.classList.add('hidden');
-    if (state) {
-      state.textContent = 'Falha ao abrir Serviços Executados: ' + detail;
-      state.title = String(error?.stack || detail);
-    }
+    if (state) state.textContent = 'Falha ao abrir Serviços Executados: ' + detail;
     if (errorNode) {
       errorNode.textContent = 'Falha ao abrir Serviços Executados: ' + detail;
       errorNode.classList.remove('hidden');
       errorNode.classList.add('error');
-      errorNode.title = String(error?.stack || detail);
     }
-    console.error('[JR V40.16.16] Falha no boot:', error);
+    console.error('[JR V40.16.18] Falha no boot:', error);
   });
 </script>
-<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_16_FIM -->
+<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_18_FIM -->
 </body>
 </html>
