@@ -1077,6 +1077,97 @@ function jrObsActionLabelV413(actions, objectLabel) {
   return objectLabel
 }
 
+// JR_GESTAO_OBSERVACOES_PLANILHA_INTELIGENTES_V40_16_4=20260902
+function jrObsNormalizeV4162(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function jrObsPrettyDetailV4162(value) {
+  return String(value || '')
+    .replace(/^[\s:;,.\-–—]+|[\s:;,.\-–—]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120)
+}
+
+function jrObsNamedPlacesV4162(raw) {
+  const source = String(raw || '').trim()
+  if (!source) return []
+
+  const result = []
+  const seen = new Set()
+  const add = (kind, detail) => {
+    const clean = jrObsPrettyDetailV4162(detail)
+    const canonicalKind = String(kind || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+
+    const labels = {
+      PRACA: 'PRAÇA',
+      CAMPO: 'CAMPO',
+      EVENTO: 'EVENTO',
+      ESCOLA: 'ESCOLA',
+      PARQUE: 'PARQUE',
+      QUADRA: 'QUADRA',
+      ROTATORIA: 'ROTATÓRIA',
+    }
+
+    const label = labels[canonicalKind] || canonicalKind
+    if (!label || !clean) return
+    const key = jrObsNormalizeV4162(`${label}:${clean}`)
+    if (seen.has(key)) return
+    seen.add(key)
+    result.push(`${label}: ${clean}`)
+  }
+
+  // Formato oficial salvo pelo app: "PRAÇA: Nome", "CAMPO: Nome", "EVENTO: Nome".
+  const explicit = /\b(PRAÇA|PRACA|CAMPO|EVENTO|ESCOLA|PARQUE|QUADRA|ROTATÓRIA|ROTATORIA)\s*:\s*([^•|;\n]+)/gi
+  let match
+  while ((match = explicit.exec(source))) {
+    add(match[1], match[2])
+  }
+
+  // Também aceita observações curtas como "Praça dos Universitários" sem dois-pontos,
+  // mas só quando o trecho começa pelo tipo do local para não inventar nome.
+  const segments = source
+    .split(/\s*(?:•|\||;|\n)\s*/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+
+  for (const segment of segments) {
+    if (/\b(?:instal|implant|manuten|retir|troca|lanc|escav|valeta|buraco|cabo|poste|refletor|tomad|lampad|contact|rele|fio|conector)\b/i.test(segment)) {
+      continue
+    }
+    const loose = segment.match(/^\s*(PRAÇA|PRACA|CAMPO|EVENTO|ESCOLA|PARQUE|QUADRA|ROTATÓRIA|ROTATORIA)\s+(.{3,120})$/i)
+    if (loose) add(loose[1], loose[2])
+  }
+
+  return result.slice(0, 8)
+}
+
+function jrObsActionV413(text) {
+  const normalized = jrObsNormalizeV4162(text)
+  return {
+    install: /\b(?:instal|implant|montag|colocac)/.test(normalized),
+    remove: /\b(?:retir|remoc|remov|desinstal)/.test(normalized),
+    maintenance: /\b(?:manuten|reparo|acion|desacion|regulag|ajust)/.test(normalized),
+  }
+}
+
+function jrObsActionLabelV413(actions, objectLabel) {
+  if (actions.remove && actions.install) return `RETIRADA E INSTALAÇÃO DE ${objectLabel}`
+  if (actions.install) return `INSTALAÇÃO DE ${objectLabel}`
+  if (actions.remove) return `RETIRADA DE ${objectLabel}`
+  if (actions.maintenance) return `MANUTENÇÃO DE ${objectLabel}`
+  return objectLabel
+}
+
 function smartObservationSummaryV413(value) {
   const raw = String(value || '').trim()
   if (!raw) return ''
@@ -5445,22 +5536,39 @@ function importedImportantForRecordV25(
   entry,
   record,
 ) {
-  const rawLines =
-    importedImportantLinesV28(
-      entry,
-    )
+  const result = new Map()
 
-  if (rawLines.length) {
-    return rawLines
+  // Observacao reconhecida pela importacao.
+  for (const text of importedImportantLinesV28(entry)) {
+    const clean = String(text || '').trim()
+    if (clean) result.set(normalizeImportText(clean), clean)
   }
 
-  /*
-    Fallback para serviço identificado por código/produto,
-    mesmo se a observação estiver vazia.
-  */
-  return detectImportantServicesExpandedV28(
-    record,
-  )
+  // SEMPRE soma o detector do servico/codigo. Antes esse detector era descartado
+  // quando a observacao ja tinha algum match, fazendo destaques sumirem.
+  for (const text of detectImportantServicesExpandedV28(record)) {
+    const clean = String(text || '').trim()
+    if (clean) result.set(normalizeImportText(clean), clean)
+  }
+
+  // Usa a mesma inteligencia das observacoes do Servicos Executados para
+  // variacoes de escrita: escavacao/valeta/buraco, evento, praca, campo,
+  // escola, parque, quadra, rotatoria, cabo, refletor, tomada, lampada,
+  // contactora, caixa de comando e implantacao de poste.
+  const smartSource = [
+    entry?.observation,
+    entry?.surveyObservation,
+    entry?.serviceName,
+    record?.serviceType?.name,
+  ].filter(Boolean).join(' • ')
+
+  const smart = smartObservationSummaryV413(smartSource)
+  for (const text of String(smart || '').split(' • ')) {
+    const clean = String(text || '').trim()
+    if (clean) result.set(normalizeImportText(clean), clean)
+  }
+
+  return [...result.values()]
 }
 
 function importProductsFromCodes(row, headers) {

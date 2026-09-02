@@ -53,7 +53,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v28.js?v=v40-16-2-20260902-download4-obs'
+        './services-board-v28.js?v=v40-16-4-20260902-gerador-robusto-destaques'
       )
         .then((module) => {
           const first =
