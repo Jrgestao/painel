@@ -385,6 +385,21 @@
   <link rel="stylesheet" href="./src/v40-4-mobile-observation-flow.css?v=20260812-1" />
   <!-- JR_GESTAO_V40_4_MOBILE_OBS_FLUXO_ID_CORRIGIDO -->
   <!-- JR_GESTAO_V40_13_CACHE=20260827 -->
+<!-- JR_GESTAO_SPINNER_SERVICOS_V40_16_14_INICIO -->
+<style id="jr-services-spinner-v40-16-14">
+  /* Mantem o spinner de Servicos Executados animando na camada de composicao. */
+  #services-loading .spinner {
+    animation: jrServicesSpinV401614 .72s linear infinite !important;
+    will-change: transform !important;
+    backface-visibility: hidden;
+    transform-origin: 50% 50%;
+  }
+  @keyframes jrServicesSpinV401614 {
+    from { transform: translateZ(0) rotate(0deg); }
+    to { transform: translateZ(0) rotate(360deg); }
+  }
+</style>
+<!-- JR_GESTAO_SPINNER_SERVICOS_V40_16_14_FIM -->
 </head>
 <body>
   <div
@@ -892,7 +907,7 @@
             <button id="services-show-all-columns" class="outline-button services-action-button" type="button">Mostrar todas as equipes desta planilha</button>
             <button id="services-toggle-observations" class="outline-button services-action-button" type="button"><span data-icon="eye"></span><span class="button-label">Ocultar observações</span></button>
             <button id="services-import-workbook" class="outline-button services-action-button services-import-button" type="button"><span data-icon="file-spreadsheet"></span><span class="button-label">Importar planilha</span></button>
-            <button id="services-download" class="primary-button services-action-button services-download-button" type="button"><span data-icon="download"></span><span class="button-label">Baixar 4 planilhas</span></button>
+            <button id="services-download" class="primary-button services-action-button services-download-button" type="button"><span data-icon="download"></span><span class="button-label">Baixar planilha</span></button>
 
             <div id="services-dirty-actions" class="services-dirty-actions hidden" aria-label="Alterações pendentes">
               <button id="services-save-all"
@@ -1310,12 +1325,12 @@
 <script defer src="./src/ajuste-rede-desempenho-v6-20260801-221649.js?v=20260801-221649"></script>
   <!-- JR_GESTAO_OBS_CACHE_V40_12=20260827 -->
 
-<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_13_INICIO -->
-<script type="module" id="jr-services-boot-v40-16-13">
-  const jrServicesBootUrlV401613 =
-    './src/services-lazy-v40-16-13.js?v=v40-16-13-20260902-board-lazy-novos-' + Date.now();
+<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_14_INICIO -->
+<script type="module" id="jr-services-boot-v40-16-14">
+  const jrServicesBootUrlV401614 =
+    './src/services-lazy-v40-16-14.js?v=v40-16-14-20260902-xlsx-unico-spinner-' + Date.now();
 
-  import(jrServicesBootUrlV401613).catch((error) => {
+  import(jrServicesBootUrlV401614).catch((error) => {
     const detail = String(error?.message || error || 'Falha desconhecida');
     const loading = document.getElementById('services-loading');
     const state = document.getElementById('services-save-state');
@@ -1331,9 +1346,9 @@
       errorNode.classList.add('error');
       errorNode.title = String(error?.stack || detail);
     }
-    console.error('[JR V40.16.13] Falha no boot:', error);
+    console.error('[JR V40.16.14] Falha no boot:', error);
   });
 </script>
-<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_13_FIM -->
+<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_14_FIM -->
 </body>
 </html>
