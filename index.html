@@ -1309,38 +1309,31 @@
   <script type="module" src="./src/main-sem-flash-mobile-v8-7-20260802-144500.js?v=v40-13-20260827-1112"></script>
 <script defer src="./src/ajuste-rede-desempenho-v6-20260801-221649.js?v=20260801-221649"></script>
   <!-- JR_GESTAO_OBS_CACHE_V40_12=20260827 -->
-<!-- JR_GESTAO_SERVICOS_BOOT_SEM_CACHE_V40_16_10_INICIO -->
-<script type="module" id="jr-services-boot-v40-16-10">
-  // V40.16.10: nunca reutiliza o lazy loader de uma aba/cache antigo.
-  const jrServicesBootUrlV401610 =
-    './src/services-lazy-v29.js?v=v40-16-10-' + Date.now();
 
-  import(jrServicesBootUrlV401610).catch((error) => {
+<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_13_INICIO -->
+<script type="module" id="jr-services-boot-v40-16-13">
+  const jrServicesBootUrlV401613 =
+    './src/services-lazy-v40-16-13.js?v=v40-16-13-20260902-board-lazy-novos-' + Date.now();
+
+  import(jrServicesBootUrlV401613).catch((error) => {
     const detail = String(error?.message || error || 'Falha desconhecida');
     const loading = document.getElementById('services-loading');
     const state = document.getElementById('services-save-state');
     const errorNode = document.getElementById('services-error');
-
     loading?.classList.add('hidden');
     if (state) {
-      state.textContent = 'Falha ao carregar o módulo novo: ' + detail;
+      state.textContent = 'Falha ao abrir Serviços Executados: ' + detail;
       state.title = String(error?.stack || detail);
     }
     if (errorNode) {
-      errorNode.textContent = 'Falha ao carregar o módulo novo: ' + detail;
+      errorNode.textContent = 'Falha ao abrir Serviços Executados: ' + detail;
       errorNode.classList.remove('hidden');
       errorNode.classList.add('error');
       errorNode.title = String(error?.stack || detail);
     }
-    window.__JR_SERVICES_BOOT_ERROR_V401610__ = {
-      message: detail,
-      stack: String(error?.stack || ''),
-      at: new Date().toISOString(),
-      url: jrServicesBootUrlV401610,
-    };
-    console.error('[JR V40.16.10] Falha no boot sem cache:', error);
+    console.error('[JR V40.16.13] Falha no boot:', error);
   });
 </script>
-<!-- JR_GESTAO_SERVICOS_BOOT_SEM_CACHE_V40_16_10_FIM -->
+<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_13_FIM -->
 </body>
 </html>
