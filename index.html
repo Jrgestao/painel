@@ -1325,11 +1325,11 @@
 <script defer src="./src/ajuste-rede-desempenho-v6-20260801-221649.js?v=20260801-221649"></script>
   <!-- JR_GESTAO_OBS_CACHE_V40_12=20260827 -->
 
-<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_18_INICIO -->
-<script type="module" id="jr-services-boot-v40-16-18">
-  const jrServicesBootUrlV401618 =
-    './src/services-lazy-v40-16-18.js?v=v40-16-18-20260902-observacoes-delegadas-' + Date.now();
-  import(jrServicesBootUrlV401618).catch((error) => {
+<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_19_INICIO -->
+<script type="module" id="jr-services-boot-v40-16-19">
+  const jrServicesBootUrlV401619 =
+    './src/services-lazy-v40-16-19.js?v=v40-16-19-20260902-observacoes-funcao-original-' + Date.now();
+  import(jrServicesBootUrlV401619).catch((error) => {
     const detail = String(error?.message || error || 'Falha desconhecida');
     document.getElementById('services-loading')?.classList.add('hidden');
     const state = document.getElementById('services-save-state');
@@ -1340,9 +1340,9 @@
       errorNode.classList.remove('hidden');
       errorNode.classList.add('error');
     }
-    console.error('[JR V40.16.18] Falha no boot:', error);
+    console.error('[JR V40.16.19] Falha no boot:', error);
   });
 </script>
-<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_18_FIM -->
+<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_19_FIM -->
 </body>
 </html>
