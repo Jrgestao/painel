@@ -85,7 +85,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v40-16-9.js?v=v40-16-9-20260902-servicos-local-sem-cdn'
+        './services-board-v40-16-11.js?v=v40-16-11-20260902-syntax-esm-mes-cg'
       )
         .then((module) => {
           const first =
@@ -204,7 +204,7 @@ function modulePreloadV25(href) {
 
 function prepareModulesV25() {
   modulePreloadV25(
-    './src/services-board-v40-16-9.js?v=v40-16-9-20260902-servicos-local-sem-cdn',
+    './src/services-board-v40-16-11.js?v=v40-16-11-20260902-syntax-esm-mes-cg',
   )
   modulePreloadV25(
     './src/services-home-overlay-v29.js?v=periodo-foto-v37-1-20260811',
