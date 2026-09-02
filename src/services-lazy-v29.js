@@ -53,7 +53,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v28.js?v=v40-16-7-20260902-servicos-sem-state-mes-atual'
+        './services-board-v28.js?v=v40-16-8-20260902-restaura-matriz-estavel'
       )
         .then((module) => {
           const first =
@@ -183,7 +183,7 @@ function modulePreloadV25(href) {
 
 function prepareModulesV25() {
   modulePreloadV25(
-    './src/services-board-v28.js?v=v40-16-7-20260902-servicos-sem-state-mes-atual',
+    './src/services-board-v28.js?v=v40-16-8-20260902-restaura-matriz-estavel',
   )
   modulePreloadV25(
     './src/services-home-overlay-v29.js?v=periodo-foto-v37-1-20260811',
