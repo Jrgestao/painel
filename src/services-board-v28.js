@@ -2070,38 +2070,15 @@ function bindEvents() {
   })
 
   document.addEventListener('jr:monthdata', (event) => {
-    const nextCache =
-      event.detail || null
-    const nextMonth =
-      event.detail?.month ||
-      currentMonthValue()
+    const nextCache = event.detail || null
+    const nextMonth = normalizeMonth(event.detail?.month)
 
-    const cacheChanged =
-      state.cache !== nextCache ||
-      state.month !== nextMonth
+    // Cache da tela Início só entra se for do MES que Serviços Executados já escolheu.
+    if (!nextMonth || nextMonth !== state.month) return
 
-    state.cache = nextCache
-    state.profile =
-      event.detail?.profile || null
-    state.month = nextMonth
-
-    if (cacheChanged) {
-      invalidateFingerprintV22()
-      state.lastBoardRenderSignatureV25 = ''
-      state.boardWasRenderedV25 = false
-    }
-
-    setUiControlValue(
-      'services-month-filter',
-      state.month,
-    )
-
+    jrAdoptServicesCacheV40166(nextCache, nextMonth)
     if (isServicesPageVisible()) {
-      void loadSettingsAndRender(
-        false,
-        true,
-        false,
-      )
+      void loadSettingsAndRender(false, true, false)
     }
   })
 
@@ -2115,15 +2092,23 @@ function bindEvents() {
 
   els.month?.addEventListener('change', () => {
     const month = normalizeMonth(els.month.value)
-    if (!month || month === state.month) return
+    if (!month) {
+      jrSetServicesMonthUiV40166(
+        state.month || jrActualCurrentMonthV40166(),
+      )
+      return
+    }
 
-    if (hasUnsavedChanges()) {
-      setUiControlValue('services-month-filter', state.month)
+    if (hasUnsavedChanges() && month !== state.month) {
+      jrSetServicesMonthUiV40166(state.month)
       openUnsavedDialog({ type: 'month', value: month })
       return
     }
 
-    requestMonthFromMain(month)
+    void jrLoadServicesMonthV40166(
+      month,
+      normalizeMonth(state.cache?.month) !== month,
+    )
   })
 
   els.metric?.addEventListener('change', () => {
@@ -2617,10 +2602,19 @@ function bindEvents() {
 
 
 
-// JR_GESTAO_MATRIZ_SEM_TRAVAMENTO_V40_16_5=20260902
-const JR_SERVICES_TIMEOUT_V40165 = 8000
+// JR_GESTAO_SERVICOS_AUTONOMOS_V40_16_7=20260902
+const JR_SERVICES_TIMEOUT_V40166 = 10000
+let jrMonthLoadTokenV40166 = 0
 
-function jrTimeoutV40165(promise, timeoutMs = JR_SERVICES_TIMEOUT_V40165, label = 'operação') {
+function jrActualCurrentMonthV40166() {
+  return monthFormatterV22.format(new Date())
+}
+
+function jrTimeoutV40166(
+  promise,
+  timeoutMs = JR_SERVICES_TIMEOUT_V40166,
+  label = 'operação',
+) {
   return new Promise((resolve, reject) => {
     let settled = false
     const timer = window.setTimeout(() => {
@@ -2646,39 +2640,66 @@ function jrTimeoutV40165(promise, timeoutMs = JR_SERVICES_TIMEOUT_V40165, label 
   })
 }
 
-function jrApplyMainCacheV40165(cache, requestedMonth) {
-  if (!cache || normalizeMonth(cache.month) !== requestedMonth) return false
+function jrSetServicesMonthUiV40166(value) {
+  const target =
+    normalizeMonth(value) ||
+    jrActualCurrentMonthV40166()
+
+  state.month = target
+  if (els.month) els.month.value = target
+  setUiControlValue('services-month-filter', target)
+
+  const label = document.querySelector(
+    '[data-month-picker-for="services-month-filter"] .picker-trigger-value',
+  )
+  if (label) {
+    try {
+      label.textContent = monthLabel(target)
+    } catch (_error) {
+      label.textContent = target
+    }
+  }
+
+  return target
+}
+
+function jrResetMonthDerivedStateV40166() {
+  state.settingsMonth = ''
+  state.settings = new Map()
+  state.drafts.clear()
+  state.settingsLoadedAtV22 = 0
+  state.settingsRevisionV22 = ''
+  state.settingsLoadPromiseV22 = null
+  state.teamFilterSignatureV22 = ''
+  state.sheetCache = null
+  state.sheetCacheSource = null
+  state.sheetCacheMonth = ''
+  state.matrixCacheFingerprint = ''
+  state.lastBoardRenderSignatureV25 = ''
+  state.boardWasRenderedV25 = false
+  invalidateFingerprintV22()
+}
+
+function jrAdoptServicesCacheV40166(cache, requestedMonth) {
+  const target = normalizeMonth(requestedMonth)
+  if (!target || normalizeMonth(cache?.month) !== target) {
+    return false
+  }
+
+  const previousMonth = normalizeMonth(state.cache?.month)
+  const monthChanged = previousMonth && previousMonth !== target
+  if (monthChanged) jrResetMonthDerivedStateV40166()
+
   state.cache = cache
   state.profile = cache.profile || state.profile || null
-  state.month = requestedMonth
-  setUiControlValue('services-month-filter', requestedMonth)
+  jrSetServicesMonthUiV40166(target)
+  invalidateFingerprintV22()
+  state.lastBoardRenderSignatureV25 = ''
+  state.boardWasRenderedV25 = false
   return true
 }
 
-function jrWaitForMainCacheV40165(requestedMonth, timeoutMs = 1800) {
-  const current = window.__JR_SERVICES_MONTH_CACHE__
-  if (normalizeMonth(current?.month) === requestedMonth) {
-    return Promise.resolve(true)
-  }
-
-  return new Promise((resolve) => {
-    let done = false
-    const finish = (value) => {
-      if (done) return
-      done = true
-      document.removeEventListener('jr:monthdata', onMonthData)
-      window.clearTimeout(timer)
-      resolve(value)
-    }
-    const onMonthData = (event) => {
-      if (normalizeMonth(event?.detail?.month) === requestedMonth) finish(true)
-    }
-    const timer = window.setTimeout(() => finish(false), timeoutMs)
-    document.addEventListener('jr:monthdata', onMonthData)
-  })
-}
-
-function jrMonthBoundsV40165(month) {
+function jrMonthBoundsV40166(month) {
   const match = String(month || '').match(/^(\d{4})-(\d{2})$/)
   if (!match) throw new Error('Mês inválido para Serviços Executados.')
 
@@ -2691,26 +2712,25 @@ function jrMonthBoundsV40165(month) {
   const fetchEnd = new Date(next.getTime() + 86400000)
 
   return {
-    start: isoDay(first),
-    next: isoDay(next),
     fetchStart: `${isoDay(fetchStart)}T00:00:00.000Z`,
     fetchEnd: `${isoDay(fetchEnd)}T00:00:00.000Z`,
   }
 }
 
-async function jrFetchAllRowsV40165(fetchPage, pageSize = 1000) {
+async function jrFetchAllRowsV40166(fetchPage, pageSize = 1000) {
   const rows = []
   let from = 0
 
   for (let pageIndex = 0; pageIndex < 100; pageIndex += 1) {
     const to = from + pageSize - 1
-    const response = await jrTimeoutV40165(
+    const response = await jrTimeoutV40166(
       fetchPage(from, to),
-      JR_SERVICES_TIMEOUT_V40165,
+      JR_SERVICES_TIMEOUT_V40166,
       'os pontos do mês',
     )
     const { data, error } = response || {}
     if (error) throw error
+
     const page = Array.isArray(data) ? data : []
     rows.push(...page)
     if (page.length < pageSize) return rows
@@ -2720,11 +2740,12 @@ async function jrFetchAllRowsV40165(fetchPage, pageSize = 1000) {
   throw new Error('A consulta mensal excedeu o limite seguro de páginas.')
 }
 
-async function jrLoadMonthCacheDirectV40165() {
-  const month = normalizeMonth(state.month) || currentMonthValue()
-  const bounds = jrMonthBoundsV40165(month)
+async function jrLoadMonthCacheDirectV40166(requestedMonth) {
+  const month = jrSetServicesMonthUiV40166(requestedMonth)
+  const token = ++jrMonthLoadTokenV40166
+  const bounds = jrMonthBoundsV40166(month)
 
-  const recordsPromise = jrFetchAllRowsV40165((from, to) =>
+  const recordsPromise = jrFetchAllRowsV40166((from, to) =>
     supabase
       .from('service_records')
       .select('id, user_id, data, registro, device_id, deleted_at, deleted_by, deleted_device_id, updated_at, sync_version')
@@ -2734,106 +2755,155 @@ async function jrLoadMonthCacheDirectV40165() {
       .range(from, to),
   )
 
-  const profilesPromise = jrTimeoutV40165(
+  const profilesPromise = jrTimeoutV40166(
     supabase
       .from('profiles')
       .select('id, username, team_name, active, role')
       .order('team_name'),
-    JR_SERVICES_TIMEOUT_V40165,
+    JR_SERVICES_TIMEOUT_V40166,
     'as equipes',
-  )
+  ).catch((error) => {
+    console.warn('[JR V40.16.7] Perfis demoraram; usando cache disponível:', error)
+    return { data: [], error: null }
+  })
 
-  const [records, profilesResponse] = await Promise.all([
+  const sessionPromise = jrTimeoutV40166(
+    supabase.auth.getSession(),
+    5000,
+    'a sessão do usuário',
+  ).catch(() => null)
+
+  const [records, profilesResponse, sessionResponse] = await Promise.all([
     recordsPromise,
     profilesPromise,
+    sessionPromise,
   ])
 
-  if (profilesResponse?.error) throw profilesResponse.error
-  const profiles = Array.isArray(profilesResponse?.data)
+  if (token !== jrMonthLoadTokenV40166 || state.month !== month) {
+    return state.cache
+  }
+
+  const fallbackProfiles =
+    Array.isArray(state.cache?.profiles)
+      ? state.cache.profiles
+      : Array.isArray(window.__JR_SERVICES_MONTH_CACHE__?.profiles)
+        ? window.__JR_SERVICES_MONTH_CACHE__.profiles
+        : []
+
+  const profiles = Array.isArray(profilesResponse?.data) && profilesResponse.data.length
     ? profilesResponse.data
-    : []
+    : fallbackProfiles
+
+  const userId = sessionResponse?.data?.session?.user?.id || ''
+  const profile =
+    profiles.find((item) => String(item?.id || '') === String(userId)) ||
+    state.profile ||
+    window.__JR_SERVICES_MONTH_CACHE__?.profile ||
+    null
+
   const filtered = records.filter((row) =>
     !row?.deleted_at && serviceDateKey(row).startsWith(`${month}-`),
   )
+
+  const previousMonth = normalizeMonth(state.cache?.month)
+  if (previousMonth !== month) jrResetMonthDerivedStateV40166()
 
   const detail = {
     month,
     records: filtered,
     profiles,
-    profile: state.profile || window.__JR_SERVICES_MONTH_CACHE__?.profile || null,
+    profile,
     updatedAt: Date.now(),
-    directFallbackV40165: true,
+    directServicesV40166: true,
   }
 
   state.cache = detail
-  state.month = month
-  state.profile = detail.profile
-  state.sheetCache = null
-  state.sheetCacheSource = null
-  state.sheetCacheMonth = ''
-  state.matrixCacheFingerprint = ''
-  window.__JR_SERVICES_MONTH_CACHE__ = detail
-
+  state.profile = profile
+  jrSetServicesMonthUiV40166(month)
+  invalidateFingerprintV22()
   return detail
 }
 
-async function jrEnsureMonthCacheV40165() {
-  const requestedMonth =
-    normalizeMonth(state.month) ||
-    normalizeMonth(els.month?.value) ||
-    currentMonthValue()
+async function jrEnsureServicesMonthCacheV40166(
+  requestedMonth,
+  force = false,
+) {
+  const month = jrSetServicesMonthUiV40166(
+    requestedMonth || state.month || jrActualCurrentMonthV40166(),
+  )
 
-  state.month = requestedMonth
-  setUiControlValue('services-month-filter', requestedMonth)
-
-  if (jrApplyMainCacheV40165(
-    window.__JR_SERVICES_MONTH_CACHE__,
-    requestedMonth,
-  )) {
+  if (
+    !force &&
+    state.cache &&
+    normalizeMonth(state.cache.month) === month
+  ) {
     return state.cache
   }
 
-  await jrWaitForMainCacheV40165(requestedMonth)
-  if (jrApplyMainCacheV40165(
-    window.__JR_SERVICES_MONTH_CACHE__,
-    requestedMonth,
-  )) {
+  const mainCache = window.__JR_SERVICES_MONTH_CACHE__
+  if (
+    !force &&
+    normalizeMonth(mainCache?.month) === month &&
+    jrAdoptServicesCacheV40166(mainCache, month)
+  ) {
     return state.cache
   }
 
-  state.month = requestedMonth
-  return jrLoadMonthCacheDirectV40165()
+  return jrLoadMonthCacheDirectV40166(month)
+}
+
+async function jrLoadServicesMonthV40166(
+  requestedMonth,
+  force = false,
+) {
+  const month = jrSetServicesMonthUiV40166(
+    requestedMonth || state.month || jrActualCurrentMonthV40166(),
+  )
+
+  clearError()
+  showLoading(true)
+  if (els.saveState) {
+    els.saveState.textContent = `Carregando ${monthLabel(month)}...`
+  }
+
+  try {
+    await jrEnsureServicesMonthCacheV40166(month, force)
+    if (state.month !== month) return false
+
+    const rendered = await loadSettingsAndRender(false, false, false)
+    if (!rendered && state.cache && state.month === month) {
+      renderTeamFilter()
+      renderBoard()
+    }
+    return true
+  } catch (error) {
+    console.error('[JR V40.16.7] Falha ao montar matriz mensal:', error)
+    setError(friendlyError(error))
+    return false
+  } finally {
+    showLoading(false)
+    updateSaveState()
+  }
 }
 
 async function activateServicesPage() {
-  showLoading(true)
-  clearError()
-
-  try {
-    await jrEnsureMonthCacheV40165()
-    await loadSettingsAndRender(false, false, false)
-  } catch (error) {
-    console.error('[JR V40.16.5] Falha ao montar matriz mensal:', error)
-    setError(friendlyError(error))
-    showLoading(false)
-  }
+  const month = jrSetServicesMonthUiV40166(
+    state.month || jrActualCurrentMonthV40166(),
+  )
+  await jrLoadServicesMonthV40166(month, false)
 }
 
 function syncFromMainCache() {
-  const cache =
-    window.__JR_SERVICES_MONTH_CACHE__
-
-  if (!cache) return
-
-  state.cache = cache
-  state.profile = cache.profile || null
-  state.month =
-    cache.month || currentMonthValue()
-
-  setUiControlValue(
-    'services-month-filter',
-    state.month,
+  // V40.16.7: na inicializacao desta tela, SEMPRE parte do mes atual real.
+  // Nao depende do valor anterior de state.month nem do filtro da Home.
+  const month = jrSetServicesMonthUiV40166(
+    jrActualCurrentMonthV40166(),
   )
+  const cache = window.__JR_SERVICES_MONTH_CACHE__
+
+  // Nunca deixa a tela Início trocar o mês escolhido em Serviços Executados.
+  if (normalizeMonth(cache?.month) !== month) return
+  jrAdoptServicesCacheV40166(cache, month)
 }
 
 function requestMonthFromMain(month, force = false) {
@@ -2925,9 +2995,9 @@ async function loadSettingsAndRender(
       }
 
       try {
-        const result = await jrTimeoutV40165(
+        const result = await jrTimeoutV40166(
           pending,
-          6500,
+          4500,
           'as configurações de Serviços Executados',
         )
 
@@ -2953,13 +3023,13 @@ async function loadSettingsAndRender(
 
         state.settingsMonth = state.month
         state.settingsLoadedAtV22 = Date.now()
-        state.jrSettingsRetryCountV40165 = 0
+        state.jrSettingsRetryCountV40166 = 0
       } catch (error) {
         if (state.settingsLoadPromiseV22 === pending) {
           state.settingsLoadPromiseV22 = null
         }
         settingsWarning = error
-        console.warn('[JR V40.16.5] Configurações demoraram; matriz continuará com fallback:', error)
+        console.warn('[JR V40.16.7] Configurações demoraram; matriz seguirá sem bloquear:', error)
 
         if (state.settingsMonth !== state.month) {
           state.settings = new Map()
@@ -2979,15 +3049,15 @@ async function loadSettingsAndRender(
     renderBoard()
 
     if (settingsWarning && !backgroundOnly) {
-      setError('A matriz foi carregada. As configurações salvas demoraram para responder e serão tentadas novamente.')
+      setError('A matriz foi carregada. As configurações salvas demoraram para responder, mas os pontos do mês já estão disponíveis.')
     }
 
     if (settingsWarning) {
-      const attempts = Number(state.jrSettingsRetryCountV40165 || 0)
-      if (attempts < 2 && !state.jrSettingsRetryTimerV40165) {
-        state.jrSettingsRetryCountV40165 = attempts + 1
-        state.jrSettingsRetryTimerV40165 = window.setTimeout(() => {
-          state.jrSettingsRetryTimerV40165 = null
+      const attempts = Number(state.jrSettingsRetryCountV40166 || 0)
+      if (attempts < 2 && !state.jrSettingsRetryTimerV40166) {
+        state.jrSettingsRetryCountV40166 = attempts + 1
+        state.jrSettingsRetryTimerV40166 = window.setTimeout(() => {
+          state.jrSettingsRetryTimerV40166 = null
           if (state.cache && state.month && !hasUnsavedChanges()) {
             void loadSettingsAndRender(true, true, true)
           }
@@ -2997,7 +3067,7 @@ async function loadSettingsAndRender(
 
     return true
   } catch (error) {
-    console.error('[JR V40.16.5] Erro ao renderizar matriz:', error)
+    console.error('[JR V40.16.7] Erro ao renderizar matriz:', error)
     if (!backgroundOnly) setError(friendlyError(error))
     return false
   } finally {
@@ -5272,11 +5342,11 @@ function hasUnsavedChanges() {
 
 function performRefresh() {
   state.settingsMonth = ''
-  requestMonthFromMain(
+  const month =
     normalizeMonth(els.month?.value) ||
-      currentMonthValue(),
-    true,
-  )
+    state.month ||
+    jrActualCurrentMonthV40166()
+  void jrLoadServicesMonthV40166(month, true)
 }
 
 function toggleObservationColumnForCurrentMetric() {
@@ -5405,7 +5475,7 @@ function continuePendingNavigation(action) {
   if (!action) return
 
   if (action.type === 'month') {
-    requestMonthFromMain(action.value)
+    void jrLoadServicesMonthV40166(action.value, true)
     return
   }
 
@@ -6606,20 +6676,20 @@ async function applyImportedWorkbook() {
   }
 }
 
-// JR_GESTAO_DOWNLOAD_4_XLSX_NATIVO_V40_16_5=20260902
-function jrU16V40165(value) {
+// JR_GESTAO_DOWNLOAD_4_XLSX_NATIVO_V40_16_7=20260902
+function jrU16V40166(value) {
   const out = new Uint8Array(2)
   new DataView(out.buffer).setUint16(0, value, true)
   return out
 }
 
-function jrU32V40165(value) {
+function jrU32V40166(value) {
   const out = new Uint8Array(4)
   new DataView(out.buffer).setUint32(0, value >>> 0, true)
   return out
 }
 
-function jrConcatV40165(parts) {
+function jrConcatV40166(parts) {
   const total = parts.reduce((sum, part) => sum + part.byteLength, 0)
   const out = new Uint8Array(total)
   let offset = 0
@@ -6630,7 +6700,7 @@ function jrConcatV40165(parts) {
   return out
 }
 
-function jrCrc32V40165(bytes) {
+function jrCrc32V40166(bytes) {
   let crc = 0xffffffff
   for (let index = 0; index < bytes.length; index += 1) {
     crc ^= bytes[index]
@@ -6641,7 +6711,7 @@ function jrCrc32V40165(bytes) {
   return (crc ^ 0xffffffff) >>> 0
 }
 
-function jrDosDateTimeV40165(date = new Date()) {
+function jrDosDateTimeV40166(date = new Date()) {
   const year = Math.max(1980, date.getFullYear())
   return {
     dosTime:
@@ -6655,7 +6725,7 @@ function jrDosDateTimeV40165(date = new Date()) {
   }
 }
 
-function jrZipV40165(entries) {
+function jrZipV40166(entries) {
   const encoder = new TextEncoder()
   const localParts = []
   const centralParts = []
@@ -6666,67 +6736,67 @@ function jrZipV40165(entries) {
     const data = entry.data instanceof Uint8Array
       ? entry.data
       : new Uint8Array(entry.data)
-    const crc = jrCrc32V40165(data)
-    const { dosTime, dosDate } = jrDosDateTimeV40165()
+    const crc = jrCrc32V40166(data)
+    const { dosTime, dosDate } = jrDosDateTimeV40166()
 
-    const local = jrConcatV40165([
-      jrU32V40165(0x04034b50),
-      jrU16V40165(20),
-      jrU16V40165(0x0800),
-      jrU16V40165(0),
-      jrU16V40165(dosTime),
-      jrU16V40165(dosDate),
-      jrU32V40165(crc),
-      jrU32V40165(data.length),
-      jrU32V40165(data.length),
-      jrU16V40165(nameBytes.length),
-      jrU16V40165(0),
+    const local = jrConcatV40166([
+      jrU32V40166(0x04034b50),
+      jrU16V40166(20),
+      jrU16V40166(0x0800),
+      jrU16V40166(0),
+      jrU16V40166(dosTime),
+      jrU16V40166(dosDate),
+      jrU32V40166(crc),
+      jrU32V40166(data.length),
+      jrU32V40166(data.length),
+      jrU16V40166(nameBytes.length),
+      jrU16V40166(0),
       nameBytes,
       data,
     ])
     localParts.push(local)
 
-    centralParts.push(jrConcatV40165([
-      jrU32V40165(0x02014b50),
-      jrU16V40165(20),
-      jrU16V40165(20),
-      jrU16V40165(0x0800),
-      jrU16V40165(0),
-      jrU16V40165(dosTime),
-      jrU16V40165(dosDate),
-      jrU32V40165(crc),
-      jrU32V40165(data.length),
-      jrU32V40165(data.length),
-      jrU16V40165(nameBytes.length),
-      jrU16V40165(0),
-      jrU16V40165(0),
-      jrU16V40165(0),
-      jrU16V40165(0),
-      jrU32V40165(0),
-      jrU32V40165(offset),
+    centralParts.push(jrConcatV40166([
+      jrU32V40166(0x02014b50),
+      jrU16V40166(20),
+      jrU16V40166(20),
+      jrU16V40166(0x0800),
+      jrU16V40166(0),
+      jrU16V40166(dosTime),
+      jrU16V40166(dosDate),
+      jrU32V40166(crc),
+      jrU32V40166(data.length),
+      jrU32V40166(data.length),
+      jrU16V40166(nameBytes.length),
+      jrU16V40166(0),
+      jrU16V40166(0),
+      jrU16V40166(0),
+      jrU16V40166(0),
+      jrU32V40166(0),
+      jrU32V40166(offset),
       nameBytes,
     ]))
 
     offset += local.byteLength
   }
 
-  const local = jrConcatV40165(localParts)
-  const central = jrConcatV40165(centralParts)
-  const end = jrConcatV40165([
-    jrU32V40165(0x06054b50),
-    jrU16V40165(0),
-    jrU16V40165(0),
-    jrU16V40165(entries.length),
-    jrU16V40165(entries.length),
-    jrU32V40165(central.byteLength),
-    jrU32V40165(local.byteLength),
-    jrU16V40165(0),
+  const local = jrConcatV40166(localParts)
+  const central = jrConcatV40166(centralParts)
+  const end = jrConcatV40166([
+    jrU32V40166(0x06054b50),
+    jrU16V40166(0),
+    jrU16V40166(0),
+    jrU16V40166(entries.length),
+    jrU16V40166(entries.length),
+    jrU32V40166(central.byteLength),
+    jrU32V40166(local.byteLength),
+    jrU16V40166(0),
   ])
 
   return new Blob([local, central, end], { type: 'application/zip' })
 }
 
-function jrSafeFileV40165(value, fallback = 'PLANILHA') {
+function jrSafeFileV40166(value, fallback = 'PLANILHA') {
   return String(value || fallback)
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -6737,7 +6807,7 @@ function jrSafeFileV40165(value, fallback = 'PLANILHA') {
     .replace(/^_+|_+$/g, '') || fallback
 }
 
-function jrFillMetricWorksheetV40165(workbook, metric, sheets) {
+function jrFillMetricWorksheetV40166(workbook, metric, sheets) {
   const worksheet = workbook.addWorksheet(metric.sheetName)
   const globalDraft = draftFor(GLOBAL_KEY)
   const observationColumn = sheets.length + 2
@@ -6867,9 +6937,15 @@ async function downloadWorkbook() {
   setButtonLoading(els.download, true, 'Preparando...')
 
   try {
-    await jrEnsureMonthCacheV40165()
+    const selectedMonth =
+      normalizeMonth(els.month?.value) ||
+      state.month ||
+      jrActualCurrentMonthV40166()
+    jrSetServicesMonthUiV40166(selectedMonth)
+    await jrEnsureServicesMonthCacheV40166(selectedMonth, false)
+    await loadSettingsAndRender(false, true, true)
 
-    const ExcelJS = await jrTimeoutV40165(
+    const ExcelJS = await jrTimeoutV40166(
       ensureExcelJsForImport(),
       12000,
       'o gerador de planilhas',
@@ -6898,24 +6974,24 @@ async function downloadWorkbook() {
       const workbook = new ExcelJS.Workbook()
       workbook.creator = 'JR Gestão'
       workbook.created = new Date()
-      jrFillMetricWorksheetV40165(workbook, metric, sheets)
+      jrFillMetricWorksheetV40166(workbook, metric, sheets)
 
-      const buffer = await jrTimeoutV40165(
+      const buffer = await jrTimeoutV40166(
         workbook.xlsx.writeBuffer(),
         30000,
         `a planilha ${metric.label}`,
       )
       entries.push({
-        name: `${jrSafeFileV40165(metric.sheetName)}_${state.month}.xlsx`,
+        name: `${jrSafeFileV40166(metric.sheetName)}_${state.month}.xlsx`,
         data: new Uint8Array(buffer),
       })
     }
 
     setButtonLoading(els.download, true, 'Compactando...')
-    const zip = jrZipV40165(entries)
+    const zip = jrZipV40166(entries)
     const teamSuffix = state.selectedTeam === 'all'
       ? 'TODAS_EQUIPES'
-      : jrSafeFileV40165(
+      : jrSafeFileV40166(
           sheets[0] ? displayNameFor(sheets[0]) : state.selectedTeam,
           'EQUIPE',
         )
@@ -6926,7 +7002,7 @@ async function downloadWorkbook() {
     )
     showToast('As 4 planilhas do mês foram geradas e baixadas em um único ZIP.')
   } catch (error) {
-    console.error('[JR V40.16.5] Falha ao gerar 4 planilhas:', error)
+    console.error('[JR V40.16.7] Falha ao gerar 4 planilhas:', error)
     showToast(friendlyError(error), true)
   } finally {
     setButtonLoading(els.download, false, 'Baixar 4 planilhas')
