@@ -1,6 +1,10 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
+  <!-- JR_GESTAO_HTML_NOCACHE_V40_16_10 -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <!-- JR_GESTAO_FRONTEND_DIRETO_GITHUB_DUCKDNS -->
   <!-- JR_GESTAO_REPARO_DUPLICIDADE_V8_4=20260802-002500 -->
   <!-- CORRECAO_REDE_DESEMPENHO_V6=20260801-221649 -->
@@ -711,7 +715,6 @@
         </section>
       </section>
 
-
       <section id="page-orders" class="page-section hidden">
         <section class="panel module-panel orders-page-panel">
           <div class="panel-title-row">
@@ -1117,7 +1120,6 @@
     </main>
   </section>
 
-
   <dialog id="period-selector-dialog" class="period-selector-dialog">
     <form id="period-selector-form" method="dialog">
       <div class="dialog-header period-dialog-header">
@@ -1239,7 +1241,6 @@
     <div id="details-body" class="details-body"></div>
   </dialog>
 
-
   <dialog id="access-dialog" class="details-dialog access-dialog">
     <form id="access-form" method="dialog">
       <div class="dialog-header"><div><span class="eyebrow">GERENCIAR ACESSO</span><h2 id="access-dialog-title">Novo acesso</h2></div><button id="access-dialog-close" class="icon-button" type="button" aria-label="Fechar" data-icon-button="x"></button></div>
@@ -1308,6 +1309,38 @@
   <script type="module" src="./src/main-sem-flash-mobile-v8-7-20260802-144500.js?v=v40-13-20260827-1112"></script>
 <script defer src="./src/ajuste-rede-desempenho-v6-20260801-221649.js?v=20260801-221649"></script>
   <!-- JR_GESTAO_OBS_CACHE_V40_12=20260827 -->
-<script type="module" src="./src/services-lazy-v29.js?v=v40-16-9-20260902-servicos-local-sem-cdn"></script>
+<!-- JR_GESTAO_SERVICOS_BOOT_SEM_CACHE_V40_16_10_INICIO -->
+<script type="module" id="jr-services-boot-v40-16-10">
+  // V40.16.10: nunca reutiliza o lazy loader de uma aba/cache antigo.
+  const jrServicesBootUrlV401610 =
+    './src/services-lazy-v29.js?v=v40-16-10-' + Date.now();
+
+  import(jrServicesBootUrlV401610).catch((error) => {
+    const detail = String(error?.message || error || 'Falha desconhecida');
+    const loading = document.getElementById('services-loading');
+    const state = document.getElementById('services-save-state');
+    const errorNode = document.getElementById('services-error');
+
+    loading?.classList.add('hidden');
+    if (state) {
+      state.textContent = 'Falha ao carregar o módulo novo: ' + detail;
+      state.title = String(error?.stack || detail);
+    }
+    if (errorNode) {
+      errorNode.textContent = 'Falha ao carregar o módulo novo: ' + detail;
+      errorNode.classList.remove('hidden');
+      errorNode.classList.add('error');
+      errorNode.title = String(error?.stack || detail);
+    }
+    window.__JR_SERVICES_BOOT_ERROR_V401610__ = {
+      message: detail,
+      stack: String(error?.stack || ''),
+      at: new Date().toISOString(),
+      url: jrServicesBootUrlV401610,
+    };
+    console.error('[JR V40.16.10] Falha no boot sem cache:', error);
+  });
+</script>
+<!-- JR_GESTAO_SERVICOS_BOOT_SEM_CACHE_V40_16_10_FIM -->
 </body>
 </html>
