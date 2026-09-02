@@ -986,11 +986,102 @@ function jrObsActionLabelV413(actions, objectLabel) {
   return objectLabel
 }
 
+// JR_GESTAO_OBSERVACOES_PLANILHA_INTELIGENTES_V40_16_2=20260902
+function jrObsNormalizeV4162(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function jrObsPrettyDetailV4162(value) {
+  return String(value || '')
+    .replace(/^[\s:;,.\-–—]+|[\s:;,.\-–—]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120)
+}
+
+function jrObsNamedPlacesV4162(raw) {
+  const source = String(raw || '').trim()
+  if (!source) return []
+
+  const result = []
+  const seen = new Set()
+  const add = (kind, detail) => {
+    const clean = jrObsPrettyDetailV4162(detail)
+    const canonicalKind = String(kind || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+
+    const labels = {
+      PRACA: 'PRAÇA',
+      CAMPO: 'CAMPO',
+      EVENTO: 'EVENTO',
+      ESCOLA: 'ESCOLA',
+      PARQUE: 'PARQUE',
+      QUADRA: 'QUADRA',
+      ROTATORIA: 'ROTATÓRIA',
+    }
+
+    const label = labels[canonicalKind] || canonicalKind
+    if (!label || !clean) return
+    const key = jrObsNormalizeV4162(`${label}:${clean}`)
+    if (seen.has(key)) return
+    seen.add(key)
+    result.push(`${label}: ${clean}`)
+  }
+
+  // Formato oficial salvo pelo app: "PRAÇA: Nome", "CAMPO: Nome", "EVENTO: Nome".
+  const explicit = /\b(PRAÇA|PRACA|CAMPO|EVENTO|ESCOLA|PARQUE|QUADRA|ROTATÓRIA|ROTATORIA)\s*:\s*([^•|;\n]+)/gi
+  let match
+  while ((match = explicit.exec(source))) {
+    add(match[1], match[2])
+  }
+
+  // Também aceita observações curtas como "Praça dos Universitários" sem dois-pontos,
+  // mas só quando o trecho começa pelo tipo do local para não inventar nome.
+  const segments = source
+    .split(/\s*(?:•|\||;|\n)\s*/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+
+  for (const segment of segments) {
+    if (/\b(?:instal|implant|manuten|retir|troca|lanc|escav|valeta|buraco|cabo|poste|refletor|tomad|lampad|contact|rele|fio|conector)\b/i.test(segment)) {
+      continue
+    }
+    const loose = segment.match(/^\s*(PRAÇA|PRACA|CAMPO|EVENTO|ESCOLA|PARQUE|QUADRA|ROTATÓRIA|ROTATORIA)\s+(.{3,120})$/i)
+    if (loose) add(loose[1], loose[2])
+  }
+
+  return result.slice(0, 8)
+}
+
+function jrObsActionV413(text) {
+  const normalized = jrObsNormalizeV4162(text)
+  return {
+    install: /\b(?:instal|implant|montag|colocac)/.test(normalized),
+    remove: /\b(?:retir|remoc|remov|desinstal)/.test(normalized),
+    maintenance: /\b(?:manuten|reparo|acion|desacion|regulag|ajust)/.test(normalized),
+  }
+}
+
+function jrObsActionLabelV413(actions, objectLabel) {
+  if (actions.remove && actions.install) return `RETIRADA E INSTALAÇÃO DE ${objectLabel}`
+  if (actions.install) return `INSTALAÇÃO DE ${objectLabel}`
+  if (actions.remove) return `RETIRADA DE ${objectLabel}`
+  if (actions.maintenance) return `MANUTENÇÃO DE ${objectLabel}`
+  return objectLabel
+}
+
 function smartObservationSummaryV413(value) {
   const raw = String(value || '').trim()
   if (!raw) return ''
 
-  const text = jrObsNormalizeV413(raw)
+  const text = jrObsNormalizeV4162(raw)
   const segments = text
     .split(/\s*(?:•|\||;|\n)\s*/)
     .map((item) => item.trim())
@@ -1012,14 +1103,14 @@ function smartObservationSummaryV413(value) {
   let square = false
   let field = false
   let school = false
+  let park = false
+  let court = false
+  let roundabout = false
 
   for (const segment of segments) {
     const action = jrObsActionV413(segment)
 
-    const isContactor =
-      /conta(?:c)?tor/.test(segment) ||
-      /\bcodigo\s*16\b/.test(segment)
-
+    const isContactor = /conta(?:c)?tor/.test(segment) || /\bcodigo\s*16\b/.test(segment)
     if (isContactor) {
       contactor.present = true
       contactor.install ||= action.install
@@ -1030,7 +1121,6 @@ function smartObservationSummaryV413(value) {
     const isCommandBox =
       /caixa.{0,35}(?:comando|sistema)/.test(segment) ||
       /sistema.{0,35}(?:comando|caixa)/.test(segment)
-
     if (isCommandBox) {
       commandBox.present = true
       commandBox.install ||= action.install
@@ -1050,17 +1140,8 @@ function smartObservationSummaryV413(value) {
 
     if (/escav|valeta|buraco/.test(segment)) excavation = true
     if (/\bsuper\s+poste\b/.test(segment)) superPost = true
-
-    if (
-      /(?:implant|instal).{0,55}\bposte\b/.test(segment) ||
-      /\bposte\b.{0,55}(?:implant|instal)/.test(segment)
-    ) postInstallation = true
-
-    if (
-      /lancamento.{0,55}\bcabo\b/.test(segment) ||
-      /\bcabo\s+aereo\b/.test(segment)
-    ) cableLaunch = true
-
+    if (/(?:implant|instal).{0,55}\bposte\b/.test(segment) || /\bposte\b.{0,55}(?:implant|instal)/.test(segment)) postInstallation = true
+    if (/lancamento.{0,55}\bcabo\b/.test(segment) || /\bcabo\s+aereo\b/.test(segment)) cableLaunch = true
     if (/(?:implant|instal).{0,55}\brefletor/.test(segment)) reflector = true
     if (/(?:implant|instal).{0,55}\btomad/.test(segment)) outlet = true
     if (/(?:implant|instal).{0,55}\blampad/.test(segment)) lamp = true
@@ -1068,12 +1149,20 @@ function smartObservationSummaryV413(value) {
     if (/\bpraca\b/.test(segment)) square = true
     if (/\bcampo\b/.test(segment)) field = true
     if (/\bescola\b/.test(segment)) school = true
+    if (/\bparque\b/.test(segment)) park = true
+    if (/\bquadra\b/.test(segment)) court = true
+    if (/\brotatoria\b/.test(segment)) roundabout = true
   }
 
   const result = []
+  const normalizedResult = new Set()
   const add = (label) => {
-    if (!label || result.includes(label)) return
-    result.push(label)
+    const clean = String(label || '').trim()
+    if (!clean) return
+    const key = jrObsNormalizeV4162(clean)
+    if (normalizedResult.has(key)) return
+    normalizedResult.add(key)
+    result.push(clean)
   }
 
   if (transMunk && rentedTruck) add('TRANS MUNK CAMINHÃO LOCADO')
@@ -1082,7 +1171,6 @@ function smartObservationSummaryV413(value) {
 
   if (contactor.present) add(jrObsActionLabelV413(contactor, 'CONTACTORA'))
   if (commandBox.present) add(jrObsActionLabelV413(commandBox, 'CAIXA / SISTEMA DE COMANDO'))
-
   if (cableLaunch) add('LANÇAMENTO DE CABO')
   if (excavation) add('ESCAVAÇÃO / VALETA / BURACO')
   if (postInstallation) add('IMPLANTAÇÃO DE POSTE')
@@ -1090,14 +1178,22 @@ function smartObservationSummaryV413(value) {
   if (reflector) add('IMPLANTAÇÃO DE REFLETOR')
   if (outlet) add('INSTALAÇÃO DE TOMADA')
   if (lamp) add('INSTALAÇÃO DE LÂMPADA')
-  if (event) add('EVENTO')
-  if (square) add('PRAÇA')
-  if (field) add('CAMPO')
-  if (school) add('ESCOLA')
 
-  // LED, fio, relé, conector perfurante, amperagem e descrição técnica
-  // não entram como serviço isolado.
-  return result.slice(0, 10).join(' • ')
+  const namedPlaces = jrObsNamedPlacesV4162(raw)
+  const namedKinds = new Set(namedPlaces.map((item) => jrObsNormalizeV4162(item.split(':')[0])))
+  namedPlaces.forEach(add)
+
+  if (event && !namedKinds.has('evento')) add('EVENTO')
+  if (square && !namedKinds.has('praca')) add('PRAÇA')
+  if (field && !namedKinds.has('campo')) add('CAMPO')
+  if (school && !namedKinds.has('escola')) add('ESCOLA')
+  if (park && !namedKinds.has('parque')) add('PARQUE')
+  if (court && !namedKinds.has('quadra')) add('QUADRA')
+  if (roundabout && !namedKinds.has('rotatoria')) add('ROTATÓRIA')
+
+  // LED, fio, relé, conector perfurante e amperagem continuam filtrados
+  // quando aparecem sozinhos. O objetivo e mostrar o SERVICO importante e o LOCAL.
+  return result.slice(0, 14).join(' • ')
 }
 
 function installObservationLayoutV413() {
@@ -3628,62 +3724,23 @@ function observationItemsForDay(
       )
       const automatic = smartObservationSummaryV413(parts.automatic)
       const manual = String(parts.manual || '').trim()
+      const teamName = String(displayNameFor(sheet) || '').trim()
+      const team = '★ EQUIPE • ' + teamName.toUpperCase()
+      const text = [
+        automatic ? 'SERVIÇO: ' + automatic : '',
+        manual ? 'COMUNICADO: ' + manual : '',
+      ].filter(Boolean).join('\n')
       return {
-        team: displayNameFor(sheet),
+        team,
+        teamName,
         automatic,
         manual,
-        text: [automatic, manual].filter(Boolean).join('\n'),
+        text,
         important: Boolean(automatic) || Boolean(parts.manualImportant),
         manualImportant: parts.manualImportant,
       }
     })
     .filter((item) => item.text || item.important)
-}
-function employeeNamesForSheet(sheet) {
-  const source = displayNameFor(sheet) || sheet?.originalName || ''
-  const parts = String(source)
-    .split(/\s+(?:e|&)\s+|\/|,|\+|\s+-\s+/i)
-    .map((item) => item.trim())
-    .filter(Boolean)
-
-  return [...new Set(parts.length ? parts : [String(source).trim()].filter(Boolean))]
-}
-
-function appendManualNote(textarea, line) {
-  const value = String(line || '').trim()
-  if (!textarea || !value) return
-
-  const current = String(textarea.value || '').trim()
-  textarea.value = current ? `${current}\n${value}` : value
-  textarea.focus()
-  textarea.setSelectionRange?.(textarea.value.length, textarea.value.length)
-}
-
-
-function availableObservationDays() {
-  const hiddenDays = draftFor(GLOBAL_KEY).hiddenDays
-
-  return Array.from(
-    { length: daysInMonth(state.month) },
-    (_unused, index) => index + 1,
-  ).filter((day) => !hiddenDays.has(day))
-}
-
-function visibleSheetsForHover() {
-  return buildTeamSheets()
-    .filter(
-      (sheet) =>
-        state.selectedTeam === 'all' ||
-        sheet.key === state.selectedTeam,
-    )
-    .filter(
-      (sheet) =>
-        state.showHiddenColumns ||
-        !isMetricHidden(
-          draftFor(sheet.key),
-          state.metric,
-        ),
-    )
 }
 
 function showObservationHover(dayNumber, anchor) {
