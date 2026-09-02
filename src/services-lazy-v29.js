@@ -47,13 +47,45 @@ function showServicesLoadingV25() {
   }
 }
 
+function jrServicesImportErrorTextV40169(error) {
+  const name = String(error?.name || 'Erro')
+  const message = String(error?.message || error || 'Falha desconhecida')
+  return `${name}: ${message}`
+}
+
+function jrShowServicesImportErrorV40169(error) {
+  const stateNode = document.getElementById('services-save-state')
+  const loading = document.getElementById('services-loading')
+  const errorNode = document.getElementById('services-error')
+  const detail = jrServicesImportErrorTextV40169(error)
+
+  loading?.classList.add('hidden')
+  if (stateNode) {
+    stateNode.textContent = 'Falha ao abrir a matriz: ' + detail
+    stateNode.title = String(error?.stack || detail)
+  }
+  if (errorNode) {
+    errorNode.textContent = 'Falha ao abrir a matriz: ' + detail
+    errorNode.classList.remove('hidden')
+    errorNode.classList.add('error')
+    errorNode.title = String(error?.stack || detail)
+  }
+
+  window.__JR_SERVICES_LAST_ERROR_V40169__ = {
+    name: String(error?.name || ''),
+    message: String(error?.message || error || ''),
+    stack: String(error?.stack || ''),
+    at: new Date().toISOString(),
+  }
+}
+
 function loadBoardV25(replay = true) {
   if (!loaded.board) {
     showServicesLoadingV25()
 
     loaded.board =
       import(
-        './services-board-v28.js?v=v40-16-8-20260902-restaura-matriz-estavel'
+        './services-board-v40-16-9.js?v=v40-16-9-20260902-servicos-local-sem-cdn'
       )
         .then((module) => {
           const first =
@@ -86,22 +118,11 @@ function loadBoardV25(replay = true) {
         .catch((error) => {
           loaded.board = null
           boardReady = false
-
-          const state =
-            document.getElementById(
-              'services-save-state',
-            )
-
-          if (state) {
-            state.textContent =
-              'Não foi possível abrir a matriz.'
-          }
-
+          jrShowServicesImportErrorV40169(error)
           console.error(
-            '[JR V25] Falha ao carregar Serviços Executados:',
+            '[JR V40.16.9] Falha real ao carregar Serviços Executados:',
             error,
           )
-
           throw error
         })
   }
@@ -183,7 +204,7 @@ function modulePreloadV25(href) {
 
 function prepareModulesV25() {
   modulePreloadV25(
-    './src/services-board-v28.js?v=v40-16-8-20260902-restaura-matriz-estavel',
+    './src/services-board-v40-16-9.js?v=v40-16-9-20260902-servicos-local-sem-cdn',
   )
   modulePreloadV25(
     './src/services-home-overlay-v29.js?v=periodo-foto-v37-1-20260811',
