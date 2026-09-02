@@ -2617,37 +2617,206 @@ function bindEvents() {
 
 
 
-async function activateServicesPage() {
-  syncFromMainCache()
+// JR_GESTAO_MATRIZ_SEM_TRAVAMENTO_V40_16_5=20260902
+const JR_SERVICES_TIMEOUT_V40165 = 8000
 
-  if (!state.cache) {
-    showLoading(true)
-    setError(
-      'Aguardando os dados mensais do painel...',
+function jrTimeoutV40165(promise, timeoutMs = JR_SERVICES_TIMEOUT_V40165, label = 'operação') {
+  return new Promise((resolve, reject) => {
+    let settled = false
+    const timer = window.setTimeout(() => {
+      if (settled) return
+      settled = true
+      reject(new Error(`Tempo limite ao carregar ${label}.`))
+    }, timeoutMs)
+
+    Promise.resolve(promise).then(
+      (value) => {
+        if (settled) return
+        settled = true
+        window.clearTimeout(timer)
+        resolve(value)
+      },
+      (error) => {
+        if (settled) return
+        settled = true
+        window.clearTimeout(timer)
+        reject(error)
+      },
     )
-    return
+  })
+}
+
+function jrApplyMainCacheV40165(cache, requestedMonth) {
+  if (!cache || normalizeMonth(cache.month) !== requestedMonth) return false
+  state.cache = cache
+  state.profile = cache.profile || state.profile || null
+  state.month = requestedMonth
+  setUiControlValue('services-month-filter', requestedMonth)
+  return true
+}
+
+function jrWaitForMainCacheV40165(requestedMonth, timeoutMs = 1800) {
+  const current = window.__JR_SERVICES_MONTH_CACHE__
+  if (normalizeMonth(current?.month) === requestedMonth) {
+    return Promise.resolve(true)
   }
 
-  const warm =
-    state.settingsMonth === state.month &&
-    state.settings.size > 0
-
-  if (warm) {
-    if (!canReuseBoardDomV25()) {
-      renderTeamFilter()
-      renderBoard()
+  return new Promise((resolve) => {
+    let done = false
+    const finish = (value) => {
+      if (done) return
+      done = true
+      document.removeEventListener('jr:monthdata', onMonthData)
+      window.clearTimeout(timer)
+      resolve(value)
     }
+    const onMonthData = (event) => {
+      if (normalizeMonth(event?.detail?.month) === requestedMonth) finish(true)
+    }
+    const timer = window.setTimeout(() => finish(false), timeoutMs)
+    document.addEventListener('jr:monthdata', onMonthData)
+  })
+}
 
-    showLoading(false)
-    scheduleBackgroundSettingsRefreshV22()
-    return
+function jrMonthBoundsV40165(month) {
+  const match = String(month || '').match(/^(\d{4})-(\d{2})$/)
+  if (!match) throw new Error('Mês inválido para Serviços Executados.')
+
+  const year = Number(match[1])
+  const monthIndex = Number(match[2]) - 1
+  const isoDay = (date) => date.toISOString().slice(0, 10)
+  const first = new Date(Date.UTC(year, monthIndex, 1))
+  const next = new Date(Date.UTC(year, monthIndex + 1, 1))
+  const fetchStart = new Date(first.getTime() - 86400000)
+  const fetchEnd = new Date(next.getTime() + 86400000)
+
+  return {
+    start: isoDay(first),
+    next: isoDay(next),
+    fetchStart: `${isoDay(fetchStart)}T00:00:00.000Z`,
+    fetchEnd: `${isoDay(fetchEnd)}T00:00:00.000Z`,
+  }
+}
+
+async function jrFetchAllRowsV40165(fetchPage, pageSize = 1000) {
+  const rows = []
+  let from = 0
+
+  for (let pageIndex = 0; pageIndex < 100; pageIndex += 1) {
+    const to = from + pageSize - 1
+    const response = await jrTimeoutV40165(
+      fetchPage(from, to),
+      JR_SERVICES_TIMEOUT_V40165,
+      'os pontos do mês',
+    )
+    const { data, error } = response || {}
+    if (error) throw error
+    const page = Array.isArray(data) ? data : []
+    rows.push(...page)
+    if (page.length < pageSize) return rows
+    from += pageSize
   }
 
-  await loadSettingsAndRender(
-    false,
-    false,
-    false,
+  throw new Error('A consulta mensal excedeu o limite seguro de páginas.')
+}
+
+async function jrLoadMonthCacheDirectV40165() {
+  const month = normalizeMonth(state.month) || currentMonthValue()
+  const bounds = jrMonthBoundsV40165(month)
+
+  const recordsPromise = jrFetchAllRowsV40165((from, to) =>
+    supabase
+      .from('service_records')
+      .select('id, user_id, data, registro, device_id, deleted_at, deleted_by, deleted_device_id, updated_at, sync_version')
+      .gte('data', bounds.fetchStart)
+      .lt('data', bounds.fetchEnd)
+      .order('data', { ascending: true })
+      .range(from, to),
   )
+
+  const profilesPromise = jrTimeoutV40165(
+    supabase
+      .from('profiles')
+      .select('id, username, team_name, active, role')
+      .order('team_name'),
+    JR_SERVICES_TIMEOUT_V40165,
+    'as equipes',
+  )
+
+  const [records, profilesResponse] = await Promise.all([
+    recordsPromise,
+    profilesPromise,
+  ])
+
+  if (profilesResponse?.error) throw profilesResponse.error
+  const profiles = Array.isArray(profilesResponse?.data)
+    ? profilesResponse.data
+    : []
+  const filtered = records.filter((row) =>
+    !row?.deleted_at && serviceDateKey(row).startsWith(`${month}-`),
+  )
+
+  const detail = {
+    month,
+    records: filtered,
+    profiles,
+    profile: state.profile || window.__JR_SERVICES_MONTH_CACHE__?.profile || null,
+    updatedAt: Date.now(),
+    directFallbackV40165: true,
+  }
+
+  state.cache = detail
+  state.month = month
+  state.profile = detail.profile
+  state.sheetCache = null
+  state.sheetCacheSource = null
+  state.sheetCacheMonth = ''
+  state.matrixCacheFingerprint = ''
+  window.__JR_SERVICES_MONTH_CACHE__ = detail
+
+  return detail
+}
+
+async function jrEnsureMonthCacheV40165() {
+  const requestedMonth =
+    normalizeMonth(state.month) ||
+    normalizeMonth(els.month?.value) ||
+    currentMonthValue()
+
+  state.month = requestedMonth
+  setUiControlValue('services-month-filter', requestedMonth)
+
+  if (jrApplyMainCacheV40165(
+    window.__JR_SERVICES_MONTH_CACHE__,
+    requestedMonth,
+  )) {
+    return state.cache
+  }
+
+  await jrWaitForMainCacheV40165(requestedMonth)
+  if (jrApplyMainCacheV40165(
+    window.__JR_SERVICES_MONTH_CACHE__,
+    requestedMonth,
+  )) {
+    return state.cache
+  }
+
+  state.month = requestedMonth
+  return jrLoadMonthCacheDirectV40165()
+}
+
+async function activateServicesPage() {
+  showLoading(true)
+  clearError()
+
+  try {
+    await jrEnsureMonthCacheV40165()
+    await loadSettingsAndRender(false, false, false)
+  } catch (error) {
+    console.error('[JR V40.16.5] Falha ao montar matriz mensal:', error)
+    setError(friendlyError(error))
+    showLoading(false)
+  }
 }
 
 function syncFromMainCache() {
@@ -2715,134 +2884,126 @@ async function loadSettingsAndRender(
   backgroundOnly = false,
 ) {
   if (!state.cache || !state.month) {
+    if (!backgroundOnly) showLoading(false)
     return false
   }
 
   const warm =
     state.settingsMonth === state.month &&
-    state.settings.size > 0
-
+    Number(state.settingsLoadedAtV22 || 0) > 0
   const settingsFresh =
     warm &&
-    Date.now() - state.settingsLoadedAtV22 <
-      SETTINGS_FRESH_MS_V22
+    Date.now() - state.settingsLoadedAtV22 < SETTINGS_FRESH_MS_V22
+  const needsSettings = forceSettings || !warm || !settingsFresh
 
-  const needsSettings =
-    forceSettings ||
-    !warm ||
-    !settingsFresh
+  if (!silentWarm && !warm && !backgroundOnly) showLoading(true)
+  if (!backgroundOnly) clearError()
 
-  if (
-    !silentWarm &&
-    !warm &&
-    !backgroundOnly
-  ) {
-    showLoading(true)
-  }
-
-  if (!backgroundOnly) {
-    clearError()
-  }
-
+  let settingsWarning = null
   try {
     let settingsChanged = false
 
-    if (
-      needsSettings &&
-      !hasUnsavedChanges()
-    ) {
-      if (!state.settingsLoadPromiseV22) {
-        const monthRequested = state.month
+    if (needsSettings && !hasUnsavedChanges()) {
+      const monthRequested = state.month
+      let pending = state.settingsLoadPromiseV22
 
-        state.settingsLoadPromiseV22 =
-          (async () => {
-            const { data, error } =
-              await supabase
-                .from('service_report_settings')
-                .select(
-                  'month_key, team_key, display_name, hidden_days, manual_notes, updated_at',
-                )
-                .eq(
-                  'month_key',
-                  monthRequested,
-                )
-
-            if (error) throw error
-
-            return {
-              monthRequested,
-              rows: data || [],
-            }
-          })().finally(() => {
+      if (!pending) {
+        pending = (async () => {
+          const { data, error } = await supabase
+            .from('service_report_settings')
+            .select('month_key, team_key, display_name, hidden_days, manual_notes, updated_at')
+            .eq('month_key', monthRequested)
+          if (error) throw error
+          return { monthRequested, rows: data || [] }
+        })()
+        state.settingsLoadPromiseV22 = pending
+        pending.finally(() => {
+          if (state.settingsLoadPromiseV22 === pending) {
             state.settingsLoadPromiseV22 = null
-          })
+          }
+        }).catch(() => {})
       }
 
-      const result =
-        await state.settingsLoadPromiseV22
-
-      if (
-        result.monthRequested !== state.month
-      ) {
-        return false
-      }
-
-      const nextRevision =
-        settingsRevisionV22(
-          result.rows,
+      try {
+        const result = await jrTimeoutV40165(
+          pending,
+          6500,
+          'as configurações de Serviços Executados',
         )
 
-      settingsChanged =
-        state.settingsMonth !== state.month ||
-        state.settingsRevisionV22 !==
-          nextRevision
+        if (result.monthRequested !== state.month) return false
 
-      if (settingsChanged) {
-        state.lastBoardRenderSignatureV25 = ''
+        const nextRevision = settingsRevisionV22(result.rows)
+        settingsChanged =
+          state.settingsMonth !== state.month ||
+          state.settingsRevisionV22 !== nextRevision
 
-        state.settings = new Map(
-          result.rows.map((item) => [
-            String(item.team_key),
-            normalizeReportSetting(item),
-          ]),
-        )
+        if (settingsChanged) {
+          state.lastBoardRenderSignatureV25 = ''
+          state.settings = new Map(
+            result.rows.map((item) => [
+              String(item.team_key),
+              normalizeReportSetting(item),
+            ]),
+          )
+          state.drafts.clear()
+          state.teamFilterSignatureV22 = ''
+          state.settingsRevisionV22 = nextRevision
+        }
 
-        state.drafts.clear()
-        state.teamFilterSignatureV22 = ''
-        state.settingsRevisionV22 =
-          nextRevision
+        state.settingsMonth = state.month
+        state.settingsLoadedAtV22 = Date.now()
+        state.jrSettingsRetryCountV40165 = 0
+      } catch (error) {
+        if (state.settingsLoadPromiseV22 === pending) {
+          state.settingsLoadPromiseV22 = null
+        }
+        settingsWarning = error
+        console.warn('[JR V40.16.5] Configurações demoraram; matriz continuará com fallback:', error)
+
+        if (state.settingsMonth !== state.month) {
+          state.settings = new Map()
+          state.drafts.clear()
+          state.teamFilterSignatureV22 = ''
+          state.lastBoardRenderSignatureV25 = ''
+          state.settingsMonth = state.month
+          state.settingsRevisionV22 = ''
+          state.settingsLoadedAtV22 = 0
+        }
       }
-
-      state.settingsMonth = state.month
-      state.settingsLoadedAtV22 =
-        Date.now()
     }
 
-    if (
-      backgroundOnly &&
-      !settingsChanged
-    ) {
-      return true
-    }
+    if (backgroundOnly && !settingsChanged && !settingsWarning) return true
 
     renderTeamFilter()
     renderBoard()
 
+    if (settingsWarning && !backgroundOnly) {
+      setError('A matriz foi carregada. As configurações salvas demoraram para responder e serão tentadas novamente.')
+    }
+
+    if (settingsWarning) {
+      const attempts = Number(state.jrSettingsRetryCountV40165 || 0)
+      if (attempts < 2 && !state.jrSettingsRetryTimerV40165) {
+        state.jrSettingsRetryCountV40165 = attempts + 1
+        state.jrSettingsRetryTimerV40165 = window.setTimeout(() => {
+          state.jrSettingsRetryTimerV40165 = null
+          if (state.cache && state.month && !hasUnsavedChanges()) {
+            void loadSettingsAndRender(true, true, true)
+          }
+        }, 3000)
+      }
+    }
+
     return true
   } catch (error) {
-    if (!backgroundOnly) {
-      setError(friendlyError(error))
-    }
-
+    console.error('[JR V40.16.5] Erro ao renderizar matriz:', error)
+    if (!backgroundOnly) setError(friendlyError(error))
     return false
   } finally {
-    if (!backgroundOnly) {
-      showLoading(false)
-    }
+    if (!backgroundOnly) showLoading(false)
   }
 }
-
-
 
 function matrixFingerprintV21() {
   if (
@@ -5282,52 +5443,64 @@ async function ensureExcelJsForImport() {
   if (window.ExcelJS) return window.ExcelJS
   if (excelImportPromise) return excelImportPromise
 
-  excelImportPromise = new Promise(
-    (resolve, reject) => {
-      const existing =
-        document.querySelector(
-          'script[data-services-exceljs-v20]',
-        )
+  excelImportPromise = new Promise((resolve, reject) => {
+    let settled = false
+    let timer = 0
 
-      const finish = () => {
-        if (window.ExcelJS) {
-          resolve(window.ExcelJS)
-        } else {
-          reject(
-            new Error(
-              'A biblioteca de planilhas não iniciou.',
-            ),
-          )
-        }
-      }
-
-      if (existing) {
-        existing.addEventListener(
-          'load',
-          finish,
-          { once: true },
-        )
-        window.setTimeout(finish, 0)
+    const cleanup = (script) => {
+      window.clearTimeout(timer)
+      script?.removeEventListener('load', finish)
+      script?.removeEventListener('error', failLoad)
+    }
+    const finish = () => {
+      if (settled) return
+      if (!window.ExcelJS) {
         return
       }
+      settled = true
+      cleanup(scriptRef)
+      resolve(window.ExcelJS)
+    }
+    const failLoad = () => {
+      if (settled) return
+      settled = true
+      cleanup(scriptRef)
+      reject(new Error('Não foi possível carregar a biblioteca de planilhas.'))
+    }
 
-      const script =
-        document.createElement('script')
+    let scriptRef = document.querySelector(
+      'script[data-services-exceljs-v20]',
+    )
 
-      script.src = EXCELJS_IMPORT_URL
-      script.async = true
-      script.dataset.servicesExceljsV20 = '1'
-      script.onload = finish
-      script.onerror = () =>
-        reject(
-          new Error(
-            'Não foi possível carregar o leitor de planilhas.',
-          ),
-        )
+    if (!scriptRef) {
+      scriptRef = document.createElement('script')
+      scriptRef.src = EXCELJS_IMPORT_URL
+      scriptRef.async = true
+      scriptRef.dataset.servicesExceljsV20 = '1'
+      document.head.appendChild(scriptRef)
+    }
 
-      document.head.appendChild(script)
-    },
-  )
+    scriptRef.addEventListener('load', finish, { once: true })
+    scriptRef.addEventListener('error', failLoad, { once: true })
+
+    // Se outro modulo terminou de carregar entre a verificacao inicial e
+    // a instalacao dos listeners, reconhece a biblioteca sem rejeitar cedo.
+    if (window.ExcelJS) {
+      finish()
+      return
+    }
+
+    timer = window.setTimeout(() => {
+      if (settled) return
+      if (window.ExcelJS) {
+        finish()
+        return
+      }
+      settled = true
+      cleanup(scriptRef)
+      reject(new Error('Tempo limite ao carregar a biblioteca de planilhas.'))
+    }, 10000)
+  })
 
   try {
     return await excelImportPromise
@@ -5538,23 +5711,16 @@ function importedImportantForRecordV25(
 ) {
   const result = new Map()
 
-  // Observacao reconhecida pela importacao.
   for (const text of importedImportantLinesV28(entry)) {
     const clean = String(text || '').trim()
     if (clean) result.set(normalizeImportText(clean), clean)
   }
 
-  // SEMPRE soma o detector do servico/codigo. Antes esse detector era descartado
-  // quando a observacao ja tinha algum match, fazendo destaques sumirem.
   for (const text of detectImportantServicesExpandedV28(record)) {
     const clean = String(text || '').trim()
     if (clean) result.set(normalizeImportText(clean), clean)
   }
 
-  // Usa a mesma inteligencia das observacoes do Servicos Executados para
-  // variacoes de escrita: escavacao/valeta/buraco, evento, praca, campo,
-  // escola, parque, quadra, rotatoria, cabo, refletor, tomada, lampada,
-  // contactora, caixa de comando e implantacao de poste.
   const smartSource = [
     entry?.observation,
     entry?.surveyObservation,
@@ -6440,13 +6606,274 @@ async function applyImportedWorkbook() {
   }
 }
 
-async function downloadWorkbook() {
-  try {
-    if (!window.ExcelJS) {
-      throw new Error(
-        'O gerador de planilhas ainda não carregou. Atualize a página.',
-      )
+// JR_GESTAO_DOWNLOAD_4_XLSX_NATIVO_V40_16_5=20260902
+function jrU16V40165(value) {
+  const out = new Uint8Array(2)
+  new DataView(out.buffer).setUint16(0, value, true)
+  return out
+}
+
+function jrU32V40165(value) {
+  const out = new Uint8Array(4)
+  new DataView(out.buffer).setUint32(0, value >>> 0, true)
+  return out
+}
+
+function jrConcatV40165(parts) {
+  const total = parts.reduce((sum, part) => sum + part.byteLength, 0)
+  const out = new Uint8Array(total)
+  let offset = 0
+  for (const part of parts) {
+    out.set(part, offset)
+    offset += part.byteLength
+  }
+  return out
+}
+
+function jrCrc32V40165(bytes) {
+  let crc = 0xffffffff
+  for (let index = 0; index < bytes.length; index += 1) {
+    crc ^= bytes[index]
+    for (let bit = 0; bit < 8; bit += 1) {
+      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1))
     }
+  }
+  return (crc ^ 0xffffffff) >>> 0
+}
+
+function jrDosDateTimeV40165(date = new Date()) {
+  const year = Math.max(1980, date.getFullYear())
+  return {
+    dosTime:
+      (date.getHours() << 11) |
+      (date.getMinutes() << 5) |
+      Math.floor(date.getSeconds() / 2),
+    dosDate:
+      ((year - 1980) << 9) |
+      ((date.getMonth() + 1) << 5) |
+      date.getDate(),
+  }
+}
+
+function jrZipV40165(entries) {
+  const encoder = new TextEncoder()
+  const localParts = []
+  const centralParts = []
+  let offset = 0
+
+  for (const entry of entries) {
+    const nameBytes = encoder.encode(entry.name)
+    const data = entry.data instanceof Uint8Array
+      ? entry.data
+      : new Uint8Array(entry.data)
+    const crc = jrCrc32V40165(data)
+    const { dosTime, dosDate } = jrDosDateTimeV40165()
+
+    const local = jrConcatV40165([
+      jrU32V40165(0x04034b50),
+      jrU16V40165(20),
+      jrU16V40165(0x0800),
+      jrU16V40165(0),
+      jrU16V40165(dosTime),
+      jrU16V40165(dosDate),
+      jrU32V40165(crc),
+      jrU32V40165(data.length),
+      jrU32V40165(data.length),
+      jrU16V40165(nameBytes.length),
+      jrU16V40165(0),
+      nameBytes,
+      data,
+    ])
+    localParts.push(local)
+
+    centralParts.push(jrConcatV40165([
+      jrU32V40165(0x02014b50),
+      jrU16V40165(20),
+      jrU16V40165(20),
+      jrU16V40165(0x0800),
+      jrU16V40165(0),
+      jrU16V40165(dosTime),
+      jrU16V40165(dosDate),
+      jrU32V40165(crc),
+      jrU32V40165(data.length),
+      jrU32V40165(data.length),
+      jrU16V40165(nameBytes.length),
+      jrU16V40165(0),
+      jrU16V40165(0),
+      jrU16V40165(0),
+      jrU16V40165(0),
+      jrU32V40165(0),
+      jrU32V40165(offset),
+      nameBytes,
+    ]))
+
+    offset += local.byteLength
+  }
+
+  const local = jrConcatV40165(localParts)
+  const central = jrConcatV40165(centralParts)
+  const end = jrConcatV40165([
+    jrU32V40165(0x06054b50),
+    jrU16V40165(0),
+    jrU16V40165(0),
+    jrU16V40165(entries.length),
+    jrU16V40165(entries.length),
+    jrU32V40165(central.byteLength),
+    jrU32V40165(local.byteLength),
+    jrU16V40165(0),
+  ])
+
+  return new Blob([local, central, end], { type: 'application/zip' })
+}
+
+function jrSafeFileV40165(value, fallback = 'PLANILHA') {
+  return String(value || fallback)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
+    .replace(/[^a-zA-Z0-9 _.-]+/g, '_')
+    .replace(/\s+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '') || fallback
+}
+
+function jrFillMetricWorksheetV40165(workbook, metric, sheets) {
+  const worksheet = workbook.addWorksheet(metric.sheetName)
+  const globalDraft = draftFor(GLOBAL_KEY)
+  const observationColumn = sheets.length + 2
+  const visibleObservationSheets = sheets.filter(
+    (sheet) => !isMetricHidden(draftFor(sheet.key), metric.key),
+  )
+
+  worksheet.views = [{ state: 'frozen', xSplit: 1, ySplit: 3 }]
+  worksheet.mergeCells(1, 1, 1, observationColumn)
+  worksheet.getCell(1, 1).value = metric.label
+  worksheet.getCell(1, 1).font = { bold: true, size: 16 }
+  worksheet.getCell(1, 1).alignment = { horizontal: 'center' }
+
+  worksheet.mergeCells(2, 1, 2, observationColumn)
+  worksheet.getCell(2, 1).value = monthLabel(state.month)
+  worksheet.getCell(2, 1).alignment = { horizontal: 'center' }
+
+  worksheet.addRow([
+    'Dia',
+    ...sheets.map((sheet) => displayNameFor(sheet, metric.key)),
+    `Observações — ${metric.label}`,
+  ])
+  worksheet.getRow(3).font = { bold: true }
+  worksheet.getRow(3).alignment = {
+    horizontal: 'center',
+    vertical: 'middle',
+    wrapText: true,
+  }
+
+  for (
+    let dayNumber = 1;
+    dayNumber <= daysInMonth(state.month);
+    dayNumber += 1
+  ) {
+    const observations = observationItemsForDay(
+      visibleObservationSheets,
+      dayNumber,
+      metric.key,
+    ).map((item) => {
+      const parts = []
+      if (item.automatic) parts.push(`Serviço: ${item.automatic}`)
+      if (item.manual) parts.push(`Comunicado: ${item.manual}`)
+      return `${item.team}: ${parts.join(' | ')}`
+    }).join('\n')
+
+    const row = worksheet.addRow([
+      dayNumber,
+      ...sheets.map((sheet) => effectiveScore(
+        sheet.days[dayNumber - 1],
+        draftFor(sheet.key),
+        metric.key,
+      )),
+      observations,
+    ])
+
+    row.hidden = globalDraft.hiddenDays.has(dayNumber)
+    row.alignment = {
+      vertical: 'middle',
+      horizontal: 'center',
+      wrapText: true,
+    }
+
+    sheets.forEach((sheet, index) => {
+      const parts = compactEffectiveObservationPartsV412(
+        sheet.days[dayNumber - 1],
+        draftFor(sheet.key),
+        metric.key,
+      )
+      if (!parts.hasImportant) return
+
+      const cell = row.getCell(index + 2)
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFF2C14E' },
+      }
+      cell.font = {
+        bold: true,
+        color: { argb: 'FF201600' },
+      }
+    })
+  }
+
+  const totalRow = worksheet.addRow([
+    'TOTAL',
+    ...sheets.map((sheet) => sheet.days.reduce(
+      (sum, day) => sum + effectiveScore(
+        day,
+        draftFor(sheet.key),
+        metric.key,
+      ),
+      0,
+    )),
+    metric.label,
+  ])
+  totalRow.font = { bold: true }
+
+  worksheet.getColumn(1).width = 9
+  sheets.forEach((sheet, index) => {
+    const column = worksheet.getColumn(index + 2)
+    column.width = 18
+    column.hidden = isMetricHidden(draftFor(sheet.key), metric.key)
+  })
+
+  worksheet.getColumn(observationColumn).width = 70
+  worksheet.getColumn(observationColumn).hidden = isObservationHidden(
+    globalDraft,
+    metric.key,
+  )
+  worksheet.autoFilter = {
+    from: { row: 3, column: 1 },
+    to: { row: 3, column: observationColumn },
+  }
+  worksheet.eachRow((row) => {
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      }
+    })
+  })
+}
+
+async function downloadWorkbook() {
+  setButtonLoading(els.download, true, 'Preparando...')
+
+  try {
+    await jrEnsureMonthCacheV40165()
+
+    const ExcelJS = await jrTimeoutV40165(
+      ensureExcelJsForImport(),
+      12000,
+      'o gerador de planilhas',
+    )
 
     const allSheets = buildTeamSheets()
     const sheets = allSheets.filter(
@@ -6456,280 +6883,53 @@ async function downloadWorkbook() {
     )
 
     if (!sheets.length) {
-      throw new Error(
-        'Nenhuma equipe disponível para gerar a planilha.',
-      )
+      throw new Error('Nenhuma equipe disponível para gerar a planilha.')
     }
 
-    setButtonLoading(
-      els.download,
-      true,
-      'Gerando...',
-    )
-
-    const workbook =
-      new window.ExcelJS.Workbook()
-
-    workbook.creator = 'JR Gestão'
-    workbook.created = new Date()
-
-    const globalDraft = draftFor(GLOBAL_KEY)
-
-    SERVICE_METRICS.forEach((metric) => {
-      const worksheet =
-        workbook.addWorksheet(metric.sheetName)
-
-      const observationColumn =
-        sheets.length + 2
-
-      const visibleObservationSheets =
-        sheets.filter(
-          (sheet) =>
-            !isMetricHidden(
-              draftFor(sheet.key),
-              metric.key,
-            ),
-        )
-
-      worksheet.views = [
-        {
-          state: 'frozen',
-          xSplit: 1,
-          ySplit: 3,
-        },
-      ]
-
-      worksheet.mergeCells(
-        1,
-        1,
-        1,
-        observationColumn,
+    const entries = []
+    for (let index = 0; index < SERVICE_METRICS.length; index += 1) {
+      const metric = SERVICE_METRICS[index]
+      setButtonLoading(
+        els.download,
+        true,
+        `Gerando ${index + 1}/4...`,
       )
 
-      worksheet.getCell(1, 1).value =
-        metric.label
+      const workbook = new ExcelJS.Workbook()
+      workbook.creator = 'JR Gestão'
+      workbook.created = new Date()
+      jrFillMetricWorksheetV40165(workbook, metric, sheets)
 
-      worksheet.getCell(1, 1).font = {
-        bold: true,
-        size: 16,
-      }
-
-      worksheet.getCell(1, 1).alignment = {
-        horizontal: 'center',
-      }
-
-      worksheet.mergeCells(
-        2,
-        1,
-        2,
-        observationColumn,
+      const buffer = await jrTimeoutV40165(
+        workbook.xlsx.writeBuffer(),
+        30000,
+        `a planilha ${metric.label}`,
       )
-
-      worksheet.getCell(2, 1).value =
-        monthLabel(state.month)
-
-      worksheet.getCell(2, 1).alignment = {
-        horizontal: 'center',
-      }
-
-      worksheet.addRow([
-        'Dia',
-        ...sheets.map((sheet) => displayNameFor(sheet, metric.key)),
-        `Observações — ${metric.label}`,
-      ])
-
-      worksheet.getRow(3).font = {
-        bold: true,
-      }
-
-      worksheet.getRow(3).alignment = {
-        horizontal: 'center',
-        vertical: 'middle',
-        wrapText: true,
-      }
-
-      for (
-        let dayNumber = 1;
-        dayNumber <= daysInMonth(state.month);
-        dayNumber += 1
-      ) {
-        const observations =
-          observationItemsForDay(
-            visibleObservationSheets,
-            dayNumber,
-            metric.key,
-          )
-            .map((item) => {
-              const parts = []
-
-              if (item.automatic) {
-                parts.push(
-                  `Serviço: ${item.automatic}`,
-                )
-              }
-
-              if (item.manual) {
-                parts.push(
-                  `Comunicado: ${item.manual}`,
-                )
-              }
-
-              return `${item.team}: ${parts.join(' | ')}`
-            })
-            .join('\n')
-
-        const row = worksheet.addRow([
-          dayNumber,
-          ...sheets.map((sheet) =>
-            effectiveScore(
-              sheet.days[dayNumber - 1],
-              draftFor(sheet.key),
-              metric.key,
-            ),
-          ),
-          observations,
-        ])
-
-        row.hidden =
-          globalDraft.hiddenDays.has(dayNumber)
-
-        row.alignment = {
-          vertical: 'middle',
-          horizontal: 'center',
-          wrapText: true,
-        }
-
-        sheets.forEach((sheet, index) => {
-          const parts =
-            compactEffectiveObservationPartsV412(
-              sheet.days[dayNumber - 1],
-              draftFor(sheet.key),
-              metric.key,
-            )
-
-          if (parts.hasImportant) {
-            const cell =
-              row.getCell(index + 2)
-
-            cell.fill = {
-              type: 'pattern',
-              pattern: 'solid',
-              fgColor: {
-                argb: 'FFF2C14E',
-              },
-            }
-
-            cell.font = {
-              bold: true,
-              color: {
-                argb: 'FF201600',
-              },
-            }
-          }
-        })
-      }
-
-      const totalRow = worksheet.addRow([
-        'TOTAL',
-        ...sheets.map((sheet) =>
-          sheet.days.reduce(
-            (sum, day) =>
-              sum +
-              effectiveScore(
-                day,
-                draftFor(sheet.key),
-                metric.key,
-              ),
-            0,
-          ),
-        ),
-        metric.label,
-      ])
-
-      totalRow.font = {
-        bold: true,
-      }
-
-      worksheet.getColumn(1).width = 9
-
-      sheets.forEach((sheet, index) => {
-        const column =
-          worksheet.getColumn(index + 2)
-
-        column.width = 18
-
-        column.hidden =
-          isMetricHidden(
-            draftFor(sheet.key),
-            metric.key,
-          )
+      entries.push({
+        name: `${jrSafeFileV40165(metric.sheetName)}_${state.month}.xlsx`,
+        data: new Uint8Array(buffer),
       })
+    }
 
-      worksheet.getColumn(
-        observationColumn,
-      ).width = 70
-
-      worksheet.getColumn(
-        observationColumn,
-      ).hidden =
-        isObservationHidden(
-          globalDraft,
-          metric.key,
+    setButtonLoading(els.download, true, 'Compactando...')
+    const zip = jrZipV40165(entries)
+    const teamSuffix = state.selectedTeam === 'all'
+      ? 'TODAS_EQUIPES'
+      : jrSafeFileV40165(
+          sheets[0] ? displayNameFor(sheets[0]) : state.selectedTeam,
+          'EQUIPE',
         )
-
-      worksheet.autoFilter = {
-        from: {
-          row: 3,
-          column: 1,
-        },
-        to: {
-          row: 3,
-          column: observationColumn,
-        },
-      }
-
-      worksheet.eachRow((row) => {
-        row.eachCell(
-          { includeEmpty: true },
-          (cell) => {
-            cell.border = {
-              top: { style: 'thin' },
-              left: { style: 'thin' },
-              bottom: { style: 'thin' },
-              right: { style: 'thin' },
-            }
-          },
-        )
-      })
-    })
-
-    const buffer =
-      await workbook.xlsx.writeBuffer()
 
     downloadBlob(
-      new Blob(
-        [buffer],
-        {
-          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        },
-      ),
-      `SERVICOS_EXECUTADOS_MATRIZ_V22_${state.month}.xlsx`,
+      zip,
+      `JR_SERVICOS_EXECUTADOS_4_PLANILHAS_${state.month}_${teamSuffix}.zip`,
     )
-
-    showToast(
-      'Planilha com quatro abas gerada.',
-    )
+    showToast('As 4 planilhas do mês foram geradas e baixadas em um único ZIP.')
   } catch (error) {
-    showToast(
-      friendlyError(error),
-      true,
-    )
+    console.error('[JR V40.16.5] Falha ao gerar 4 planilhas:', error)
+    showToast(friendlyError(error), true)
   } finally {
-    setButtonLoading(
-      els.download,
-      false,
-      'Baixar 4 planilhas',
-    )
+    setButtonLoading(els.download, false, 'Baixar 4 planilhas')
   }
 }
 

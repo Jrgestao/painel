@@ -53,7 +53,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v28.js?v=v40-16-4-20260902-gerador-robusto-destaques'
+        './services-board-v28.js?v=v40-16-5-20260902-matriz-download-estavel'
       )
         .then((module) => {
           const first =
