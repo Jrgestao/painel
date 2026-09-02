@@ -1325,24 +1325,20 @@
 <script defer src="./src/ajuste-rede-desempenho-v6-20260801-221649.js?v=20260801-221649"></script>
   <!-- JR_GESTAO_OBS_CACHE_V40_12=20260827 -->
 
-<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_19_INICIO -->
-<script type="module" id="jr-services-boot-v40-16-19">
-  const jrServicesBootUrlV401619 =
-    './src/services-lazy-v40-16-19.js?v=v40-16-19-20260902-observacoes-funcao-original-' + Date.now();
-  import(jrServicesBootUrlV401619).catch((error) => {
+<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_20_INICIO -->
+<script type="module" id="jr-services-boot-v40-16-20">
+  const jrServicesBootUrlV401620 =
+    './src/services-lazy-v40-16-20.js?v=v40-16-20-20260902-observacoes-clique-real-' + Date.now();
+  import(jrServicesBootUrlV401620).catch((error) => {
     const detail = String(error?.message || error || 'Falha desconhecida');
     document.getElementById('services-loading')?.classList.add('hidden');
     const state = document.getElementById('services-save-state');
     const errorNode = document.getElementById('services-error');
     if (state) state.textContent = 'Falha ao abrir Serviços Executados: ' + detail;
-    if (errorNode) {
-      errorNode.textContent = 'Falha ao abrir Serviços Executados: ' + detail;
-      errorNode.classList.remove('hidden');
-      errorNode.classList.add('error');
-    }
-    console.error('[JR V40.16.19] Falha no boot:', error);
+    if (errorNode) { errorNode.textContent = 'Falha ao abrir Serviços Executados: ' + detail; errorNode.classList.remove('hidden'); errorNode.classList.add('error'); }
+    console.error('[JR V40.16.20] Falha no boot:', error);
   });
 </script>
-<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_19_FIM -->
+<!-- JR_GESTAO_SERVICOS_BOOT_V40_16_20_FIM -->
 </body>
 </html>
