@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f4f7fb" />
+  <meta name="description" content="Boletins de Licitações do JR Gestão" />
+  <title>Boletins de Licitações — JR Gestão</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css?v=2" />
+</head>
+<body>
+  <div id="admin-loading" class="admin-loading" role="status" aria-live="polite">
+    <div class="loading-emblem"><img src="../assets/logo.png" alt="JR Gestão" /></div>
+    <div class="loading-copy"><strong>MODO ADMINISTRATIVO</strong><span id="loading-message">Preparando suas ferramentas…</span></div>
+    <div class="loading-track"><span></span></div>
+  </div>
+
+  <div id="admin-app" class="admin-app hidden">
+    <header class="admin-header">
+      <a class="brand" href="./" data-go-tools>
+        <img src="../assets/logo.png" alt="JR Gestão" />
+        <span><strong>JR GESTÃO</strong><small>ADMINISTRATIVO</small></span>
+      </a>
+      <div class="header-actions">
+        <a class="operational-switch" href="../"><span data-icon="arrow-left"></span><span><small>MODO</small><strong>OPERACIONAL</strong></span></a>
+        <div class="profile-chip"><span data-icon="user"></span><div><strong id="admin-user">Administrador</strong><small>Acesso administrativo</small></div></div>
+      </div>
+    </header>
+
+    <main>
+      <section id="tools-view" class="tools-view">
+        <div class="section-intro">
+          <span class="eyebrow">MODO ADMINISTRATIVO</span>
+          <h1>Nossas ferramentas</h1>
+        </div>
+        <div class="tools-grid">
+          <button id="open-bulletins" class="tool-card" type="button">
+            <span class="tool-card-icon" data-icon="calendar"></span>
+            <span class="tool-card-copy"><small>MONITORAMENTO ESTADUAL</small><strong>Boletins de Licitações</strong><span>Oportunidades publicadas em todo Mato Grosso do Sul, organizadas por data oficial.</span></span>
+            <span class="tool-card-arrow" data-icon="arrow-right"></span>
+          </button>
+          <button id="open-campo-grande" class="tool-card campo-grande-card" type="button">
+            <span class="tool-card-icon"><span class="pin-mark">CG</span></span>
+            <span class="tool-card-copy"><small>MONITORAMENTO MUNICIPAL</small><strong>Radar Campo Grande</strong><span>Somente licitações de Campo Grande, com iluminação, elétrica, máquinas, poda, ambiental, Natal e vias em evidência.</span></span>
+            <span class="tool-card-arrow" data-icon="arrow-right"></span>
+          </button>
+        </div>
+      </section>
+
+      <section id="bulletins-view" class="bulletins-view hidden">
+        <div class="bulletin-heading">
+          <div>
+            <button class="back-tools" type="button" data-go-tools><span data-icon="arrow-left"></span>Nossas ferramentas</button>
+            <span id="bulletin-eyebrow" class="eyebrow">BOLETINS DE LICITAÇÕES</span>
+            <h1 id="bulletin-title">Calendário de oportunidades</h1>
+            <div class="scope-switch" role="group" aria-label="Abrangência das licitações">
+              <button type="button" data-scope="state" class="active">Todo MS</button>
+              <button type="button" data-scope="campo">Só Campo Grande</button>
+            </div>
+          </div>
+          <div class="collector-state" id="collector-state"><span></span><div><strong>Base atualizada</strong><small id="collector-state-detail">Consultando fontes oficiais…</small></div></div>
+        </div>
+
+        <section class="calendar-radar-grid">
+          <article class="calendar-panel surface">
+            <div class="calendar-toolbar">
+              <div class="calendar-navigation">
+                <button id="previous-month" class="square-button" type="button" aria-label="Mês anterior"><span data-icon="chevron-left"></span></button>
+                <div class="month-title"><strong id="month-title">Setembro</strong><span id="month-year">2026</span></div>
+                <button id="next-month" class="square-button" type="button" aria-label="Próximo mês"><span data-icon="chevron-right"></span></button>
+              </div>
+              <div class="calendar-actions">
+                <label class="month-field"><span>Mês</span><select id="month-select" aria-label="Selecionar mês"></select></label>
+                <label class="year-field"><span>Ano</span><select id="year-select" aria-label="Selecionar ano"></select></label>
+                <button id="today-button" class="today-button" type="button"><span data-icon="calendar"></span>Hoje</button>
+              </div>
+            </div>
+            <div class="weekdays" aria-hidden="true"><span>DOM</span><span>SEG</span><span>TER</span><span>QUA</span><span>QUI</span><span>SEX</span><span>SÁB</span></div>
+            <div id="calendar-grid" class="calendar-grid" role="grid" aria-label="Calendário mensal"></div>
+            <div class="calendar-legend"><span><i class="legend-dot priority"></i>Prioridade</span><span><i class="legend-dot opportunities"></i>Publicações</span><small>Contagem baseada na data oficial de publicação</small></div>
+          </article>
+
+          <aside class="radar-panel surface">
+            <div class="radar-heading">
+              <span class="radar-star" aria-hidden="true">★</span>
+              <div><span id="radar-eyebrow" class="eyebrow">EM EVIDÊNCIA</span><h2 id="radar-title">Radar Prioritário</h2></div>
+            </div>
+            <div id="state-radar-tabs" class="radar-tabs" role="tablist" aria-label="Filtros do Radar Prioritário">
+              <button type="button" role="tab" data-radar="campo" aria-selected="false">Campo Grande</button>
+              <button type="button" role="tab" data-radar="interesses" aria-selected="false">Meus interesses</button>
+              <button type="button" role="tab" data-radar="combined" aria-selected="true" class="active">Campo Grande + interesses</button>
+            </div>
+            <p id="campo-radar-copy" class="campo-radar-copy hidden">Somente oportunidades publicadas por órgãos de Campo Grande.</p>
+            <div id="radar-summary" class="radar-summary"><strong>0</strong><span>oportunidades na data</span></div>
+            <div id="radar-list" class="radar-list"></div>
+          </aside>
+        </section>
+
+        <section class="day-panel surface">
+          <div class="day-heading">
+            <div><span class="eyebrow">PUBLICAÇÕES DO DIA</span><h2 id="day-title">Licitações de hoje</h2><p id="day-summary">Selecione uma data no calendário.</p></div>
+            <button id="toggle-filters" class="filter-toggle" type="button" aria-expanded="false"><span data-icon="search"></span>Filtrar resultados<span id="filter-count" class="filter-count hidden">0</span></button>
+          </div>
+
+          <div id="campo-quick-filters" class="campo-quick-filters hidden" aria-label="Filtros rápidos de Campo Grande">
+            <div><span class="eyebrow">ATALHOS DO RADAR</span><strong>O que você procura?</strong></div>
+            <div class="quick-filter-buttons">
+              <button type="button" data-cg-filter="interests" class="active">★ Meus interesses</button>
+              <button type="button" data-cg-filter="all">Todas de Campo Grande</button>
+              <button type="button" data-cg-filter="ILUMINAÇÃO">Iluminação</button>
+              <button type="button" data-cg-filter="ELÉTRICA">Elétrica</button>
+              <button type="button" data-cg-filter="MÁQUINAS">Locação de máquinas</button>
+              <button type="button" data-cg-filter="PODA E ARBORIZAÇÃO">Poda e arborização</button>
+              <button type="button" data-cg-filter="AMBIENTAL">Ambiental</button>
+              <button type="button" data-cg-filter="NATAL">Natal</button>
+              <button type="button" data-cg-filter="EVENTOS DE ILUMINAÇÃO">Iluminação para eventos</button>
+              <button type="button" data-cg-filter="CASCALHO">Cascalho</button>
+              <button type="button" data-cg-filter="REVESTIMENTO PRIMÁRIO">Vias e revestimento</button>
+            </div>
+          </div>
+
+          <form id="filters" class="filters hidden">
+            <label class="search-field"><span>Pesquisar</span><div><span data-icon="search"></span><input id="text-filter" type="search" placeholder="Objeto, processo, órgão…" /></div></label>
+            <label><span>Município</span><select id="municipality-filter"><option value="">Todos</option></select></label>
+            <label><span>Órgão</span><select id="agency-filter"><option value="">Todos</option></select></label>
+            <label><span>Categoria</span><select id="category-filter"><option value="">Todas</option></select></label>
+            <label><span>Modalidade</span><select id="modality-filter"><option value="">Todas</option></select></label>
+            <label><span>Status</span><select id="status-filter"><option value="">Todos</option></select></label>
+            <label><span>Fonte</span><select id="source-filter"><option value="">Todas</option></select></label>
+            <label><span>Compatibilidade</span><select id="compatibility-filter"><option value="0">Qualquer</option><option value="35">35% ou mais</option><option value="60">60% ou mais</option><option value="80">80% ou mais</option></select></label>
+            <label><span>Valor mínimo</span><input id="min-value-filter" type="number" min="0" step="1000" placeholder="R$ 0" /></label>
+            <label><span>Valor máximo</span><input id="max-value-filter" type="number" min="0" step="1000" placeholder="Sem limite" /></label>
+            <button id="clear-filters" class="clear-filters" type="button">Limpar filtros</button>
+          </form>
+
+          <div id="day-loading" class="day-loading hidden"><span class="spinner"></span><strong>Carregando publicações…</strong></div>
+          <div id="day-error" class="day-error hidden"></div>
+          <div id="results-container" class="results-container"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="tender-dialog" class="tender-dialog">
+    <div class="dialog-shell">
+      <header class="dialog-header">
+        <div><span class="eyebrow">DETALHES DA LICITAÇÃO</span><h2 id="detail-title">Licitação</h2></div>
+        <button id="close-detail" class="square-button" type="button" aria-label="Fechar detalhes"><span data-icon="x"></span></button>
+      </header>
+      <div id="detail-loading" class="detail-loading"><span class="spinner"></span>Analisando dados e documentos…</div>
+      <div id="detail-content" class="detail-content hidden"></div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <script type="module" src="./app.js?v=2"></script>
+</body>
+</html>

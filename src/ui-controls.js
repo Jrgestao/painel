@@ -27,10 +27,7 @@ export function initializeUiControls() {
   if (!globalEventsBound) {
     globalEventsBound = true
     document.addEventListener('pointerdown', (event) => {
-      const surface = activeControl?.popover || activeControl?.menu || null
-      const insideWrapper = Boolean(activeControl?.wrapper?.contains(event.target))
-      const insideSurface = Boolean(surface?.contains?.(event.target))
-      if (activeControl && !insideWrapper && !insideSurface) activeControl.close()
+      if (activeControl && !activeControl.wrapper.contains(event.target)) activeControl.close()
     })
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && activeControl) {
@@ -40,8 +37,6 @@ export function initializeUiControls() {
     })
     window.addEventListener('resize', () => activeControl?.reposition?.())
     window.addEventListener('scroll', () => activeControl?.reposition?.(), true)
-    window.visualViewport?.addEventListener('resize', () => activeControl?.reposition?.(), { passive: true })
-    window.visualViewport?.addEventListener('scroll', () => activeControl?.reposition?.(), { passive: true })
   }
 }
 
@@ -103,22 +98,6 @@ class BasePopoverControl {
 
   emitChange() {
     this.input.dispatchEvent(new Event('change', { bubbles: true }))
-  }
-
-  /* JR_GESTAO_V40_CALENDAR_PORTAL */
-  mountPopoverPortalV40() {
-    if (!this.popover || window.innerWidth > 768) return
-    if (!this._popoverHomeV40) this._popoverHomeV40 = this.popover.parentElement || this.wrapper
-    const host = this.wrapper.closest('dialog') || document.body
-    if (this.popover.parentElement !== host) host.appendChild(this.popover)
-    this.popover.classList.add('jr-mobile-portal-v40')
-  }
-
-  restorePopoverPortalV40() {
-    if (!this.popover) return
-    this.popover.classList.remove('jr-mobile-portal-v40')
-    const home = this._popoverHomeV40 || this.wrapper
-    if (home?.isConnected && this.popover.parentElement !== home) home.appendChild(this.popover)
   }
 }
 
@@ -282,7 +261,6 @@ class DatePicker extends BasePopoverControl {
     this.viewMonth = selected.month
     this.mode = 'days'
     this.render()
-    this.mountPopoverPortalV40()
     super.open()
     this.popover.classList.add('show')
     this.reposition()
@@ -291,24 +269,16 @@ class DatePicker extends BasePopoverControl {
 
   close(restoreFocus = false) {
     this.popover.classList.remove('show')
-    this.restorePopoverPortalV40()
     super.close(restoreFocus)
   }
 
   reposition() {
     if (!this.isOpen) return
     const rect = this.wrapper.getBoundingClientRect()
-    const viewport = window.visualViewport
-    const viewportWidth = Math.floor(viewport?.width || window.innerWidth)
-    const viewportHeight = Math.floor(viewport?.height || window.innerHeight)
-    const mobile = window.innerWidth <= 768
-    const width = Math.min(390, viewportWidth - 12)
-    this.popover.style.width = `${Math.max(280, width)}px`
-    this.popover.style.setProperty('--jr-v40-visual-height', `${Math.max(280, viewportHeight)}px`)
-    this.popover.classList.toggle('align-right', !mobile && rect.left + width > window.innerWidth - 12)
-    this.popover.classList.toggle('mobile-fixed', mobile)
-    this.popover.classList.toggle('jr-mobile-calendar-v40', mobile)
-    if (mobile) this.mountPopoverPortalV40()
+    const width = Math.min(390, window.innerWidth - 24)
+    this.popover.style.width = `${width}px`
+    this.popover.classList.toggle('align-right', rect.left + width > window.innerWidth - 12)
+    this.popover.classList.toggle('mobile-fixed', window.innerWidth <= 620)
   }
 
   render() {
@@ -461,7 +431,6 @@ class MonthPicker extends BasePopoverControl {
     this.viewYear = selected.year
     this.mode = 'months'
     this.render()
-    this.mountPopoverPortalV40()
     super.open()
     this.popover.classList.add('show')
     this.reposition()
@@ -470,24 +439,16 @@ class MonthPicker extends BasePopoverControl {
 
   close(restoreFocus = false) {
     this.popover.classList.remove('show')
-    this.restorePopoverPortalV40()
     super.close(restoreFocus)
   }
 
   reposition() {
     if (!this.isOpen) return
     const rect = this.wrapper.getBoundingClientRect()
-    const viewport = window.visualViewport
-    const viewportWidth = Math.floor(viewport?.width || window.innerWidth)
-    const viewportHeight = Math.floor(viewport?.height || window.innerHeight)
-    const mobile = window.innerWidth <= 768
-    const width = Math.min(390, viewportWidth - 12)
-    this.popover.style.width = `${Math.max(280, width)}px`
-    this.popover.style.setProperty('--jr-v40-visual-height', `${Math.max(280, viewportHeight)}px`)
-    this.popover.classList.toggle('align-right', !mobile && rect.left + width > window.innerWidth - 12)
-    this.popover.classList.toggle('mobile-fixed', mobile)
-    this.popover.classList.toggle('jr-mobile-calendar-v40', mobile)
-    if (mobile) this.mountPopoverPortalV40()
+    const width = Math.min(390, window.innerWidth - 24)
+    this.popover.style.width = `${width}px`
+    this.popover.classList.toggle('align-right', rect.left + width > window.innerWidth - 12)
+    this.popover.classList.toggle('mobile-fixed', window.innerWidth <= 620)
   }
 
   render() {
@@ -547,7 +508,7 @@ function parseMonthValue(value) {
 }
 
 function todayParts() {
-  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Campo_Grande', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
   const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
   return { year: Number(values.year), month: Number(values.month), day: Number(values.day) }
 }
