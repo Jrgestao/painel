@@ -400,6 +400,23 @@
   }
 </style>
 <!-- JR_GESTAO_SPINNER_SERVICOS_V40_16_14_FIM -->
+
+<style id="jr-mode-switch-v14-style">
+  .jr-mode-switch-v14{box-sizing:border-box;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 9px;border-radius:999px;text-decoration:none!important;white-space:nowrap;user-select:none;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;position:relative;z-index:8}
+  .jr-mode-switch-v14:hover{transform:translateY(-1px)}
+  .jr-mode-switch-v14 .jr-v14-label{font:800 8px/1 Inter,system-ui,sans-serif;letter-spacing:.08em}
+  .jr-mode-switch-v14 .jr-v14-track{width:48px;height:25px;box-sizing:border-box;padding:3px;border-radius:999px;display:block;flex:0 0 48px}
+  .jr-mode-switch-v14 .jr-v14-knob{display:block;width:17px;height:17px;border-radius:50%;transition:transform .18s ease}
+  .jr-mode-switch-v14.jr-v14-operational{color:#f8f8f8;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.18);box-shadow:0 8px 20px rgba(0,0,0,.22)}
+  .jr-mode-switch-v14.jr-v14-operational .jr-v14-track{background:#111315;border:1px solid rgba(255,255,255,.22)}
+  .jr-mode-switch-v14.jr-v14-operational .jr-v14-knob{background:#f5f6f7;box-shadow:0 2px 7px rgba(0,0,0,.42)}
+  .jr-mode-switch-v14.jr-v14-operational .jr-v14-admin{color:#92989e}
+  .jr-mode-switch-v14.jr-v14-administrative{color:#16191c;background:#fff;border:1px solid #d8dde1;box-shadow:0 8px 22px rgba(30,40,50,.09)}
+  .jr-mode-switch-v14.jr-v14-administrative .jr-v14-track{background:#eceff1;border:1px solid #d0d6da}
+  .jr-mode-switch-v14.jr-v14-administrative .jr-v14-knob{background:#17191c;transform:translateX(23px);box-shadow:0 2px 7px rgba(20,30,40,.2)}
+  .jr-mode-switch-v14.jr-v14-administrative .jr-v14-op{color:#9aa1a7}
+  @media(max-width:760px){.jr-mode-switch-v14{gap:5px;padding:5px 6px;min-height:36px}.jr-mode-switch-v14 .jr-v14-label{font-size:0}.jr-mode-switch-v14 .jr-v14-op::after{content:'OPR';font-size:8px}.jr-mode-switch-v14 .jr-v14-admin::after{content:'ADM';font-size:8px}.jr-mode-switch-v14 .jr-v14-track{width:44px;flex-basis:44px;height:23px}.jr-mode-switch-v14 .jr-v14-knob{width:15px;height:15px}.jr-mode-switch-v14.jr-v14-administrative .jr-v14-knob{transform:translateX(21px)}}
+</style>
 </head>
 <body>
   <div
@@ -510,7 +527,8 @@
           </span>
         </div>
         <div class="admin-actions">
-          <div class="admin-profile">
+          <a class="jr-mode-switch-v14 jr-v14-operational" href="./administrativo/?ferramenta=licitacoes" aria-label="Abrir Modo Administrativo em Licitações" title="Modo Administrativo — Licitações"><span class="jr-v14-label jr-v14-op">OPERACIONAL</span><span class="jr-v14-track" aria-hidden="true"><span class="jr-v14-knob"></span></span><span class="jr-v14-label jr-v14-admin">ADMINISTRATIVO</span></a>
+<div class="admin-profile">
             <span data-icon="user"></span>
             <div><strong id="admin-name">Administrador</strong><small>Administrador</small></div>
           </div>
@@ -1321,7 +1339,7 @@
     </div>
   </dialog>
   <script src="./src/vendor/supabase-js-2.57.4-local-20260801-221649.js?v=20260801-221649"></script>
-  <script type="module" src="./src/main-sem-flash-mobile-v8-7-20260802-144500.js?v=v40-13-20260827-1112"></script>
+  <script type="module" src="./src/main-sem-flash-mobile-v8-7-20260802-144500.js?v=20260904-v14-login"></script>
 <script defer src="./src/ajuste-rede-desempenho-v6-20260801-221649.js?v=20260801-221649"></script>
   <!-- JR_GESTAO_OBS_CACHE_V40_12=20260827 -->
 
@@ -1340,9 +1358,51 @@
   });
 </script>
 <!-- JR_GESTAO_SERVICOS_BOOT_V40_16_22_FIM -->
-<!-- JR_GESTAO_ADMIN_MODE_SWITCH_V7 -->
-<script type="module" src="./src/admin-mode-switch-v7.js?v=20260904-v7"></script>
-  <!-- JR_GESTAO_MODE_TOGGLE_V11 -->
-  <script src="./src/mode-toggle-v11.js?v=20260904-v11" defer></script>
+<!-- JR_LOGIN_REPAIR_V14 -->
+
+<script id="jr-login-watchdog-v14">
+(() => {
+  const removeMasks = () => {
+    const masks = [
+      document.getElementById('jr-safe-loading-v86'),
+      document.querySelector('[data-jr-loading-overlay]'),
+      document.querySelector('.jr-loading-overlay')
+    ].filter(Boolean);
+    for (const mask of masks) {
+      try { mask.style.opacity = '0'; setTimeout(() => mask.remove(), 260); } catch (_) {}
+    }
+  };
+  const recoverInitial = () => {
+    const login = document.getElementById('login-view');
+    const app = document.getElementById('app-view');
+    const appVisible = app && !app.classList.contains('hidden');
+    const loginVisible = login && !login.classList.contains('hidden');
+    if (!appVisible && !loginVisible && login) login.classList.remove('hidden');
+    removeMasks();
+  };
+  window.setTimeout(recoverInitial, 12000);
+
+  const form = document.getElementById('login-form');
+  if (form) {
+    form.addEventListener('submit', () => {
+      const startedAt = Date.now();
+      window.setTimeout(() => {
+        const app = document.getElementById('app-view');
+        const login = document.getElementById('login-view');
+        const appVisible = app && !app.classList.contains('hidden');
+        if (appVisible) return;
+        removeMasks();
+        if (login) login.classList.remove('hidden');
+        const btn = document.getElementById('login-button');
+        if (btn) { btn.disabled = false; btn.removeAttribute('aria-busy'); }
+        const err = document.getElementById('login-error');
+        if (err && !String(err.textContent || '').trim() && Date.now() - startedAt >= 19000) {
+          err.textContent = 'A conexão demorou mais que o esperado. Tente entrar novamente.';
+        }
+      }, 20000);
+    }, true);
+  }
+})();
+</script>
 </body>
 </html>

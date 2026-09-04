@@ -10,6 +10,23 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./styles.css?v=11" />
+
+<style id="jr-mode-switch-v14-style">
+  .jr-mode-switch-v14{box-sizing:border-box;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 9px;border-radius:999px;text-decoration:none!important;white-space:nowrap;user-select:none;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;position:relative;z-index:8}
+  .jr-mode-switch-v14:hover{transform:translateY(-1px)}
+  .jr-mode-switch-v14 .jr-v14-label{font:800 8px/1 Inter,system-ui,sans-serif;letter-spacing:.08em}
+  .jr-mode-switch-v14 .jr-v14-track{width:48px;height:25px;box-sizing:border-box;padding:3px;border-radius:999px;display:block;flex:0 0 48px}
+  .jr-mode-switch-v14 .jr-v14-knob{display:block;width:17px;height:17px;border-radius:50%;transition:transform .18s ease}
+  .jr-mode-switch-v14.jr-v14-operational{color:#f8f8f8;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.18);box-shadow:0 8px 20px rgba(0,0,0,.22)}
+  .jr-mode-switch-v14.jr-v14-operational .jr-v14-track{background:#111315;border:1px solid rgba(255,255,255,.22)}
+  .jr-mode-switch-v14.jr-v14-operational .jr-v14-knob{background:#f5f6f7;box-shadow:0 2px 7px rgba(0,0,0,.42)}
+  .jr-mode-switch-v14.jr-v14-operational .jr-v14-admin{color:#92989e}
+  .jr-mode-switch-v14.jr-v14-administrative{color:#16191c;background:#fff;border:1px solid #d8dde1;box-shadow:0 8px 22px rgba(30,40,50,.09)}
+  .jr-mode-switch-v14.jr-v14-administrative .jr-v14-track{background:#eceff1;border:1px solid #d0d6da}
+  .jr-mode-switch-v14.jr-v14-administrative .jr-v14-knob{background:#17191c;transform:translateX(23px);box-shadow:0 2px 7px rgba(20,30,40,.2)}
+  .jr-mode-switch-v14.jr-v14-administrative .jr-v14-op{color:#9aa1a7}
+  @media(max-width:760px){.jr-mode-switch-v14{gap:5px;padding:5px 6px;min-height:36px}.jr-mode-switch-v14 .jr-v14-label{font-size:0}.jr-mode-switch-v14 .jr-v14-op::after{content:'OPR';font-size:8px}.jr-mode-switch-v14 .jr-v14-admin::after{content:'ADM';font-size:8px}.jr-mode-switch-v14 .jr-v14-track{width:44px;flex-basis:44px;height:23px}.jr-mode-switch-v14 .jr-v14-knob{width:15px;height:15px}.jr-mode-switch-v14.jr-v14-administrative .jr-v14-knob{transform:translateX(21px)}}
+</style>
 </head>
 <body>
   <!-- JR_GESTAO_LICITACOES_V9_INTELIGENCIA_EKRONOS -->
@@ -26,8 +43,8 @@
         <span><strong>JR GESTÃO</strong><small>ADMINISTRATIVO</small></span>
       </a>
       <div class="header-actions">
-        <a class="operational-switch" href="../"><span data-icon="arrow-left"></span><span><small>MODO</small><strong>OPERACIONAL</strong></span></a>
-        <div class="profile-chip"><span data-icon="user"></span><div><strong id="admin-user">Administrador</strong><small>Acesso administrativo</small></div></div>
+        <a class="jr-mode-switch-v14 jr-v14-administrative" href="../" aria-label="Voltar ao Modo Operacional" title="Modo Operacional"><span class="jr-v14-label jr-v14-op">OPERACIONAL</span><span class="jr-v14-track" aria-hidden="true"><span class="jr-v14-knob"></span></span><span class="jr-v14-label jr-v14-admin">ADMINISTRATIVO</span></a>
+<div class="profile-chip"><span data-icon="user"></span><div><strong id="admin-user">Administrador</strong><small>Acesso administrativo</small></div></div>
       </div>
     </header>
 
@@ -132,7 +149,6 @@
 
   <div id="toast" class="toast" aria-live="polite"></div>
   <script type="module" src="./app.js?v=11"></script>
-  <!-- JR_GESTAO_MODE_TOGGLE_V11 -->
-  <script src="../src/mode-toggle-v11.js?v=20260904-v11" defer></script>
+<!-- JR_ADMIN_STATIC_SWITCH_V14 -->
 </body>
 </html>
