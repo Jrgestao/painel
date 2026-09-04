@@ -141,25 +141,6 @@ svg { width: 1.2em; height: 1.2em; stroke: currentColor; fill: none; stroke-widt
 .main-content { min-width: 0; padding: 0 clamp(20px, 3vw, 36px) 20px; }
 .admin-topbar { height: 98px; display: flex; align-items: center; justify-content: space-between; }
 .admin-actions { margin-left: auto; display: flex; align-items: center; gap: 14px; }
-.mode-switch-button {
-  min-height: 52px;
-  display: inline-flex;
-  align-items: center;
-  gap: 11px;
-  padding: 8px 16px;
-  border: 1px solid rgba(255, 255, 255, .36);
-  border-radius: 12px;
-  color: #071321;
-  background: linear-gradient(145deg, #ffffff, #dce8f5);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, .22), inset 0 1px 0 white;
-  text-decoration: none;
-  transition: transform .2s ease, box-shadow .2s ease;
-}
-.mode-switch-button:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(0, 0, 0, .28), 0 0 0 2px rgba(255,255,255,.08); }
-.mode-switch-button > span:first-child { display: grid; color: #1877d2; font-size: 20px; }
-.mode-switch-button small, .mode-switch-button strong { display: block; }
-.mode-switch-button small { font-size: 9px; letter-spacing: .18em; color: #597086; }
-.mode-switch-button strong { margin-top: 2px; font-size: 11px; letter-spacing: .06em; }
 .admin-profile { min-width: 200px; display: flex; align-items: center; gap: 12px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: rgba(7,19,33,.72); }
 .admin-profile > span { display: grid; place-items: center; width: 38px; height: 38px; color: #a8d1ff; }
 .admin-profile strong, .admin-profile small { display: block; }
@@ -484,8 +465,6 @@ tbody tr:hover { background: rgba(38,147,255,.055); }
   .admin-profile { min-width: 0; padding: 8px; }
   .admin-profile div { display: none; }
   .admin-actions .outline-button { padding: 0 12px; }
-  .mode-switch-button { width: 44px; min-height: 44px; padding: 0; justify-content: center; }
-  .mode-switch-button > span:last-child { display: none; }
   .welcome-banner { min-height: 160px; grid-template-columns: 1fr; padding: 24px 20px 42px; }
   .welcome-icon { display: none; }
   .summary-grid, .filter-grid, .report-grid, .team-score-grid { grid-template-columns: 1fr; }
@@ -1976,5 +1955,2410 @@ tbody tr:hover { background: rgba(38,147,255,.055); }
     animation-duration: .01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
+  }
+}
+
+
+/* AJUSTE FINAL — LOGIN MOBILE CENTRALIZADO E SEM ESPAÇO EXCEDENTE */
+@media (max-width: 768px) {
+  html,
+  body {
+    width: 100%;
+    min-width: 320px;
+    min-height: 100%;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+  }
+
+  .login-page {
+    width: 100%;
+    height: 100svh;
+    height: 100dvh;
+    min-height: 100svh;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    padding:
+      max(10px, env(safe-area-inset-top))
+      12px
+      max(10px, env(safe-area-inset-bottom));
+  }
+
+  .login-shell {
+    width: min(100%, 440px);
+    min-width: 0;
+    min-height: 0;
+    max-height: none;
+    margin: auto;
+    grid-template-columns: 1fr;
+    justify-self: center;
+    align-self: center;
+    border-radius: 16px;
+  }
+
+  .login-brand-panel {
+    width: 100%;
+    min-width: 0;
+    padding: 14px 18px 12px;
+  }
+
+  .login-logo {
+    width: 126px;
+    height: 72px;
+  }
+
+  .login-brand-copy h1 {
+    margin: 2px 0 3px;
+    font-size: 21px;
+  }
+
+  .login-brand-copy p {
+    font-size: 8.5px;
+    letter-spacing: .08em;
+  }
+
+  .restricted-badge {
+    display: none;
+  }
+
+  .login-form-panel {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 19px 18px 21px;
+  }
+
+  .login-heading {
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .login-heading h2 {
+    margin: 6px 0 9px;
+    font-size: clamp(23px, 7vw, 29px);
+  }
+
+  .login-heading p {
+    margin: 13px auto 15px;
+    font-size: 12.5px;
+    line-height: 1.4;
+  }
+
+  #login-form {
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .field-label {
+    margin: 10px 0 6px;
+  }
+
+  .input-shell {
+    min-height: 50px;
+  }
+
+  .input-shell input {
+    height: 48px;
+    font-size: 16px;
+  }
+
+  .login-button {
+    min-height: 50px;
+    margin-top: 17px;
+  }
+
+  .login-footer {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .login-page {
+    padding-inline: 8px;
+  }
+
+  .login-shell {
+    width: 100%;
+  }
+
+  .login-brand-panel {
+    padding: 10px 14px 9px;
+  }
+
+  .login-logo {
+    width: 108px;
+    height: 58px;
+  }
+
+  .login-brand-copy h1 {
+    font-size: 18px;
+  }
+
+  .login-brand-copy p {
+    font-size: 7.5px;
+  }
+
+  .login-form-panel {
+    padding: 15px 14px 17px;
+  }
+
+  .login-heading .eyebrow {
+    font-size: 8px;
+  }
+
+  .login-heading h2 {
+    font-size: 22px;
+  }
+
+  .login-heading p {
+    margin: 10px auto 12px;
+    font-size: 11.5px;
+  }
+
+  .field-label {
+    margin-top: 8px;
+  }
+
+  .login-button {
+    margin-top: 14px;
+  }
+}
+
+@media (max-width: 768px) and (max-height: 620px) {
+  .login-page {
+    place-items: start center;
+  }
+
+  .login-shell {
+    margin-block: 0;
+  }
+
+  .login-brand-panel {
+    display: none;
+  }
+
+  .login-form-panel {
+    padding-top: 18px;
+  }
+}
+/* AJUSTE LOGIN MOBILE V2 — SEM SOBRA, SEM ARRASTAR A PÁGINA */
+@media (max-width: 768px) {
+  html {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background: var(--bg);
+  }
+
+  body {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  .login-page {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100svh;
+    height: 100dvh;
+    min-height: 0;
+    max-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    overscroll-behavior: none;
+    padding:
+      max(8px, env(safe-area-inset-top))
+      10px
+      max(8px, env(safe-area-inset-bottom));
+  }
+
+  .login-page::before,
+  .login-page::after {
+    display: none;
+  }
+
+  .login-shell {
+    flex: 0 1 auto;
+    width: min(100%, 430px);
+    max-width: 430px;
+    height: auto;
+    min-height: 0;
+    max-height: calc(100dvh - max(16px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    margin: 0;
+    overflow: hidden;
+    align-self: center;
+  }
+
+  .login-brand-panel {
+    flex: 0 0 auto;
+    padding: 11px 16px 9px;
+  }
+
+  .login-logo {
+    width: 112px;
+    height: 58px;
+  }
+
+  .login-brand-copy h1 {
+    margin: 0 0 2px;
+    font-size: 19px;
+    line-height: 1.05;
+  }
+
+  .login-brand-copy p {
+    font-size: 7.5px;
+    line-height: 1.15;
+  }
+
+  .login-form-panel {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    max-height: 100%;
+    justify-content: flex-start;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 15px 17px 17px;
+  }
+
+  .login-form-panel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .login-heading {
+    flex: 0 0 auto;
+  }
+
+  .login-heading .eyebrow {
+    font-size: 8px;
+  }
+
+  .login-heading h2 {
+    margin: 4px 0 6px;
+    font-size: clamp(21px, 6.4vw, 27px);
+    line-height: 1.05;
+  }
+
+  .heading-line {
+    width: 54px;
+    height: 2px;
+    margin-inline: auto;
+  }
+
+  .login-heading p {
+    margin: 9px auto 10px;
+    font-size: 11.5px;
+    line-height: 1.3;
+  }
+
+  #login-form {
+    flex: 0 0 auto;
+  }
+
+  .field-label {
+    margin: 7px 0 5px;
+    font-size: 9px;
+  }
+
+  .input-shell {
+    min-height: 46px;
+    padding-inline: 12px;
+    border-radius: 10px;
+  }
+
+  .input-shell input {
+    height: 44px;
+    font-size: 16px;
+  }
+
+  .icon-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .login-button {
+    min-height: 46px;
+    margin-top: 13px;
+  }
+
+  .form-error {
+    min-height: 16px;
+    margin-top: 7px;
+    font-size: 11px;
+  }
+
+  .login-footer {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) and (max-height: 650px) {
+  .login-page {
+    align-items: stretch;
+    padding-block: max(5px, env(safe-area-inset-top)) max(5px, env(safe-area-inset-bottom));
+  }
+
+  .login-shell {
+    width: min(100%, 420px);
+    max-height: 100%;
+    margin: auto;
+  }
+
+  .login-brand-panel {
+    display: none;
+  }
+
+  .login-form-panel {
+    justify-content: center;
+    padding-block: 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .login-page {
+    padding-inline: 7px;
+  }
+
+  .login-shell {
+    border-radius: 13px;
+  }
+
+  .login-brand-panel {
+    padding: 8px 12px 7px;
+  }
+
+  .login-logo {
+    width: 98px;
+    height: 48px;
+  }
+
+  .login-brand-copy h1 {
+    font-size: 17px;
+  }
+
+  .login-form-panel {
+    padding: 12px 13px 14px;
+  }
+
+  .login-heading h2 {
+    font-size: 20px;
+  }
+
+  .login-heading p {
+    font-size: 10.8px;
+  }
+}
+/* CORREÇÃO DO RETÂNGULO BRANCO NO PREENCHIMENTO AUTOMÁTICO */
+.input-shell input:-webkit-autofill,
+.input-shell input:-webkit-autofill:hover,
+.input-shell input:-webkit-autofill:focus,
+.input-shell input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--text) !important;
+  caret-color: var(--text) !important;
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  box-shadow: 0 0 0 1000px transparent inset !important;
+  background-color: transparent !important;
+  background-clip: text !important;
+  transition: background-color 99999s ease-out 0s !important;
+}
+
+.input-shell input:autofill {
+  color: var(--text) !important;
+  caret-color: var(--text) !important;
+  background: transparent !important;
+  box-shadow: 0 0 0 1000px transparent inset !important;
+}
+
+.input-shell:has(input:-webkit-autofill) {
+  background: rgba(8, 18, 34, 0.76) !important;
+  border-color: rgba(76, 143, 226, 0.45);
+}
+/* ROLAGEM MOBILE V3 — LOGIN FIXO, PAINEL LIVRE E SUAVE */
+@media (max-width: 768px) {
+  html.app-active,
+  body.app-active {
+    width: 100%;
+    height: auto !important;
+    min-height: 100%;
+    max-height: none;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: auto;
+    touch-action: pan-y pinch-zoom;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: auto;
+    background: var(--bg);
+  }
+
+  body.app-active {
+    position: static;
+  }
+
+  body.app-active #app-view,
+  body.app-active .app-shell {
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    max-height: none;
+    overflow: visible;
+    overscroll-behavior-y: auto;
+    touch-action: pan-y pinch-zoom;
+  }
+
+  body.app-active .main-content {
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: visible;
+    touch-action: pan-y pinch-zoom;
+  }
+
+  body.app-active .page-section:not(.hidden),
+  body.app-active .panel,
+  body.app-active .summary-grid,
+  body.app-active .team-score-grid {
+    touch-action: pan-y pinch-zoom;
+  }
+
+  body.app-active .table-wrap,
+  body.app-active .view-switch,
+  body.app-active .export-buttons {
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.app-active .table-wrap {
+    touch-action: pan-x pan-y;
+  }
+
+  html.login-active,
+  body.login-active {
+    height: 100% !important;
+    min-height: 100% !important;
+    overflow: hidden !important;
+    overscroll-behavior: none;
+    touch-action: none;
+  }
+
+  body.login-active .login-form-panel {
+    touch-action: pan-y;
+  }
+}
+
+/* ETAPA — PERÍODOS, FILTROS, LOGIN SALVO E CONTROLES CLEAN */
+.remember-login-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 12px;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.remember-login-row input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  accent-color: #3189ef;
+}
+
+.remember-login-row span {
+  display: grid;
+  gap: 2px;
+}
+
+.remember-login-row strong { font-size: 12px; }
+.remember-login-row small { color: var(--muted); font-size: 10px; }
+
+.compact-button {
+  min-height: 38px;
+  padding: 8px 13px;
+  white-space: nowrap;
+}
+
+.records-kind-filter {
+  min-width: 215px;
+}
+
+.range-toolbar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(170px, 1fr));
+  align-items: end;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(115, 153, 204, 0.15);
+  border-radius: 16px;
+  background: rgba(5, 15, 29, 0.48);
+}
+
+.range-toolbar .range-refresh-button,
+.range-toolbar .range-download-button {
+  min-height: 48px;
+}
+
+.report-kind-control {
+  min-width: 190px;
+  align-self: end;
+}
+
+.report-observation-field {
+  display: grid;
+  gap: 7px;
+  min-width: 220px;
+}
+
+.report-observation-field > span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.report-observation-field .search-shell {
+  width: 100%;
+}
+
+.photo-preview-limit {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 5px;
+  padding: 18px;
+  border: 1px dashed rgba(75, 144, 230, .35);
+  border-radius: 14px;
+  background: rgba(22, 70, 130, .12);
+  text-align: center;
+}
+
+.photo-preview-limit strong { color: var(--text); }
+.photo-preview-limit span { color: var(--muted); font-size: 12px; }
+
+@media (min-width: 1100px) {
+  .range-toolbar[data-range-toolbar="reports"] {
+    grid-template-columns: repeat(3, minmax(155px, .9fr)) minmax(210px, 1fr) minmax(260px, 1.35fr) auto;
+  }
+
+  .range-toolbar[data-range-toolbar="photos"] {
+    grid-template-columns: repeat(3, minmax(170px, 1fr)) auto minmax(280px, 1.35fr);
+  }
+}
+
+@media (max-width: 980px) {
+  .range-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .range-toolbar .range-download-button,
+  .range-toolbar .report-observation-field {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .scoreboard-heading {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .scoreboard-heading .compact-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .records-tools {
+    align-items: stretch;
+  }
+
+  .records-kind-filter {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .range-toolbar {
+    grid-template-columns: 1fr;
+    gap: 11px;
+    padding: 12px;
+  }
+
+  .range-toolbar > *,
+  .range-toolbar .range-download-button,
+  .range-toolbar .report-observation-field {
+    width: 100%;
+    min-width: 0;
+    grid-column: auto;
+  }
+
+  .range-toolbar .primary-button,
+  .range-toolbar .secondary-button {
+    justify-content: center;
+  }
+}
+/* SELETOR ÚNICO DE PERÍODO */
+.period-toolbar {
+  align-items: end;
+  grid-template-columns: minmax(300px, 1.4fr) repeat(3, minmax(180px, auto));
+}
+
+.period-selector-wrap {
+  min-width: 0;
+}
+
+.period-selector-card {
+  width: 100%;
+  min-height: 78px;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(77, 166, 255, .42);
+  border-radius: 14px;
+  color: var(--text);
+  text-align: left;
+  background:
+    radial-gradient(circle at 12% 30%, rgba(38, 147, 255, .16), transparent 42%),
+    linear-gradient(135deg, rgba(12, 30, 49, .96), rgba(5, 17, 30, .96));
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .18);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.period-selector-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--blue-2);
+  box-shadow: 0 16px 38px rgba(38, 147, 255, .12);
+}
+
+.period-selector-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(77, 166, 255, .36);
+  border-radius: 12px;
+  color: var(--blue-2);
+  background: rgba(38, 147, 255, .1);
+}
+
+.period-selector-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.period-selector-copy small {
+  color: var(--blue-2);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .13em;
+}
+
+.period-selector-copy strong {
+  overflow: hidden;
+  color: white;
+  font-size: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.period-selector-copy em {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.period-selector-arrow {
+  display: grid;
+  place-items: center;
+  color: #89a8c6;
+}
+
+.period-selector-dialog {
+  width: min(720px, calc(100% - 28px));
+  max-height: min(760px, calc(100dvh - 24px));
+  padding: 0;
+  border: 1px solid rgba(77, 166, 255, .36);
+  border-radius: 18px;
+  color: var(--text);
+  background: #071523;
+  box-shadow: 0 32px 100px rgba(0, 0, 0, .58);
+}
+
+.period-selector-dialog::backdrop {
+  background: rgba(0, 5, 12, .78);
+  backdrop-filter: blur(6px);
+}
+
+.period-selector-dialog form {
+  display: flex;
+  flex-direction: column;
+  max-height: min(760px, calc(100dvh - 24px));
+}
+
+.period-dialog-header {
+  align-items: flex-start;
+}
+
+.period-dialog-header p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.period-selector-body {
+  padding: 18px 22px 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.period-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.period-mode-button {
+  min-height: 100px;
+  display: grid;
+  justify-items: start;
+  align-content: center;
+  gap: 5px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  color: #dce8f5;
+  text-align: left;
+  background: rgba(5, 17, 30, .72);
+  transition: .18s ease;
+}
+
+.period-mode-button > span {
+  color: #7fa1c3;
+}
+
+.period-mode-button strong {
+  font-size: 14px;
+}
+
+.period-mode-button small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.period-mode-button.active {
+  border-color: var(--blue);
+  color: white;
+  background: rgba(38, 147, 255, .13);
+  box-shadow: 0 0 0 3px rgba(38, 147, 255, .08);
+}
+
+.period-mode-button.active > span {
+  color: var(--blue-2);
+}
+
+.period-mode-panel {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: rgba(3, 11, 22, .46);
+}
+
+.period-native-field {
+  display: grid;
+  gap: 8px;
+}
+
+.period-native-field > span {
+  color: #c9d8e8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.period-native-field input {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 15px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  outline: none;
+  color: white;
+  color-scheme: dark;
+  background: #06111e;
+}
+
+.period-native-field input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(38, 147, 255, .12);
+}
+
+.period-range-pair {
+  display: grid;
+  grid-template-columns: 1fr 34px 1fr;
+  align-items: end;
+  gap: 10px;
+}
+
+.period-range-arrow {
+  min-height: 54px;
+  display: grid;
+  place-items: center;
+  color: var(--blue-2);
+}
+
+.period-choice-help,
+.period-choice-preview {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 1px solid rgba(77, 166, 255, .16);
+  border-radius: 11px;
+  color: var(--muted);
+  background: rgba(38, 147, 255, .06);
+}
+
+.period-choice-help span {
+  flex: 0 0 auto;
+  color: var(--blue-2);
+}
+
+.period-choice-help p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.period-selector-error {
+  margin: 10px 2px 0;
+}
+
+.period-dialog-actions {
+  position: sticky;
+  bottom: 0;
+  padding: 16px 22px 20px;
+  border-top: 1px solid var(--border-soft);
+  background: rgba(7, 21, 35, .98);
+}
+
+.observation-cell {
+  min-width: 220px;
+  max-width: 420px;
+  white-space: normal;
+  line-height: 1.45;
+}
+
+@media (max-width: 1120px) {
+  .period-toolbar {
+    grid-template-columns: minmax(280px, 1fr) repeat(2, minmax(170px, auto));
+  }
+
+  .period-selector-wrap {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .period-toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .period-selector-wrap,
+  .period-toolbar > * {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  .period-selector-card {
+    min-height: 74px;
+    grid-template-columns: 42px minmax(0, 1fr) 20px;
+    gap: 11px;
+    padding: 12px;
+  }
+
+  .period-selector-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .period-selector-copy strong {
+    font-size: 14px;
+  }
+
+  .period-selector-copy em {
+    font-size: 9.5px;
+  }
+
+  .period-selector-dialog {
+    width: calc(100% - 14px);
+    max-height: calc(100dvh - 14px);
+    border-radius: 16px;
+  }
+
+  .period-selector-dialog form {
+    max-height: calc(100dvh - 14px);
+  }
+
+  .period-selector-body {
+    padding: 13px 12px 2px;
+  }
+
+  .period-mode-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .period-mode-button {
+    min-height: 64px;
+    grid-template-columns: 28px 1fr;
+    grid-template-rows: auto auto;
+    align-items: center;
+    justify-items: start;
+    column-gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .period-mode-button > span {
+    grid-row: 1 / 3;
+  }
+
+  .period-mode-button strong,
+  .period-mode-button small {
+    grid-column: 2;
+  }
+
+  .period-mode-panel {
+    margin-top: 12px;
+    padding: 13px;
+  }
+
+  .period-range-pair {
+    grid-template-columns: 1fr;
+  }
+
+  .period-range-arrow {
+    min-height: 22px;
+    transform: rotate(90deg);
+  }
+
+  .period-dialog-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 9px;
+    padding: 12px;
+  }
+
+  .period-dialog-actions .primary-button {
+    order: -1;
+  }
+}
+/* CALENDÁRIO DE RELATÓRIOS V3 — MAIS LARGO, CLARO E RESPONSIVO */
+.range-toolbar[data-range-toolbar="reports"].period-toolbar {
+  width: 100%;
+  grid-template-columns:
+    minmax(390px, 1.45fr)
+    minmax(250px, .82fr)
+    minmax(330px, 1.12fr)
+    minmax(210px, .68fr);
+  gap: 16px;
+  align-items: end;
+  padding: 22px;
+}
+
+.range-toolbar[data-range-toolbar="reports"] .period-selector-wrap {
+  min-width: 390px;
+}
+
+.range-toolbar[data-range-toolbar="reports"] .period-selector-card {
+  min-height: 94px;
+  padding: 17px 18px;
+  grid-template-columns: 52px minmax(0, 1fr) 24px;
+  border-radius: 16px;
+}
+
+.range-toolbar[data-range-toolbar="reports"] .period-selector-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+}
+
+.range-toolbar[data-range-toolbar="reports"] .period-selector-copy {
+  gap: 5px;
+}
+
+.range-toolbar[data-range-toolbar="reports"] .period-selector-copy small {
+  font-size: 10px;
+}
+
+.range-toolbar[data-range-toolbar="reports"] .period-selector-copy strong {
+  overflow: visible;
+  font-size: 18px;
+  line-height: 1.18;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.range-toolbar[data-range-toolbar="reports"] .period-selector-copy em {
+  overflow: visible;
+  font-size: 11px;
+  line-height: 1.35;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.range-toolbar[data-range-toolbar="reports"] .report-kind-control,
+.range-toolbar[data-range-toolbar="reports"] .report-observation-field {
+  min-width: 0;
+}
+
+.range-toolbar[data-range-toolbar="reports"] .custom-select-trigger,
+.range-toolbar[data-range-toolbar="reports"] .search-shell,
+.range-toolbar[data-range-toolbar="reports"] .range-refresh-button {
+  min-height: 58px;
+  border-radius: 12px;
+}
+
+.range-toolbar[data-range-toolbar="reports"] .range-refresh-button {
+  width: 100%;
+  justify-content: center;
+  padding-inline: 22px;
+}
+
+.period-selector-dialog {
+  width: min(840px, calc(100% - 32px));
+}
+
+.period-selector-dialog form {
+  max-height: min(820px, calc(100dvh - 24px));
+}
+
+.period-selector-body {
+  padding: 22px 26px 8px;
+}
+
+.period-mode-grid {
+  gap: 12px;
+}
+
+.period-mode-button {
+  min-height: 112px;
+  padding: 17px;
+}
+
+.period-mode-button strong {
+  font-size: 15px;
+}
+
+.period-mode-button small {
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.period-mode-panel {
+  margin-top: 20px;
+  padding: 22px;
+}
+
+.period-field-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.period-field-heading > div {
+  display: grid;
+  gap: 4px;
+}
+
+.period-field-heading strong {
+  color: #eef7ff;
+  font-size: 15px;
+}
+
+.period-field-heading small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.period-today-button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 13px;
+  border: 1px solid rgba(77, 166, 255, .42);
+  border-radius: 10px;
+  color: #ddecff;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .06em;
+  background: rgba(38, 147, 255, .1);
+}
+
+.period-today-button:hover {
+  border-color: var(--blue-2);
+  background: rgba(38, 147, 255, .18);
+}
+
+.period-native-field input {
+  min-height: 62px;
+  padding-inline: 17px;
+  font-size: 16px;
+}
+
+@media (min-width: 1281px) {
+  .range-toolbar[data-range-toolbar="reports"].period-toolbar {
+    grid-template-columns:
+      minmax(410px, 1.5fr)
+      minmax(260px, .82fr)
+      minmax(350px, 1.15fr)
+      minmax(220px, .7fr);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1280px) {
+  .range-toolbar[data-range-toolbar="reports"].period-toolbar {
+    grid-template-columns:
+      minmax(260px, .8fr)
+      minmax(330px, 1.15fr)
+      minmax(200px, .65fr);
+  }
+
+  .range-toolbar[data-range-toolbar="reports"] .period-selector-wrap {
+    min-width: 0;
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .range-toolbar[data-range-toolbar="reports"].period-toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 13px;
+    border-radius: 15px;
+  }
+
+  .range-toolbar[data-range-toolbar="reports"] .period-selector-wrap {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .range-toolbar[data-range-toolbar="reports"] .period-selector-card {
+    width: 100%;
+    min-height: 102px;
+    padding: 14px;
+    grid-template-columns: 46px minmax(0, 1fr) 20px;
+    gap: 12px;
+  }
+
+  .range-toolbar[data-range-toolbar="reports"] .period-selector-icon {
+    width: 46px;
+    height: 46px;
+  }
+
+  .range-toolbar[data-range-toolbar="reports"] .period-selector-copy strong {
+    font-size: 16px;
+    line-height: 1.25;
+  }
+
+  .range-toolbar[data-range-toolbar="reports"] .period-selector-copy em {
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .range-toolbar[data-range-toolbar="reports"] .report-kind-control,
+  .range-toolbar[data-range-toolbar="reports"] .report-observation-field,
+  .range-toolbar[data-range-toolbar="reports"] .range-refresh-button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .range-toolbar[data-range-toolbar="reports"] .custom-select-trigger,
+  .range-toolbar[data-range-toolbar="reports"] .search-shell,
+  .range-toolbar[data-range-toolbar="reports"] .range-refresh-button {
+    min-height: 54px;
+  }
+
+  .period-selector-dialog {
+    width: calc(100% - 12px);
+    max-height: calc(100dvh - 12px);
+    border-radius: 16px;
+  }
+
+  .period-selector-dialog form {
+    max-height: calc(100dvh - 12px);
+  }
+
+  .period-selector-body {
+    padding: 13px 12px 4px;
+  }
+
+  .period-field-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .period-today-button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .period-native-field input {
+    min-height: 58px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 390px) {
+  .range-toolbar[data-range-toolbar="reports"].period-selector-card {
+    padding-inline: 11px;
+  }
+
+  .range-toolbar[data-range-toolbar="reports"] .period-selector-copy strong {
+    font-size: 15px;
+  }
+
+  .range-toolbar[data-range-toolbar="reports"] .period-selector-copy em {
+    font-size: 9.5px;
+  }
+}
+/* ========================================================================
+   REVISÃO COMPLETA V4
+   ======================================================================== */
+
+/* Logo oficial no topo */
+.topbar-system-brand {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 13px 7px 8px;
+  border: 1px solid rgba(77, 166, 255, .18);
+  border-radius: 13px;
+  background: linear-gradient(135deg, rgba(9, 27, 46, .78), rgba(4, 15, 27, .62));
+}
+
+.topbar-system-logo {
+  width: 62px;
+  height: 46px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  border-radius: 9px;
+  background: rgba(2, 10, 18, .5);
+  filter: drop-shadow(0 0 10px rgba(38, 147, 255, .16));
+}
+
+.topbar-brand-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.topbar-brand-copy strong {
+  color: #f3f8ff;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+
+.topbar-brand-copy small {
+  color: #7f9ab6;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  white-space: nowrap;
+}
+
+/* Somente leitura sem textos técnicos */
+body.viewer-mode .connection-status,
+body.viewer-mode #loading-state {
+  display: none !important;
+}
+
+/* Uma única área limpa: remove a aparência de caixa dentro de caixa */
+.module-panel > .module-toolbar.range-toolbar.period-toolbar {
+  margin-top: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.module-panel > .module-toolbar.range-toolbar.period-toolbar::before,
+.module-panel > .module-toolbar.range-toolbar.period-toolbar::after {
+  display: none;
+}
+
+/* O cartão de período agora é um único retângulo, sem quadrado dentro dele */
+.period-selector-card {
+  min-height: 90px;
+  grid-template-columns: 34px minmax(0, 1fr) 22px;
+  gap: 13px;
+  padding: 16px 17px;
+  border-radius: 15px;
+}
+
+.period-selector-icon {
+  width: 34px !important;
+  height: 34px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #63b4ff;
+  background: transparent !important;
+}
+
+.period-selector-icon svg {
+  width: 25px;
+  height: 25px;
+}
+
+.period-selector-copy strong,
+.range-toolbar[data-range-toolbar="reports"] .period-selector-copy strong {
+  overflow: visible;
+  font-size: 17px;
+  line-height: 1.25;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.period-selector-copy em,
+.range-toolbar[data-range-toolbar="reports"] .period-selector-copy em {
+  overflow: visible;
+  line-height: 1.35;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+/* Relatórios: distribuição bonita e ampla no PC */
+.range-toolbar[data-range-toolbar="reports"].period-toolbar {
+  width: 100%;
+  display: grid;
+  grid-template-columns:
+    minmax(400px, 1.5fr)
+    minmax(255px, .9fr)
+    minmax(330px, 1.15fr)
+    minmax(210px, .7fr);
+  align-items: end;
+  gap: 15px;
+}
+
+.range-toolbar[data-range-toolbar="reports"] .period-selector-wrap {
+  min-width: 0;
+}
+
+.range-toolbar[data-range-toolbar="reports"] .custom-select-trigger,
+.range-toolbar[data-range-toolbar="reports"] .search-shell,
+.range-toolbar[data-range-toolbar="reports"] .range-refresh-button {
+  min-height: 58px;
+  border-radius: 12px;
+}
+
+.range-toolbar[data-range-toolbar="reports"] .range-refresh-button {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Fotos e códigos também usam a mesma área limpa */
+.range-toolbar[data-range-toolbar="photos"].period-toolbar,
+.range-toolbar[data-range-toolbar="codes"].period-toolbar {
+  grid-template-columns: minmax(390px, 1.5fr) repeat(2, minmax(210px, auto));
+  gap: 15px;
+}
+
+/* Modal do período mais amplo, sem painel dentro de painel */
+.period-selector-dialog {
+  width: min(900px, calc(100% - 32px));
+  max-height: calc(100dvh - 24px);
+  overflow: visible;
+}
+
+.period-selector-dialog form {
+  max-height: calc(100dvh - 24px);
+  overflow: visible;
+}
+
+.period-selector-body {
+  padding: 22px 26px 8px;
+  overflow: visible;
+}
+
+.period-mode-grid {
+  padding: 5px;
+  gap: 5px;
+  border: 1px solid rgba(77, 166, 255, .15);
+  border-radius: 14px;
+  background: rgba(3, 12, 23, .55);
+}
+
+.period-mode-button {
+  min-height: 92px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+}
+
+.period-mode-button.active {
+  border: 0;
+  background: linear-gradient(145deg, rgba(38, 147, 255, .22), rgba(38, 147, 255, .09));
+  box-shadow: inset 0 0 0 1px rgba(91, 176, 255, .45);
+}
+
+.period-mode-panel {
+  margin-top: 18px;
+  padding: 18px 0 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.period-field-heading {
+  margin-bottom: 15px;
+}
+
+.period-native-field {
+  min-width: 0;
+}
+
+.period-picker-control {
+  width: 100%;
+  min-width: 0;
+}
+
+.period-picker-trigger {
+  width: 100%;
+  min-height: 60px;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  background: #06111e;
+}
+
+.period-picker-trigger .picker-trigger-value {
+  overflow: hidden;
+  color: #eef6ff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.period-selector-dialog .date-picker-popover {
+  z-index: 1200;
+  min-width: 370px;
+}
+
+.period-selector-dialog .period-choice-help,
+.period-selector-dialog .period-choice-preview {
+  border: 0;
+  background: rgba(38, 147, 255, .07);
+}
+
+.period-range-pair {
+  grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr);
+  gap: 13px;
+}
+
+.period-range-arrow {
+  min-height: 60px;
+}
+
+/* Registros e planilhas: último ponto sempre no topo */
+.records-panel .table-wrap tbody tr:first-child,
+.module-preview .table-wrap tbody tr:first-child {
+  background: rgba(38, 147, 255, .035);
+}
+
+/* Detalhes mais limpos */
+.details-grid {
+  align-items: stretch;
+}
+
+.detail-item {
+  min-height: 76px;
+}
+
+/* Desktop intermediário */
+@media (min-width: 769px) and (max-width: 1280px) {
+  .range-toolbar[data-range-toolbar="reports"].period-toolbar {
+    grid-template-columns: minmax(280px, 1fr) minmax(330px, 1.15fr) minmax(210px, .7fr);
+  }
+
+  .range-toolbar[data-range-toolbar="reports"] .period-selector-wrap {
+    grid-column: 1 / -1;
+  }
+
+  .range-toolbar[data-range-toolbar="photos"].period-toolbar,
+  .range-toolbar[data-range-toolbar="codes"].period-toolbar {
+    grid-template-columns: minmax(280px, 1fr) minmax(210px, auto);
+  }
+
+  .range-toolbar[data-range-toolbar="photos"] .period-selector-wrap,
+  .range-toolbar[data-range-toolbar="codes"] .period-selector-wrap {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .admin-topbar {
+    min-height: 76px;
+    height: auto;
+    gap: 8px;
+  }
+
+  .topbar-system-brand {
+    flex: 1 1 auto;
+    max-width: 160px;
+    gap: 7px;
+    padding: 5px 7px 5px 5px;
+  }
+
+  .topbar-system-logo {
+    width: 48px;
+    height: 38px;
+  }
+
+  .topbar-brand-copy strong {
+    font-size: 10px;
+    letter-spacing: .04em;
+  }
+
+  .topbar-brand-copy small {
+    display: none;
+  }
+
+  .module-panel > .module-toolbar.range-toolbar.period-toolbar,
+  .range-toolbar[data-range-toolbar="reports"].period-toolbar,
+  .range-toolbar[data-range-toolbar="photos"].period-toolbar,
+  .range-toolbar[data-range-toolbar="codes"].period-toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 11px;
+    padding: 0;
+  }
+
+  .period-selector-card,
+  .range-toolbar[data-range-toolbar="reports"] .period-selector-card {
+    min-height: 94px;
+    grid-template-columns: 30px minmax(0, 1fr) 18px;
+    gap: 10px;
+    padding: 13px 12px;
+  }
+
+  .period-selector-icon {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .period-selector-copy strong,
+  .range-toolbar[data-range-toolbar="reports"] .period-selector-copy strong {
+    font-size: 15px;
+  }
+
+  .period-selector-copy em,
+  .range-toolbar[data-range-toolbar="reports"] .period-selector-copy em {
+    font-size: 10px;
+  }
+
+  .period-selector-dialog {
+    width: calc(100% - 10px);
+    max-height: calc(100dvh - 10px);
+    overflow: hidden;
+    border-radius: 15px;
+  }
+
+  .period-selector-dialog form {
+    max-height: calc(100dvh - 10px);
+    overflow: hidden;
+  }
+
+  .period-selector-body {
+    padding: 12px 11px 4px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .period-mode-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .period-mode-button {
+    min-height: 62px;
+  }
+
+  .period-mode-panel {
+    margin-top: 12px;
+    padding-top: 10px;
+  }
+
+  .period-range-pair {
+    grid-template-columns: 1fr;
+  }
+
+  .period-range-arrow {
+    min-height: 20px;
+    transform: rotate(90deg);
+  }
+
+  .period-picker-trigger {
+    min-height: 58px;
+    font-size: 16px;
+  }
+
+  .period-selector-dialog .date-picker-popover.mobile-fixed {
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    min-width: 0;
+    max-height: calc(100dvh - 16px);
+  }
+
+  .period-dialog-actions {
+    padding: 11px;
+  }
+
+  .range-toolbar[data-range-toolbar="reports"] .report-kind-control,
+  .range-toolbar[data-range-toolbar="reports"] .report-observation-field,
+  .range-toolbar[data-range-toolbar="reports"] .range-refresh-button {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 390px) {
+  .topbar-system-brand {
+    max-width: 110px;
+  }
+
+  .topbar-system-logo {
+    width: 42px;
+    height: 34px;
+  }
+
+  .topbar-brand-copy strong {
+    font-size: 9px;
+  }
+}
+
+
+/* ========================================================================
+   AJUSTE V5 — CALENDÁRIO COMPACTO, LOGO NO BANNER E SESSÃO MULTIAPARELHO
+   ======================================================================== */
+
+/* Logo oficial exatamente no lado direito do banner de boas-vindas. */
+.welcome-banner {
+  grid-template-columns: 72px minmax(0, 1fr) minmax(220px, 300px);
+}
+
+.welcome-logo {
+  display: block !important;
+  width: min(286px, 100%);
+  height: 126px;
+  max-width: 100%;
+  justify-self: end;
+  align-self: center;
+  object-fit: contain;
+  object-position: center;
+  opacity: .98;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 0 18px rgba(38, 147, 255, .16));
+}
+
+/* Campo de período sem o quadrado/retângulo interno ao redor do ícone. */
+.period-selector-card {
+  grid-template-columns: 32px minmax(0, 1fr) 20px;
+}
+
+.period-selector-icon,
+.period-selector-card .period-selector-icon {
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.period-selector-icon::before,
+.period-selector-icon::after {
+  display: none !important;
+}
+
+/* Calendário reduzido: todos os dias permanecem visíveis sem sair da tela. */
+.date-picker-popover {
+  width: 310px;
+  min-width: 0;
+  max-width: calc(100vw - 20px);
+  max-height: calc(100dvh - 16px);
+  padding: 10px;
+  overflow: auto;
+  border-radius: 12px;
+  overscroll-behavior: contain;
+}
+
+.period-selector-dialog .date-picker-popover {
+  width: 310px;
+  min-width: 0;
+  max-width: calc(100vw - 20px);
+}
+
+/* Dentro do modal, no PC, o calendário abre para cima e não fica cortado. */
+.period-selector-dialog .date-picker-popover:not(.mobile-fixed) {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+.picker-header {
+  min-height: 34px;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  gap: 4px;
+  margin-bottom: 5px;
+}
+
+.picker-nav {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.picker-heading {
+  gap: 2px;
+  font-size: 13px;
+}
+
+.picker-heading-button {
+  min-height: 30px;
+  padding: 0 5px;
+  border-radius: 7px;
+  font-size: 13px;
+}
+
+.year-title {
+  font-size: 14px;
+}
+
+.weekday-grid,
+.calendar-grid {
+  gap: 2px;
+}
+
+.weekday-grid {
+  margin-bottom: 3px;
+}
+
+.weekday-grid span {
+  height: 22px;
+  font-size: 10px;
+}
+
+.calendar-day {
+  width: 100%;
+  height: 31px;
+  min-height: 31px;
+  aspect-ratio: auto;
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.month-grid,
+.year-grid {
+  gap: 5px;
+}
+
+.month-option,
+.year-option {
+  min-height: 40px;
+  padding: 5px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.scrollable-years {
+  max-height: min(235px, calc(100dvh - 150px));
+}
+
+.picker-footer {
+  min-height: 34px;
+  margin-top: 6px;
+  padding-top: 5px;
+}
+
+.picker-footer button {
+  min-height: 29px;
+  padding: 0 7px;
+  font-size: 11px;
+}
+
+/* Modal mais baixo e organizado, mantendo as três opções lado a lado no PC. */
+.period-selector-dialog {
+  width: min(860px, calc(100% - 24px));
+  max-height: calc(100dvh - 16px);
+}
+
+.period-selector-dialog form {
+  max-height: calc(100dvh - 16px);
+}
+
+.period-selector-body {
+  padding: 17px 20px 5px;
+}
+
+.period-mode-grid {
+  padding: 0;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+}
+
+.period-mode-button {
+  min-height: 82px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(5, 17, 30, .72);
+}
+
+.period-mode-button.active {
+  border: 1px solid var(--blue);
+  background: rgba(38, 147, 255, .13);
+  box-shadow: 0 0 0 2px rgba(38, 147, 255, .07);
+}
+
+.period-mode-panel {
+  margin-top: 14px;
+  padding: 14px 0 2px;
+}
+
+.period-picker-trigger {
+  min-height: 54px;
+}
+
+.period-choice-help,
+.period-choice-preview {
+  min-height: 42px;
+  margin-top: 10px;
+  padding: 9px 12px;
+}
+
+.period-dialog-actions {
+  padding: 12px 20px 14px;
+}
+
+@media (max-width: 860px) {
+  .welcome-banner {
+    min-height: 166px;
+    grid-template-columns: minmax(0, 1fr) minmax(125px, 180px);
+    gap: 14px;
+    padding: 24px 24px 42px;
+  }
+
+  .welcome-icon {
+    display: none;
+  }
+
+  .welcome-copy {
+    position: relative;
+    z-index: 1;
+    grid-column: 1;
+  }
+
+  .welcome-logo {
+    position: static;
+    grid-column: 2;
+    width: 176px;
+    height: 92px;
+    opacity: .9;
+  }
+}
+
+@media (max-width: 768px) {
+  /* O calendário vira uma janela compacta centralizada, acima de todo o modal. */
+  .period-selector-dialog,
+  .period-selector-dialog form {
+    overflow: visible !important;
+  }
+
+  .period-selector-body {
+    overflow-y: auto;
+  }
+
+  .period-selector-dialog .date-picker-popover.mobile-fixed,
+  .date-picker-popover.mobile-fixed {
+    position: fixed !important;
+    left: 50% !important;
+    right: auto !important;
+    top: 50% !important;
+    bottom: auto !important;
+    width: min(310px, calc(100vw - 16px)) !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    overflow: auto !important;
+    transform: translate(-50%, -50%) !important;
+    animation: none !important;
+    z-index: 5000 !important;
+  }
+
+  .period-mode-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .period-mode-button {
+    min-height: 70px;
+    padding: 9px 8px;
+  }
+
+  .period-mode-button strong {
+    font-size: 12px;
+  }
+
+  .period-mode-button small {
+    font-size: 8.5px;
+    line-height: 1.25;
+  }
+
+  .period-mode-panel {
+    margin-top: 10px;
+    padding-top: 8px;
+  }
+
+  .period-picker-trigger {
+    min-height: 52px;
+  }
+}
+
+@media (max-width: 520px) {
+  .welcome-banner {
+    position: relative;
+    display: block;
+    min-height: 174px;
+    padding: 24px 18px 42px;
+  }
+
+  .welcome-copy {
+    position: relative;
+    z-index: 2;
+    max-width: 88%;
+  }
+
+  .welcome-copy h1 {
+    font-size: clamp(20px, 6vw, 26px);
+  }
+
+  .welcome-logo {
+    position: absolute;
+    z-index: 1;
+    top: 8px;
+    right: 4px;
+    width: 142px;
+    height: 92px;
+    opacity: .26;
+  }
+
+  .period-selector-dialog {
+    width: calc(100% - 8px);
+    max-height: calc(100dvh - 8px);
+  }
+
+  .period-selector-dialog form {
+    max-height: calc(100dvh - 8px);
+  }
+
+  .period-selector-body {
+    padding: 10px 9px 3px;
+  }
+
+  .period-mode-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .period-mode-button {
+    min-height: 56px;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    justify-items: center;
+    align-content: center;
+    gap: 1px;
+    padding: 6px 3px;
+    text-align: center;
+  }
+
+  .period-mode-button > span {
+    display: none;
+  }
+
+  .period-mode-button strong,
+  .period-mode-button small {
+    grid-column: 1;
+  }
+
+  .period-mode-button strong {
+    font-size: 11px;
+    line-height: 1.15;
+  }
+
+  .period-mode-button small {
+    font-size: 7.5px;
+    line-height: 1.15;
+  }
+
+  .period-field-heading {
+    margin-bottom: 9px;
+  }
+
+  .period-today-button {
+    min-height: 38px;
+  }
+
+  .period-picker-trigger {
+    min-height: 50px;
+    padding-inline: 13px;
+    font-size: 14px;
+  }
+
+  .period-choice-help,
+  .period-choice-preview {
+    min-height: 38px;
+    margin-top: 8px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .period-dialog-actions {
+    padding: 9px;
+  }
+
+  .period-dialog-actions button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 350px) {
+  .date-picker-popover,
+  .period-selector-dialog .date-picker-popover,
+  .period-selector-dialog .date-picker-popover.mobile-fixed,
+  .date-picker-popover.mobile-fixed {
+    width: calc(100vw - 10px) !important;
+    max-width: calc(100vw - 10px) !important;
+    padding: 8px;
+  }
+
+  .calendar-day {
+    height: 29px;
+    min-height: 29px;
+    font-size: 11px;
+  }
+}
+
+
+/* V6 — Observação: somente um contorno, sem campo duplicado */
+.module-toolbar .report-observation-field .search-shell,
+.range-toolbar[data-range-toolbar="reports"] .report-observation-field .search-shell {
+  min-height: 58px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #06111e;
+  box-shadow: none;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.module-toolbar .report-observation-field .search-shell:focus-within,
+.range-toolbar[data-range-toolbar="reports"] .report-observation-field .search-shell:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(38, 147, 255, .10);
+}
+
+.module-toolbar .report-observation-field .search-shell input[type="search"],
+.range-toolbar[data-range-toolbar="reports"] .report-observation-field .search-shell input[type="search"] {
+  width: 100%;
+  min-width: 0;
+  min-height: 56px;
+  height: 56px;
+  padding: 0 14px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--text);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.module-toolbar .report-observation-field .search-shell input[type="search"]:focus,
+.range-toolbar[data-range-toolbar="reports"] .report-observation-field .search-shell input[type="search"]:focus {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.module-toolbar .report-observation-field .search-shell > span,
+.range-toolbar[data-range-toolbar="reports"] .report-observation-field .search-shell > span {
+  flex: 0 0 auto;
+  margin: 0 14px 0 8px;
+  color: #9db0c5;
+}
+
+@media (max-width: 768px) {
+  .module-toolbar .report-observation-field .search-shell,
+  .range-toolbar[data-range-toolbar="reports"] .report-observation-field .search-shell {
+    min-height: 54px;
+  }
+
+  .module-toolbar .report-observation-field .search-shell input[type="search"],
+  .range-toolbar[data-range-toolbar="reports"] .report-observation-field .search-shell input[type="search"] {
+    min-height: 52px;
+    height: 52px;
+  }
+}
+
+
+/* ========================================================================
+   V7 — TOPO MOBILE LIMPO E SEM NOME/LOGO DUPLICADOS
+   ======================================================================== */
+
+/* Em celular/tablet, o topo mostra somente o menu e o botão Sair.
+   A marca continua no conteúdo e na aba do navegador, sem ficar atrás
+   dos botões nem repetir "JR Gestão" quando o nome do usuário é igual. */
+@media (max-width: 860px) {
+  .admin-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    width: auto;
+    min-height: 72px;
+    height: 72px;
+    margin: 0 -16px 18px;
+    padding: 0 16px 0 72px !important;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    overflow: visible;
+    border-bottom: 1px solid rgba(77, 166, 255, .20);
+    background: rgba(3, 11, 22, .98);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .26);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .admin-topbar::before,
+  .admin-topbar::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  .topbar-system-brand,
+  .admin-topbar .topbar-system-brand,
+  .topbar-system-logo,
+  .topbar-brand-copy {
+    display: none !important;
+  }
+
+  .admin-actions {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .admin-profile,
+  .admin-actions .admin-profile {
+    display: none !important;
+  }
+
+  .admin-actions .outline-button {
+    min-height: 44px;
+    height: 44px;
+    padding: 0 14px;
+    border-color: rgba(77, 166, 255, .30);
+    border-radius: 11px;
+    color: #eef6ff;
+    background: #071522;
+    box-shadow: none;
+  }
+
+  .mobile-menu-button {
+    top: 14px;
+    left: 16px;
+    z-index: 50;
+    width: 44px;
+    height: 44px;
+    border-color: rgba(77, 166, 255, .34);
+    background: #071522;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, .28);
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-topbar {
+    min-height: 68px;
+    height: 68px;
+    margin-bottom: 14px;
+    padding-left: 68px !important;
+  }
+
+  .mobile-menu-button {
+    top: 12px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .admin-actions .outline-button {
+    min-width: 76px;
+    min-height: 42px;
+    height: 42px;
+    padding: 0 12px;
+  }
+}
+
+/* Evita que qualquer nome antigo da marca apareça como camada decorativa. */
+@media (max-width: 860px) {
+  body::before,
+  body::after,
+  .main-content::before,
+  .main-content::after {
+    pointer-events: none;
+  }
+}
+
+
+/* ========================================================================
+   V9 — TOPO MOBILE COM SOMENTE LOGO + SAIR
+   ======================================================================== */
+/* No celular/PWA: menu à esquerda, somente o símbolo da JR Gestão no canto
+   e o botão Sair à direita. O cartão de usuário e os textos da marca ficam
+   ocultos para evitar excesso de caixas e nomes repetidos. */
+@media (max-width: 860px) {
+  .admin-topbar {
+    justify-content: space-between !important;
+    padding: 0 16px 0 72px !important;
+  }
+
+  .topbar-system-brand,
+  .admin-topbar .topbar-system-brand {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    width: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
+    height: 48px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .topbar-system-logo,
+  .admin-topbar .topbar-system-logo {
+    display: block !important;
+    width: 52px !important;
+    height: 42px !important;
+    max-width: 52px !important;
+    flex: 0 0 auto !important;
+    padding: 0 !important;
+    object-fit: contain !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .26)) !important;
+  }
+
+  .topbar-brand-copy,
+  .topbar-brand-copy strong,
+  .topbar-brand-copy small,
+  .admin-profile,
+  .admin-actions .admin-profile {
+    display: none !important;
+  }
+
+  .admin-actions {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    margin-left: auto !important;
+  }
+
+  .admin-actions .outline-button {
+    min-width: 78px;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-topbar {
+    padding-right: 12px !important;
+    padding-left: 66px !important;
+  }
+
+  .topbar-system-brand,
+  .admin-topbar .topbar-system-brand {
+    width: 46px !important;
+    min-width: 46px !important;
+    max-width: 46px !important;
+  }
+
+  .topbar-system-logo,
+  .admin-topbar .topbar-system-logo {
+    width: 46px !important;
+    height: 38px !important;
+    max-width: 46px !important;
+  }
+
+  .admin-actions .outline-button {
+    min-width: 74px;
+    padding-inline: 11px;
   }
 }

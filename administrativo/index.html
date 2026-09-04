@@ -13,7 +13,7 @@
 </head>
 <body>
   <div id="admin-loading" class="admin-loading" role="status" aria-live="polite">
-    <div class="loading-emblem"><img src="../assets/logo.png" alt="JR Gestão" /></div>
+    <div class="loading-emblem"><img src="./logo.png" alt="JR Gestão" /></div>
     <div class="loading-copy"><strong>MODO ADMINISTRATIVO</strong><span id="loading-message">Preparando suas ferramentas…</span></div>
     <div class="loading-track"><span></span></div>
   </div>
@@ -21,7 +21,7 @@
   <div id="admin-app" class="admin-app hidden">
     <header class="admin-header">
       <a class="brand" href="./" data-go-tools>
-        <img src="../assets/logo.png" alt="JR Gestão" />
+        <img src="./logo.png" alt="JR Gestão" />
         <span><strong>JR GESTÃO</strong><small>ADMINISTRATIVO</small></span>
       </a>
       <div class="header-actions">
@@ -42,11 +42,7 @@
             <span class="tool-card-copy"><small>MONITORAMENTO ESTADUAL</small><strong>Boletins de Licitações</strong><span>Oportunidades publicadas em todo Mato Grosso do Sul, organizadas por data oficial.</span></span>
             <span class="tool-card-arrow" data-icon="arrow-right"></span>
           </button>
-          <button id="open-campo-grande" class="tool-card campo-grande-card" type="button">
-            <span class="tool-card-icon"><span class="pin-mark">CG</span></span>
-            <span class="tool-card-copy"><small>MONITORAMENTO MUNICIPAL</small><strong>Radar Campo Grande</strong><span>Somente licitações de Campo Grande, com iluminação, elétrica, máquinas, poda, ambiental, Natal e vias em evidência.</span></span>
-            <span class="tool-card-arrow" data-icon="arrow-right"></span>
-          </button>
+
         </div>
       </section>
 
@@ -156,6 +152,7 @@
   </dialog>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script type="module" src="./app.js?v=2"></script>
+  <script src="../src/vendor/supabase-js-2.57.4-local-20260801-221649.js?v=20260801-221649"></script>
+  <script type="module" src="./app.js?v=3-restauracao-v3"></script>
 </body>
 </html>

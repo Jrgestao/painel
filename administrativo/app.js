@@ -1,6 +1,9 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../src/config.js?v=3'
-import { hydrateIcons, icon } from '../src/icons.js?v=9'
+const createClient = window.supabase?.createClient
+if (typeof createClient !== 'function') throw new Error('Biblioteca local do Supabase não carregou.')
+import * as JR_CONFIG from '../src/config.js?v=admin-restore-20260904'
+const SUPABASE_URL = JR_CONFIG.SUPABASE_URL
+const SUPABASE_PUBLISHABLE_KEY = JR_CONFIG.SUPABASE_PUBLISHABLE_KEY || JR_CONFIG.SUPABASE_ANON_KEY || JR_CONFIG.ANON_KEY
+import { hydrateIcons, icon } from './icons.js?v=admin-restore-20260904'
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
@@ -70,7 +73,7 @@ async function bootstrap() {
 
 function bindEvents() {
   el('open-bulletins').addEventListener('click', () => openBulletins({ scope: 'state' }))
-  el('open-campo-grande').addEventListener('click', () => openBulletins({ scope: 'campo' }))
+  el('open-campo-grande')?.addEventListener('click', () => openBulletins({ scope: 'campo' }))
   document.querySelectorAll('[data-go-tools]').forEach((node) => node.addEventListener('click', (event) => {
     event.preventDefault()
     showTools()
