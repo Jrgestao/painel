@@ -541,3 +541,78 @@ select:focus, input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
   .campo-list-copy { margin-top: 14px; }
   .cg-tender-item { min-height: 72px; }
 }
+
+/* JR_ADMIN_VISUAL_V15 — somente visual do Administrativo */
+.admin-loading{
+  background:#ffffff!important;
+  color:#1a2025!important;
+  gap:14px!important;
+}
+.loading-emblem{
+  width:154px!important;
+  height:154px!important;
+  margin:auto!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.loading-emblem img{
+  width:138px!important;
+  height:138px!important;
+  object-fit:contain!important;
+  background:transparent!important;
+  filter:drop-shadow(0 12px 22px rgba(20,32,40,.10));
+}
+.loading-copy{gap:6px!important;}
+.loading-copy strong{
+  color:#12171b!important;
+  font-size:.88rem!important;
+  font-weight:800!important;
+  letter-spacing:.17em!important;
+}
+.loading-copy span{
+  color:#6f7880!important;
+  font-size:.86rem!important;
+}
+.loading-copy::after{
+  content:'Aguarde alguns instantes';
+  margin-top:1px;
+  color:#9aa1a7;
+  font-size:.68rem;
+  font-weight:600;
+}
+.loading-track{
+  width:230px!important;
+  height:4px!important;
+  margin:2px auto 0!important;
+  background:#e9edf0!important;
+  box-shadow:inset 0 0 0 1px rgba(20,30,38,.035);
+}
+.loading-track span{
+  background:linear-gradient(90deg,#aab2b8,#20272c 52%,#aab2b8)!important;
+  box-shadow:0 0 10px rgba(31,39,44,.12);
+}
+.admin-header .brand{
+  min-width:72px!important;
+  gap:0!important;
+}
+.admin-header .brand img{
+  width:68px!important;
+  height:54px!important;
+  padding:0!important;
+  object-fit:contain!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.admin-header .brand span{display:none!important;}
+@media(max-width:780px){
+  .loading-emblem{width:132px!important;height:132px!important;}
+  .loading-emblem img{width:118px!important;height:118px!important;}
+  .admin-header .brand{min-width:58px!important;}
+  .admin-header .brand img{width:56px!important;height:46px!important;}
+}
+/* FIM JR_ADMIN_VISUAL_V15 */
+
