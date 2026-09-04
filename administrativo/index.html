@@ -9,11 +9,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=2" />
+  <link rel="stylesheet" href="./styles.css?v=11" />
 </head>
 <body>
+  <!-- JR_GESTAO_LICITACOES_V9_INTELIGENCIA_EKRONOS -->
   <div id="admin-loading" class="admin-loading" role="status" aria-live="polite">
-    <div class="loading-emblem"><img src="./logo.png" alt="JR Gestão" /></div>
+    <div class="loading-emblem"><img src="../assets/logo.png" alt="JR Gestão" /></div>
     <div class="loading-copy"><strong>MODO ADMINISTRATIVO</strong><span id="loading-message">Preparando suas ferramentas…</span></div>
     <div class="loading-track"><span></span></div>
   </div>
@@ -21,7 +22,7 @@
   <div id="admin-app" class="admin-app hidden">
     <header class="admin-header">
       <a class="brand" href="./" data-go-tools>
-        <img src="./logo.png" alt="JR Gestão" />
+        <img src="../assets/logo.png" alt="JR Gestão" />
         <span><strong>JR GESTÃO</strong><small>ADMINISTRATIVO</small></span>
       </a>
       <div class="header-actions">
@@ -79,19 +80,14 @@
             <div class="calendar-legend"><span><i class="legend-dot priority"></i>Prioridade</span><span><i class="legend-dot opportunities"></i>Publicações</span><small>Contagem baseada na data oficial de publicação</small></div>
           </article>
 
-          <aside class="radar-panel surface">
-            <div class="radar-heading">
-              <span class="radar-star" aria-hidden="true">★</span>
-              <div><span id="radar-eyebrow" class="eyebrow">EM EVIDÊNCIA</span><h2 id="radar-title">Radar Prioritário</h2></div>
+          <aside class="radar-panel campo-list-panel surface">
+            <div class="radar-heading campo-list-heading">
+              <span class="radar-star campo-pin" aria-hidden="true">CG</span>
+              <div><span id="radar-eyebrow" class="eyebrow">CAMPO GRANDE</span><h2 id="radar-title">Licitações do dia</h2></div>
             </div>
-            <div id="state-radar-tabs" class="radar-tabs" role="tablist" aria-label="Filtros do Radar Prioritário">
-              <button type="button" role="tab" data-radar="campo" aria-selected="false">Campo Grande</button>
-              <button type="button" role="tab" data-radar="interesses" aria-selected="false">Meus interesses</button>
-              <button type="button" role="tab" data-radar="combined" aria-selected="true" class="active">Campo Grande + interesses</button>
-            </div>
-            <p id="campo-radar-copy" class="campo-radar-copy hidden">Somente oportunidades publicadas por órgãos de Campo Grande.</p>
-            <div id="radar-summary" class="radar-summary"><strong>0</strong><span>oportunidades na data</span></div>
-            <div id="radar-list" class="radar-list"></div>
+            <p class="campo-list-copy">Uma lista direta das publicações de Campo Grande na data escolhida. Clique em qualquer item para abrir valor, edital, documentos, prazos e a fonte oficial.</p>
+            <div id="radar-summary" class="radar-summary campo-list-summary"><strong>0</strong><span>licitações de Campo Grande neste dia</span></div>
+            <div id="radar-list" class="radar-list campo-list"></div>
           </aside>
         </section>
 
@@ -99,23 +95,6 @@
           <div class="day-heading">
             <div><span class="eyebrow">PUBLICAÇÕES DO DIA</span><h2 id="day-title">Licitações de hoje</h2><p id="day-summary">Selecione uma data no calendário.</p></div>
             <button id="toggle-filters" class="filter-toggle" type="button" aria-expanded="false"><span data-icon="search"></span>Filtrar resultados<span id="filter-count" class="filter-count hidden">0</span></button>
-          </div>
-
-          <div id="campo-quick-filters" class="campo-quick-filters hidden" aria-label="Filtros rápidos de Campo Grande">
-            <div><span class="eyebrow">ATALHOS DO RADAR</span><strong>O que você procura?</strong></div>
-            <div class="quick-filter-buttons">
-              <button type="button" data-cg-filter="interests" class="active">★ Meus interesses</button>
-              <button type="button" data-cg-filter="all">Todas de Campo Grande</button>
-              <button type="button" data-cg-filter="ILUMINAÇÃO">Iluminação</button>
-              <button type="button" data-cg-filter="ELÉTRICA">Elétrica</button>
-              <button type="button" data-cg-filter="MÁQUINAS">Locação de máquinas</button>
-              <button type="button" data-cg-filter="PODA E ARBORIZAÇÃO">Poda e arborização</button>
-              <button type="button" data-cg-filter="AMBIENTAL">Ambiental</button>
-              <button type="button" data-cg-filter="NATAL">Natal</button>
-              <button type="button" data-cg-filter="EVENTOS DE ILUMINAÇÃO">Iluminação para eventos</button>
-              <button type="button" data-cg-filter="CASCALHO">Cascalho</button>
-              <button type="button" data-cg-filter="REVESTIMENTO PRIMÁRIO">Vias e revestimento</button>
-            </div>
           </div>
 
           <form id="filters" class="filters hidden">
@@ -152,7 +131,8 @@
   </dialog>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script src="../src/vendor/supabase-js-2.57.4-local-20260801-221649.js?v=20260801-221649"></script>
-  <script type="module" src="./app.js?v=3-restauracao-v3"></script>
+  <script type="module" src="./app.js?v=11"></script>
+  <!-- JR_GESTAO_MODE_TOGGLE_V11 -->
+  <script src="../src/mode-toggle-v11.js?v=20260904-v11" defer></script>
 </body>
 </html>
