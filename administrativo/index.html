@@ -9,10 +9,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=17" />
+  <link rel="stylesheet" href="./styles.css?v=18" />
 </head>
 <body>
-  <!-- JR_GESTAO_LICITACOES_V17_DESTAQUES_LINKS -->
+  <!-- JR_GESTAO_LICITACOES_V18_SOMENTE_ABERTAS_LINKS_REAIS -->
   <div id="admin-loading" class="admin-loading" role="status" aria-live="polite">
     <div class="loading-emblem"><img src="../assets/logo.png" alt="JR Gestão" /></div>
     <div class="loading-copy"><strong>JR GESTÃO</strong><span id="loading-message">Conectando ao painel…</span></div>
@@ -61,13 +61,6 @@
           <div class="collector-state" id="collector-state"><span></span><div><strong>Base atualizada</strong><small id="collector-state-detail">Consultando fontes oficiais…</small></div></div>
         </div>
 
-        <section class="overview-strip" aria-label="Resumo da data selecionada">
-          <article><small>PUBLICAÇÕES NO DIA</small><strong id="stat-total">0</strong><span>em Mato Grosso do Sul</span></article>
-          <article class="cg"><small>CAMPO GRANDE</small><strong id="stat-cg">0</strong><span>publicações na Capital</span></article>
-          <article class="open"><small>EM PRAZO</small><strong id="stat-open">0</strong><span>ainda recebendo propostas</span></article>
-          <article class="docs"><small>EDITAL DIRETO</small><strong id="stat-edital">0</strong><span>com documento localizado</span></article>
-        </section>
-
         <section class="calendar-radar-grid">
           <article class="calendar-panel surface">
             <div class="calendar-toolbar">
@@ -105,7 +98,7 @@
 
         <section class="day-panel surface">
           <div class="day-heading">
-            <div><span class="eyebrow">PUBLICAÇÕES DO DIA</span><h2 id="day-title">Licitações de hoje</h2><p id="day-summary">Selecione uma data no calendário.</p></div>
+            <div><span class="eyebrow">OPORTUNIDADES ABERTAS</span><h2 id="day-title">Licitações abertas</h2><p id="day-summary">Somente licitações com prazo vigente para envio de proposta.</p></div>
             <div class="day-actions">
               <label class="sort-field"><span>Ordenar</span><select id="sort-results" aria-label="Ordenar licitações"><option value="smart">Mais relevantes</option><option value="deadline">Prazo mais próximo</option><option value="newest">Mais recentes</option><option value="value">Maior valor</option><option value="city">Município A–Z</option></select></label>
               <button id="toggle-filters" class="filter-toggle" type="button" aria-expanded="false"><span data-icon="search"></span>Filtrar resultados<span id="filter-count" class="filter-count hidden">0</span></button>
@@ -118,7 +111,6 @@
             <label><span>Órgão</span><select id="agency-filter"><option value="">Todos</option></select></label>
             <label><span>Categoria</span><select id="category-filter"><option value="">Todas</option></select></label>
             <label><span>Modalidade</span><select id="modality-filter"><option value="">Todas</option></select></label>
-            <label><span>Status</span><select id="status-filter"><option value="">Todos</option></select></label>
             <label><span>Fonte</span><select id="source-filter"><option value="">Todas</option></select></label>
             <label><span>Compatibilidade</span><select id="compatibility-filter"><option value="0">Qualquer</option><option value="35">35% ou mais</option><option value="60">60% ou mais</option><option value="80">80% ou mais</option></select></label>
             <label><span>Valor mínimo</span><input id="min-value-filter" type="number" min="0" step="1000" placeholder="R$ 0" /></label>
@@ -146,6 +138,6 @@
   </dialog>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script type="module" src="./app.js?v=17"></script>
+  <script type="module" src="./app.js?v=18"></script>
 </body>
 </html>

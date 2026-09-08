@@ -9,7 +9,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 const PRIORITY_SCORE = 35
 const DATE_ZONE = 'America/Campo_Grande'
-const FILTER_IDS = ['text', 'municipality', 'agency', 'category', 'modality', 'status', 'source', 'compatibility', 'min-value', 'max-value']
+const FILTER_IDS = ['text', 'municipality', 'agency', 'category', 'modality', 'source', 'compatibility', 'min-value', 'max-value']
 
 const state = {
   profile: null,
@@ -100,7 +100,6 @@ function bindEvents() {
     updateUrl({ tool: true })
     renderCalendar()
     populateFilterOptions()
-    renderOverviewStats()
     renderCampoGrandeList()
     renderResults()
   }))
@@ -212,12 +211,12 @@ function renderCalendar() {
       hasCgInterest ? `${interestCg} de interesse em Campo Grande` : '',
       hasInteriorInterest ? `${interestInterior} de interesse no interior de MS` : '',
     ].filter(Boolean).join(', ')
-    const label = `${formatDate(iso, { weekday: 'long', day: 'numeric', month: 'long' })}${visibleCount ? `, ${visibleCount} licitações` : ', nenhuma licitação'}${highlights ? `; ${highlights}` : ''}`
+    const label = `${formatDate(iso, { weekday: 'long', day: 'numeric', month: 'long' })}${visibleCount ? `, ${visibleCount} licitações abertas` : ', nenhuma licitação aberta'}${highlights ? `; ${highlights}` : ''}`
     cells.push(`
       <button type="button" role="gridcell" class="calendar-day${interestClass}${outside ? ' outside' : ''}${iso === today ? ' today' : ''}${iso === state.selectedDate ? ' selected' : ''}" data-calendar-date="${iso}" aria-label="${escapeHtml(label)}" aria-selected="${iso === state.selectedDate}">
         <span class="day-number"><span>${date.getUTCDate()}</span><i>HOJE</i></span>
         <span class="day-count">
-          ${visibleCount ? `<strong>${visibleCount} ${visibleCount === 1 ? 'licitação' : 'licitações'}</strong><span>publicadas</span>` : '<span>—</span>'}
+          ${visibleCount ? `<strong>${visibleCount} ${visibleCount === 1 ? 'licitação' : 'licitações'}</strong><span>abertas</span>` : '<span>—</span>'}
           ${(hasCgInterest || hasInteriorInterest) ? `<span class="calendar-interest-badges">${hasCgInterest ? `<b class="interest-badge cg">CG ★ ${interestCg}</b>` : ''}${hasInteriorInterest ? `<b class="interest-badge ms">MS ★ ${interestInterior}</b>` : ''}</span>` : ''}
         </span>
       </button>`)
@@ -237,14 +236,13 @@ async function loadDay() {
       ? `Licitações de Campo Grande em ${formatDate(state.selectedDate)}`
       : `Licitações de ${formatDate(state.selectedDate)}`
     el('day-summary').textContent = state.scope === 'campo'
-      ? `${scoped.length} ${scoped.length === 1 ? 'publicação oficial de Campo Grande localizada' : 'publicações oficiais de Campo Grande localizadas'}.`
-      : `${payload.total || 0} ${payload.total === 1 ? 'publicação oficial localizada' : 'publicações oficiais localizadas'} em Mato Grosso do Sul.`
+      ? `${scoped.length} ${scoped.length === 1 ? 'licitação aberta para participação em Campo Grande' : 'licitações abertas para participação em Campo Grande'}.`
+      : `${payload.total || 0} ${payload.total === 1 ? 'licitação aberta para participação' : 'licitações abertas para participação'} em Mato Grosso do Sul.`
     populateFilterOptions()
     renderCampoGrandeList()
     renderResults()
   } catch (error) {
     state.results = []
-    renderOverviewStats()
     renderCampoGrandeList()
     const message = readableError(error)
     el('day-error').textContent = message
@@ -292,9 +290,9 @@ function renderCampoGrandeList() {
       return Number(b.valor_estimado || 0) - Number(a.valor_estimado || 0)
     })
 
-  el('radar-summary').innerHTML = `<strong>${matches.length}</strong><span>${matches.length === 1 ? 'licitação de Campo Grande neste dia' : 'licitações de Campo Grande neste dia'}</span>`
+  el('radar-summary').innerHTML = `<strong>${matches.length}</strong><span>${matches.length === 1 ? 'licitação aberta de Campo Grande neste dia' : 'licitações abertas de Campo Grande neste dia'}</span>`
   if (!matches.length) {
-    el('radar-list').innerHTML = '<div class="cg-empty"><strong>Nenhuma publicação de Campo Grande nesta data.</strong><span>Escolha outro dia no calendário para consultar.</span></div>'
+    el('radar-list').innerHTML = '<div class="cg-empty"><strong>Nenhuma licitação aberta de Campo Grande nesta data.</strong><span>Escolha outro dia no calendário para consultar.</span></div>'
     return
   }
 
@@ -335,17 +333,6 @@ async function switchToCampoGrande() {
 }
 
 
-function renderOverviewStats() {
-  const rows = state.results || []
-  const campo = rows.filter(displayIsCampoGrande).length
-  const open = rows.filter((item) => statusForTender(item).kind === 'open').length
-  const edital = rows.filter((item) => safeUrl(item.edital_url)).length
-  if (el('stat-total')) el('stat-total').textContent = String(rows.length)
-  if (el('stat-cg')) el('stat-cg').textContent = String(campo)
-  if (el('stat-open')) el('stat-open').textContent = String(open)
-  if (el('stat-edital')) el('stat-edital').textContent = String(edital)
-}
-
 function sortResults(rows) {
   const mode = el('sort-results')?.value || 'smart'
   return [...rows].sort((a, b) => {
@@ -374,12 +361,12 @@ function renderResults() {
   const filtered = sortResults(scoped.filter(matchesFilters))
   const groups = state.scope === 'campo'
     ? [
-        { key: 'campo', icon: 'CG', label: 'Campo Grande', description: 'Todas as licitações do município na data', items: filtered },
+        { key: 'campo', icon: 'CG', label: 'Campo Grande', description: 'Licitações abertas para participação no município', items: filtered },
       ]
     : [
-        { key: 'priority', icon: '★', label: 'Prioridade para você', description: 'Campo Grande + categorias de interesse', items: filtered.filter(isPriority) },
-        { key: 'campo', icon: '●', label: 'Campo Grande', description: 'Outras oportunidades do município', items: filtered.filter((item) => displayIsCampoGrande(item) && !isPriority(item)) },
-        { key: 'state', icon: 'MS', label: 'Mato Grosso do Sul', description: 'Interior, órgãos estaduais e federais relacionados a MS', items: filtered.filter((item) => !displayIsCampoGrande(item)) },
+        { key: 'priority', icon: '★', label: 'Prioridade para você', description: 'Abertas em Campo Grande + categorias de interesse', items: filtered.filter(isPriority) },
+        { key: 'campo', icon: '●', label: 'Campo Grande', description: 'Outras oportunidades abertas do município', items: filtered.filter((item) => displayIsCampoGrande(item) && !isPriority(item)) },
+        { key: 'state', icon: 'MS', label: 'Mato Grosso do Sul', description: 'Oportunidades abertas no interior e em órgãos de MS', items: filtered.filter((item) => !displayIsCampoGrande(item)) },
       ]
   const activeCount = countActiveFilters()
   el('filter-count').textContent = String(activeCount)
@@ -387,7 +374,7 @@ function renderResults() {
 
   if (!filtered.length) {
     el('results-container').innerHTML = `
-      <div class="empty-state"><strong>Nenhuma licitação neste recorte</strong><p>${scoped.length ? 'Tente outro atalho ou limpe os filtros.' : 'Assim que uma fonte oficial publicar uma oportunidade nesta data, ela aparecerá aqui.'}</p></div>`
+      <div class="empty-state"><strong>Nenhuma licitação aberta neste recorte</strong><p>${scoped.length ? 'Tente outro atalho ou limpe os filtros.' : 'Só aparecem oportunidades com prazo vigente para envio de proposta.'}</p></div>`
     return
   }
 
@@ -402,7 +389,7 @@ function renderTenderCard(item) {
   const score = displayCompatibility(item)
   const status = statusForTender(item)
   const shortSummary = smartTenderSummary(item)
-  const officialUrl = officialPublicationUrl(item)
+  const officialUrl = safeUrl(item.publicacao_url) || officialPublicationUrl(item)
   const editalUrl = safeUrl(item.edital_url)
   const tenderNumber = item.processo || item.numero_compra || 'Não informado'
   const tags = displayCategories(item).map((category) => `<span class="category-chip">${escapeHtml(category)}</span>`).join('')
@@ -431,10 +418,10 @@ function renderTenderCard(item) {
       <div class="tender-value"><small>Valor estimado</small><strong>${formatMoney(item.valor_estimado)}</strong></div>
       <div class="tender-actions">
         <button class="action-button primary" type="button" data-open-tender="${item.id}">${icon('eye')}Ver licitação</button>
-        ${editalUrl ? `<a class="action-button edital-direct" href="${escapeHtml(editalUrl)}" target="_blank" rel="noopener noreferrer">${icon('file-text')}Abrir edital</a>` : `<button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('file-text')}Procurar edital</button>`}
+        ${editalUrl ? `<a class="action-button edital-direct" href="${escapeHtml(editalUrl)}" target="_blank" rel="noopener noreferrer">${icon('file-text')}Baixar edital</a>` : `<button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('archive')}Ver documentos</button>`}
         <button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('archive')}${Number(item.documentos_count || 0) ? `${Number(item.documentos_count)} documentos` : 'Documentos'}</button>
         <button class="action-button favorite${item.favoritada ? ' active' : ''}" type="button" data-favorite="${item.id}">${icon(item.favoritada ? 'check' : 'save')}${item.favoritada ? 'Favoritada' : 'Favoritar'}</button>
-        ${officialUrl ? `<a class="action-button official-direct" href="${escapeHtml(officialUrl)}" target="_blank" rel="noopener noreferrer">${icon('arrow-right')}Publicação oficial</a>` : ''}
+        ${officialUrl ? `<a class="action-button official-direct" href="${escapeHtml(officialUrl)}" target="_blank" rel="noopener noreferrer">${icon('arrow-right')}Ver licitação oficial</a>` : ''}
       </div>
     </article>`
 }
@@ -509,8 +496,8 @@ function renderDetail(payload) {
       <div class="detail-full-object"><small>OBJETO COMPLETO</small><p class="detail-object">${escapeHtml(item.objeto)}</p></div>
       <div class="tender-actions">
         <button class="action-button favorite${item.favoritada ? ' active' : ''}" type="button" data-favorite="${item.id}">${icon(item.favoritada ? 'check' : 'save')}${item.favoritada ? 'Favoritada' : 'Favoritar'}</button>
-        ${bestDocumentUrl(documents, item) ? `<a class="action-button edital-direct" href="${escapeHtml(bestDocumentUrl(documents, item))}" target="_blank" rel="noopener noreferrer">${icon('file-text')}Abrir edital direto</a>` : ''}
-        ${officialPublicationUrl(item) ? `<a class="action-button primary official-direct" href="${escapeHtml(officialPublicationUrl(item))}" target="_blank" rel="noopener noreferrer">${icon('arrow-right')}Abrir publicação oficial</a>` : ''}
+        ${bestEdictDocumentUrl(documents, item) ? `<a class="action-button edital-direct" href="${escapeHtml(bestEdictDocumentUrl(documents, item))}" target="_blank" rel="noopener noreferrer">${icon('file-text')}Baixar edital</a>` : ''}
+        ${(safeUrl(item.publicacao_url) || officialPublicationUrl(item)) ? `<a class="action-button primary official-direct" href="${escapeHtml(safeUrl(item.publicacao_url) || officialPublicationUrl(item))}" target="_blank" rel="noopener noreferrer">${icon('arrow-right')}Ver licitação oficial</a>` : ''}
       </div>
     </section>
     <div class="detail-grid">${fields.map(([label, value]) => `<div class="detail-field"><small>${label}</small><strong>${escapeHtml(value || 'Não informado')}</strong></div>`).join('')}</div>
@@ -593,7 +580,6 @@ function populateFilterOptions() {
   setOptions('agency-filter', unique(rows.map((item) => item.orgao)), 'Todos')
   setOptions('category-filter', unique(rows.flatMap((item) => item.categorias || [])), 'Todas')
   setOptions('modality-filter', unique(rows.map((item) => item.modalidade)), 'Todas')
-  setOptions('status-filter', unique(rows.map((item) => statusForTender(item).label)), 'Todos')
   setOptions('source-filter', unique(rows.map((item) => item.fonte_principal)), 'Todas')
 }
 
@@ -618,7 +604,6 @@ function matchesFilters(item) {
     && exact('agency', item.orgao)
     && (!category || displayCategories(item).includes(category))
     && exact('modality', item.modalidade)
-    && exact('status', statusForTender(item).label)
     && exact('source', item.fonte_principal)
     && displayCompatibility(item) >= minimumScore
     && (!minimumValue || value >= minimumValue)
@@ -643,8 +628,8 @@ function syncScopeUi() {
       ? `Licitações de Campo Grande em ${formatDate(state.selectedDate)}`
       : `Licitações de ${formatDate(state.selectedDate)}`
     el('day-summary').textContent = campo
-      ? `${scoped.length} ${scoped.length === 1 ? 'publicação oficial de Campo Grande localizada' : 'publicações oficiais de Campo Grande localizadas'}.`
-      : `${state.results.length} ${state.results.length === 1 ? 'publicação oficial localizada' : 'publicações oficiais localizadas'} em Mato Grosso do Sul.`
+      ? `${scoped.length} ${scoped.length === 1 ? 'licitação aberta para participação em Campo Grande' : 'licitações abertas para participação em Campo Grande'}.`
+      : `${state.results.length} ${state.results.length === 1 ? 'licitação aberta para participação' : 'licitações abertas para participação'} em Mato Grosso do Sul.`
   }
 }
 
@@ -800,16 +785,29 @@ function conciseObject(value) {
   return `${shortened}…`
 }
 
+function isTenderOpenForEntry(item, now = Date.now()) {
+  const official = normalize(item?.situacao)
+  if (/cancel|anulad|revogad|suspens|desert|fracassad|encerr|concluid|finalizad|homologad|adjudicad|julgamento|propostas? encerrad|resultado|vencedor|contratad/.test(official)) return false
+  const deadline = new Date(item?.data_encerramento || '')
+  if (Number.isNaN(deadline.getTime()) || deadline.getTime() <= Number(now)) return false
+  const raw = item?.raw_data && typeof item.raw_data === 'object' ? item.raw_data : {}
+  const rawText = normalize(JSON.stringify({
+    situacaoCompraNome: raw.situacaoCompraNome,
+    situacao: raw.situacao,
+    status: raw.status,
+    resultado: raw.resultado,
+  }))
+  if (/homologad|adjudicad|encerrad|concluid|finalizad|vencedor|contratad|resultado final/.test(rawText)) return false
+  const homologated = Number(raw.valorTotalHomologado || raw.valorHomologado || 0)
+  if (Number.isFinite(homologated) && homologated > 0) return false
+  return true
+}
+
 function statusForTender(item) {
-  const official = normalize(item.situacao)
-  if (/cancel|anulad|revogad|desert|fracassad/.test(official)) return { label: 'Cancelada', kind: 'cancelled' }
-  if (/suspens|suspensa/.test(official)) return { label: 'Suspensa', kind: 'suspended' }
-  if (/encerr|concluid|homologad|adjudicad|finalizad/.test(official)) return { label: 'Encerrada', kind: 'closed' }
-  const deadline = new Date(item.data_encerramento || '')
-  if (!Number.isNaN(deadline.getTime()) && deadline.getTime() < Date.now()) return { label: 'Encerrada', kind: 'closed' }
+  if (!isTenderOpenForEntry(item)) return { label: 'Fora de prazo', kind: 'closed' }
   const opening = new Date(item.data_abertura || '')
-  if (Number.isNaN(deadline.getTime()) && !Number.isNaN(opening.getTime()) && opening.getTime() < Date.now()) return { label: 'Encerrada', kind: 'closed' }
-  return { label: 'Em prazo', kind: 'open' }
+  if (!Number.isNaN(opening.getTime()) && opening.getTime() > Date.now()) return { label: 'A receber propostas', kind: 'open' }
+  return { label: 'Recebendo propostas', kind: 'open' }
 }
 
 function countActiveFilters() {
@@ -842,12 +840,12 @@ async function queryCalendar(month) {
   const nextDate = new Date(Date.UTC(year, monthNumber, 1))
   const end = nextDate.toISOString().slice(0, 10)
   const rows = await fetchPaged(() => supabase.from('licitacoes')
-    .select('id,data_publicacao,is_campo_grande,compatibilidade,categorias,objeto,resumo')
+    .select('id,data_publicacao,is_campo_grande,compatibilidade,categorias,objeto,resumo,situacao,data_abertura,data_encerramento,raw_data,pncp_id,url_oficial')
     .gte('data_publicacao', start)
     .lt('data_publicacao', end)
     .order('data_publicacao', { ascending: true }), 20000)
   const days = {}
-  rows.forEach((row) => {
+  rows.filter(isTenderOpenForEntry).forEach((row) => {
     const day = days[row.data_publicacao] || { total: 0, campoGrande: 0, interesses: 0, interessesCampoGrande: 0, interessesInterior: 0 }
     day.total += 1
     if (displayIsCampoGrande(row)) day.campoGrande += 1
@@ -863,22 +861,43 @@ async function queryCalendar(month) {
 
 async function queryDay(date, userId) {
   if (!validDate(date)) throw new Error('Data inválida.')
-  const [rows, favoriteRows] = await Promise.all([
-    fetchPaged(() => supabase.from('licitacoes').select('*').eq('data_publicacao', date).order('compatibilidade', { ascending: false }).order('data_abertura', { ascending: true, nullsFirst: false }), 2000),
+  const rawRows = await fetchPaged(() => supabase.from('licitacoes').select('*').eq('data_publicacao', date).order('compatibilidade', { ascending: false }).order('data_abertura', { ascending: true, nullsFirst: false }), 2000)
+  const rows = (rawRows || []).filter(isTenderOpenForEntry)
+  const [favoriteRows, documentsByTender, sourcesByTender] = await Promise.all([
     checked(supabase.from('licitacao_favoritos').select('licitacao_id').eq('user_id', userId)),
+    loadDocumentSummaries(rows.map((item) => item.id)),
+    loadSourceSummaries(rows.map((item) => item.id)),
   ])
   const favorites = new Set((favoriteRows || []).map((item) => item.licitacao_id))
-  const documentsByTender = await loadDocumentSummaries((rows || []).map((item) => item.id))
-  const results = (rows || []).map((item) => {
+  const results = rows.map((item) => {
     const docs = documentsByTender.get(item.id) || []
+    const sources = sourcesByTender.get(item.id) || []
     return {
       ...item,
       favoritada: favorites.has(item.id),
-      edital_url: bestDocumentUrl(docs, item),
+      edital_url: bestEdictDocumentUrl(docs, item),
+      publicacao_url: bestOfficialPublicationUrl(sources, item),
       documentos_count: docs.length,
     }
   })
   return { date, total: results.length, results }
+}
+
+async function loadSourceSummaries(ids) {
+  const map = new Map()
+  const cleanIds = [...new Set((ids || []).filter(Boolean))]
+  const batchSize = 120
+  for (let index = 0; index < cleanIds.length; index += batchSize) {
+    const batch = cleanIds.slice(index, index + batchSize)
+    const rows = await checked(supabase.from('licitacao_fontes')
+      .select('licitacao_id,fonte,url,pagina,data_publicacao,source_uid')
+      .in('licitacao_id', batch))
+    for (const source of rows || []) {
+      if (!map.has(source.licitacao_id)) map.set(source.licitacao_id, [])
+      map.get(source.licitacao_id).push(source)
+    }
+  }
+  return map
 }
 
 async function loadDocumentSummaries(ids) {
@@ -898,24 +917,43 @@ async function loadDocumentSummaries(ids) {
   return map
 }
 
-function bestDocumentUrl(documents, tender = null) {
+function bestEdictDocumentUrl(documents, tender = null) {
   const scored = (documents || [])
     .map((doc) => ({ doc, url: documentOpenUrl(doc, tender) }))
     .filter((entry) => entry.url)
     .map(({ doc, url }) => {
       const text = normalize(`${doc.tipo || ''} ${doc.titulo || ''}`)
-      let score = 0
-      if (/\bedital\b/.test(text)) score += 100
-      if (/termo de referencia/.test(text)) score += 70
-      if (/projeto basico/.test(text)) score += 60
-      if (/instrumento convocatorio/.test(text)) score += 55
-      if (/retificac|aviso/.test(text)) score += 10
-      if (/publicacao oficial/.test(text)) score -= 25
+      let score = -999
+      if (/\bedital\b/.test(text)) score = 120
+      else if (/instrumento convocatorio/.test(text)) score = 105
+      else if (/aviso de contratacao direta/.test(text)) score = 90
+      else if (/termo de referencia/.test(text)) score = 45
+      if (/retificac|resultado|homolog|adjudic|ata|contrato/.test(text)) score -= 90
       if (/pdf/.test(String(doc.mime_type || '')) || /\.pdf(?:$|\?)/i.test(String(url || ''))) score += 8
       return { doc, url, score }
     })
+    .filter((entry) => entry.score >= 80)
     .sort((a, b) => b.score - a.score)
   return scored[0]?.url || ''
+}
+
+function bestOfficialPublicationUrl(sources, tender) {
+  const pncp = pncpPublicationUrl(tender?.pncp_id)
+  if (pncp) return pncp
+  const ranked = (sources || [])
+    .map((source) => {
+      const url = pageUrl(safeUrl(source?.url), source?.pagina)
+      const name = normalize(source?.fonte)
+      let score = url ? 10 : -100
+      if (/pncp/.test(name)) score += 100
+      if (source?.pagina) score += 35
+      if (/diogrande|diario oficial de campo grande/.test(name)) score += 30
+      if (/doe|diario oficial.*estado/.test(name)) score += 25
+      return { url, score }
+    })
+    .filter((entry) => entry.url)
+    .sort((a, b) => b.score - a.score)
+  return ranked[0]?.url || safeUrl(tender?.url_oficial)
 }
 
 async function querySourceStatus() {
@@ -946,7 +984,7 @@ async function queryDetail(id, userId) {
   if (!(requirements || []).length && (documents || []).length) {
     checked(supabase.from('licitacao_fila_analise').upsert({ licitacao_id: id, prioridade: 10, status: 'pendente', solicitado_em: new Date().toISOString(), erro: null }, { onConflict: 'licitacao_id' })).catch(() => null)
   }
-  return { tender: { ...tender, favoritada: Boolean(favorites?.length) }, sources: sources || [], documents: documents || [], requirements: requirements || [], analysisPending: !(requirements || []).length && Boolean((documents || []).length) }
+  return { tender: { ...tender, favoritada: Boolean(favorites?.length), publicacao_url: bestOfficialPublicationUrl(sources || [], tender) }, sources: sources || [], documents: documents || [], requirements: requirements || [], analysisPending: !(requirements || []).length && Boolean((documents || []).length) }
 }
 
 async function updateFavorite(id, userId, payload) {
@@ -1002,7 +1040,8 @@ function pncpPublicationUrl(value) {
 
 function officialPublicationUrl(item) {
   const pncp = pncpPublicationUrl(item?.pncp_id)
-  return pncp || safeUrl(item?.url_oficial)
+  if (pncp) return pncp
+  return safeUrl(item?.url_oficial)
 }
 
 function officialSourceUrl(source, tender) {
@@ -1012,7 +1051,7 @@ function officialSourceUrl(source, tender) {
 
 function documentOpenUrl(document, tender = null) {
   if (!document) return ''
-  const direct = safeUrl(document.url)
+  const direct = safeUrl(document.url, 'https://pncp.gov.br/')
   if (direct) return direct
   const uid = String(document.source_uid || '')
   const match = uid.match(/^pncp:(\d{14}-1-\d+\/\d{4}):doc:(\d+)$/i)
@@ -1030,11 +1069,12 @@ function openSafeUrl(value) {
   window.open(url, '_blank', 'noopener,noreferrer')
 }
 
-function safeUrl(value) {
+function safeUrl(value, base = window.location.origin) {
   try {
     const cleaned = String(value || '').trim().replace(/&amp;/gi, '&').replace(/^['"]|['"]$/g, '')
     if (!cleaned) return ''
-    const url = new URL(cleaned.startsWith('//') ? `https:${cleaned}` : cleaned)
+    const normalized = cleaned.startsWith('//') ? `https:${cleaned}` : cleaned
+    const url = new URL(normalized, base)
     return ['https:', 'http:'].includes(url.protocol) ? url.toString() : ''
   } catch { return '' }
 }
