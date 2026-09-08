@@ -269,7 +269,7 @@ select:focus, input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .tender-value small { color: var(--muted); font-size: .62rem; font-weight: 700; text-transform: uppercase; }
 .tender-value strong { color: var(--navy); font-size: 1rem; }
 .tender-actions { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 7px; grid-column: 1 / -1; }
-.action-button { min-height: 36px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 9px; color: #4d606b; background: white; cursor: pointer; font-size: .66rem; font-weight: 800; }
+.action-button { text-decoration:none; min-height: 36px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 9px; color: #4d606b; background: white; cursor: pointer; font-size: .66rem; font-weight: 800; }
 .action-button:hover { color: var(--green-2); border-color: #9cc9b6; background: var(--mint); }
 .action-button.primary { color: white; border-color: var(--green); background: var(--green); }
 .action-button.favorite.active { color: #8a6710; border-color: #e6cd79; background: #fff8db; }
@@ -583,4 +583,27 @@ select:focus, input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
   .day-actions{width:100%}.sort-field{flex:1}.sort-field select{width:100%;min-width:0}
   .loading-emblem{width:132px!important;height:132px!important}.loading-emblem img{width:118px!important;height:118px!important}
   .admin-header .brand{min-width:58px!important}.admin-header .brand img{width:56px!important;height:46px!important}
+}
+
+
+/* JR_GESTAO_LICITACOES_V17_CALENDAR_DESTAQUES */
+.calendar-day.has-interest-cg-only:not(.selected){background:linear-gradient(145deg,#edf4ff 0%,#f8fbff 75%);box-shadow:inset 0 0 0 2px #5f8fd4}
+.calendar-day.has-interest-ms-only:not(.selected){background:linear-gradient(145deg,#eaf8f0 0%,#f8fcfa 75%);box-shadow:inset 0 0 0 2px #55a879}
+.calendar-day.has-interest-mixed:not(.selected){background:linear-gradient(135deg,#edf4ff 0%,#edf4ff 49%,#eaf8f0 51%,#f7fbf9 100%);box-shadow:inset 0 0 0 2px #688f9a}
+.calendar-day.has-interest-cg-only:not(.selected):hover{background:#e3efff;box-shadow:inset 0 0 0 2px #3e72bd,0 8px 22px rgba(46,91,155,.13)}
+.calendar-day.has-interest-ms-only:not(.selected):hover{background:#dff4e8;box-shadow:inset 0 0 0 2px #398b60,0 8px 22px rgba(40,121,79,.12)}
+.calendar-day.has-interest-mixed:not(.selected):hover{box-shadow:inset 0 0 0 2px #527985,0 8px 22px rgba(39,82,97,.12)}
+.calendar-interest-badges{display:flex!important;flex-wrap:wrap;gap:4px;color:inherit!important}
+.interest-badge{display:inline-flex;align-items:center;min-height:19px;padding:2px 6px;border-radius:999px;font-size:.54rem;font-weight:900;letter-spacing:.02em;line-height:1}
+.interest-badge.cg{color:#28588e;background:#dceaff;border:1px solid #b7d0f4}
+.interest-badge.ms{color:#2c744e;background:#dff3e8;border:1px solid #b9dfca}
+.calendar-day.selected .interest-badge{color:#fff;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.28)}
+.legend-dot.cg-interest{background:#4f82c8;box-shadow:0 0 0 3px #e7f0ff}
+.legend-dot.ms-interest{background:#4b9c70;box-shadow:0 0 0 3px #e2f5ea}
+.legend-dot.mixed-interest{background:linear-gradient(90deg,#4f82c8 0 50%,#4b9c70 50% 100%);box-shadow:0 0 0 3px #eef3f3}
+.calendar-legend{flex-wrap:wrap}
+.action-button.official-direct{font-weight:800;text-decoration:none}
+@media(max-width:620px){
+  .calendar-interest-badges{gap:2px}.interest-badge{padding:2px 4px;font-size:.49rem}
+  .calendar-legend{gap:12px}.calendar-legend span{font-size:.62rem}
 }

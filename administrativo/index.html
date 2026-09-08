@@ -9,10 +9,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=16" />
+  <link rel="stylesheet" href="./styles.css?v=17" />
 </head>
 <body>
-  <!-- JR_GESTAO_LICITACOES_V16_MS_INTELIGENTE -->
+  <!-- JR_GESTAO_LICITACOES_V17_DESTAQUES_LINKS -->
   <div id="admin-loading" class="admin-loading" role="status" aria-live="polite">
     <div class="loading-emblem"><img src="../assets/logo.png" alt="JR Gestão" /></div>
     <div class="loading-copy"><strong>JR GESTÃO</strong><span id="loading-message">Conectando ao painel…</span></div>
@@ -84,7 +84,12 @@
             </div>
             <div class="weekdays" aria-hidden="true"><span>DOM</span><span>SEG</span><span>TER</span><span>QUA</span><span>QUI</span><span>SEX</span><span>SÁB</span></div>
             <div id="calendar-grid" class="calendar-grid" role="grid" aria-label="Calendário mensal"></div>
-            <div class="calendar-legend"><span><i class="legend-dot priority"></i>Prioridade</span><span><i class="legend-dot opportunities"></i>Publicações</span><small>Contagem baseada na data oficial de publicação</small></div>
+            <div class="calendar-legend">
+              <span><i class="legend-dot cg-interest"></i>Interesse • Campo Grande</span>
+              <span><i class="legend-dot ms-interest"></i>Interesse • Interior MS</span>
+              <span><i class="legend-dot mixed-interest"></i>CG + Interior</span>
+              <small>Dias coloridos têm licitações ligadas aos serviços de interesse da JR</small>
+            </div>
           </article>
 
           <aside class="radar-panel campo-list-panel surface">
@@ -141,6 +146,6 @@
   </dialog>
 
   <div id="toast" class="toast" aria-live="polite"></div>
-  <script type="module" src="./app.js?v=16"></script>
+  <script type="module" src="./app.js?v=17"></script>
 </body>
 </html>

@@ -194,16 +194,31 @@ function renderCalendar() {
     const date = new Date(gridStart)
     date.setUTCDate(gridStart.getUTCDate() + index)
     const iso = date.toISOString().slice(0, 10)
-    const counts = state.calendar[iso] || { total: 0, prioritarias: 0, campoGrande: 0 }
+    const counts = state.calendar[iso] || { total: 0, campoGrande: 0, interesses: 0, interessesCampoGrande: 0, interessesInterior: 0 }
     const visibleCount = state.scope === 'campo' ? Number(counts.campoGrande || 0) : Number(counts.total || 0)
+    const interestCg = Number(counts.interessesCampoGrande || 0)
+    const interestInterior = state.scope === 'campo' ? 0 : Number(counts.interessesInterior || 0)
+    const hasCgInterest = interestCg > 0
+    const hasInteriorInterest = interestInterior > 0
+    const interestClass = hasCgInterest && hasInteriorInterest
+      ? ' has-interest-mixed'
+      : hasCgInterest
+        ? ' has-interest-cg-only'
+        : hasInteriorInterest
+          ? ' has-interest-ms-only'
+          : ''
     const outside = date.getUTCMonth() + 1 !== month
-    const label = `${formatDate(iso, { weekday: 'long', day: 'numeric', month: 'long' })}${visibleCount ? `, ${visibleCount} licitações` : ', nenhuma licitação'}`
+    const highlights = [
+      hasCgInterest ? `${interestCg} de interesse em Campo Grande` : '',
+      hasInteriorInterest ? `${interestInterior} de interesse no interior de MS` : '',
+    ].filter(Boolean).join(', ')
+    const label = `${formatDate(iso, { weekday: 'long', day: 'numeric', month: 'long' })}${visibleCount ? `, ${visibleCount} licitações` : ', nenhuma licitação'}${highlights ? `; ${highlights}` : ''}`
     cells.push(`
-      <button type="button" role="gridcell" class="calendar-day${outside ? ' outside' : ''}${iso === today ? ' today' : ''}${iso === state.selectedDate ? ' selected' : ''}" data-calendar-date="${iso}" aria-label="${escapeHtml(label)}" aria-selected="${iso === state.selectedDate}">
+      <button type="button" role="gridcell" class="calendar-day${interestClass}${outside ? ' outside' : ''}${iso === today ? ' today' : ''}${iso === state.selectedDate ? ' selected' : ''}" data-calendar-date="${iso}" aria-label="${escapeHtml(label)}" aria-selected="${iso === state.selectedDate}">
         <span class="day-number"><span>${date.getUTCDate()}</span><i>HOJE</i></span>
         <span class="day-count">
           ${visibleCount ? `<strong>${visibleCount} ${visibleCount === 1 ? 'licitação' : 'licitações'}</strong><span>publicadas</span>` : '<span>—</span>'}
-          ${counts.prioritarias ? `<span class="priority-count">★ ${counts.prioritarias} prioritária${counts.prioritarias === 1 ? '' : 's'}</span>` : ''}
+          ${(hasCgInterest || hasInteriorInterest) ? `<span class="calendar-interest-badges">${hasCgInterest ? `<b class="interest-badge cg">CG ★ ${interestCg}</b>` : ''}${hasInteriorInterest ? `<b class="interest-badge ms">MS ★ ${interestInterior}</b>` : ''}</span>` : ''}
         </span>
       </button>`)
   }
@@ -387,7 +402,8 @@ function renderTenderCard(item) {
   const score = displayCompatibility(item)
   const status = statusForTender(item)
   const shortSummary = smartTenderSummary(item)
-  const officialUrl = safeUrl(item.url_oficial)
+  const officialUrl = officialPublicationUrl(item)
+  const editalUrl = safeUrl(item.edital_url)
   const tenderNumber = item.processo || item.numero_compra || 'Não informado'
   const tags = displayCategories(item).map((category) => `<span class="category-chip">${escapeHtml(category)}</span>`).join('')
   return `
@@ -415,10 +431,10 @@ function renderTenderCard(item) {
       <div class="tender-value"><small>Valor estimado</small><strong>${formatMoney(item.valor_estimado)}</strong></div>
       <div class="tender-actions">
         <button class="action-button primary" type="button" data-open-tender="${item.id}">${icon('eye')}Ver licitação</button>
-        ${safeUrl(item.edital_url) ? `<button class="action-button edital-direct" type="button" data-safe-url="${escapeHtml(safeUrl(item.edital_url))}">${icon('file-text')}Abrir edital</button>` : `<button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('file-text')}Procurar edital</button>`}
+        ${editalUrl ? `<a class="action-button edital-direct" href="${escapeHtml(editalUrl)}" target="_blank" rel="noopener noreferrer">${icon('file-text')}Abrir edital</a>` : `<button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('file-text')}Procurar edital</button>`}
         <button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('archive')}${Number(item.documentos_count || 0) ? `${Number(item.documentos_count)} documentos` : 'Documentos'}</button>
         <button class="action-button favorite${item.favoritada ? ' active' : ''}" type="button" data-favorite="${item.id}">${icon(item.favoritada ? 'check' : 'save')}${item.favoritada ? 'Favoritada' : 'Favoritar'}</button>
-        ${officialUrl ? `<button class="action-button" type="button" data-safe-url="${escapeHtml(officialUrl)}">${icon('arrow-right')}Publicação oficial</button>` : ''}
+        ${officialUrl ? `<a class="action-button official-direct" href="${escapeHtml(officialUrl)}" target="_blank" rel="noopener noreferrer">${icon('arrow-right')}Publicação oficial</a>` : ''}
       </div>
     </article>`
 }
@@ -465,13 +481,13 @@ function renderDetail(payload) {
   const resources = sources.map((source) => resourceItem({
     title: source.fonte,
     subtitle: [source.edicao, source.pagina ? `Página ${source.pagina}` : '', source.data_publicacao ? formatDate(source.data_publicacao) : ''].filter(Boolean).join(' • '),
-    url: pageUrl(source.url, source.pagina),
+    url: pageUrl(officialSourceUrl(source, item), source.pagina),
     action: source.pagina ? `Abrir página ${source.pagina}` : 'Abrir fonte',
   })).join('')
   const documentItems = documents.map((document) => resourceItem({
     title: document.titulo || document.tipo || 'Documento',
     subtitle: [document.tipo, document.pagina_publicacao ? `Publicação na página ${document.pagina_publicacao}` : '', document.analisado_em ? 'Analisado' : 'Disponível'].filter(Boolean).join(' • '),
-    url: pageUrl(document.url, document.pagina_publicacao),
+    url: pageUrl(documentOpenUrl(document, item), document.pagina_publicacao),
     action: 'Abrir documento',
   })).join('')
 
@@ -481,7 +497,7 @@ function renderDetail(payload) {
       <h4>${escapeHtml(category)}</h4>
       ${rows.map((requirement) => {
         const document = documents.find((doc) => doc.id === requirement.documento_id)
-        const url = pageUrl(document?.url, requirement.pagina)
+        const url = pageUrl(documentOpenUrl(document, item), requirement.pagina)
         return `<div class="requirement"><strong>${escapeHtml(requirement.titulo)}</strong><p>${escapeHtml(requirement.descricao)}${requirement.trecho ? ` — “${escapeHtml(trimText(requirement.trecho, 220))}”` : ''}</p>${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">VER NO EDITAL${requirement.pagina ? ` • PÁGINA ${requirement.pagina}` : ''}</a>` : ''}</div>`
       }).join('')}
     </div>`).join('')
@@ -493,8 +509,8 @@ function renderDetail(payload) {
       <div class="detail-full-object"><small>OBJETO COMPLETO</small><p class="detail-object">${escapeHtml(item.objeto)}</p></div>
       <div class="tender-actions">
         <button class="action-button favorite${item.favoritada ? ' active' : ''}" type="button" data-favorite="${item.id}">${icon(item.favoritada ? 'check' : 'save')}${item.favoritada ? 'Favoritada' : 'Favoritar'}</button>
-        ${safeUrl(bestDocumentUrl(documents)) ? `<button class="action-button edital-direct" type="button" data-safe-url="${escapeHtml(bestDocumentUrl(documents))}">${icon('file-text')}Abrir edital direto</button>` : ''}
-        ${safeUrl(item.url_oficial) ? `<button class="action-button primary" type="button" data-safe-url="${escapeHtml(safeUrl(item.url_oficial))}">${icon('arrow-right')}Abrir publicação oficial</button>` : ''}
+        ${bestDocumentUrl(documents, item) ? `<a class="action-button edital-direct" href="${escapeHtml(bestDocumentUrl(documents, item))}" target="_blank" rel="noopener noreferrer">${icon('file-text')}Abrir edital direto</a>` : ''}
+        ${officialPublicationUrl(item) ? `<a class="action-button primary official-direct" href="${escapeHtml(officialPublicationUrl(item))}" target="_blank" rel="noopener noreferrer">${icon('arrow-right')}Abrir publicação oficial</a>` : ''}
       </div>
     </section>
     <div class="detail-grid">${fields.map(([label, value]) => `<div class="detail-field"><small>${label}</small><strong>${escapeHtml(value || 'Não informado')}</strong></div>`).join('')}</div>
@@ -710,6 +726,18 @@ function smartTenderSummary(item) {
   return conciseObject(object)
 }
 
+const INTEREST_CATEGORIES = new Set([
+  'MÁQUINAS', 'AMBIENTAL', 'ILUMINAÇÃO', 'ELÉTRICA', 'PODA E ARBORIZAÇÃO', 'NATAL',
+  'EVENTOS DE ILUMINAÇÃO', 'CASCALHO', 'REVESTIMENTO PRIMÁRIO',
+])
+
+function isInterestTender(item) {
+  if (displayCategories(item).some((category) => INTEREST_CATEGORIES.has(category))) return true
+  const text = normalize(`${item?.objeto || ''} ${item?.resumo || ''}`)
+  if (!text) return false
+  return /\b(?:maquin\w*|hora\s+maquina|motonivelador\w*|retroescav\w*|escavadeir\w*|patrolament\w*|terraplan\w*|ambient\w*|licenciamento\s+ambiental|residuos?\s+solidos?|iluminac\w*|luminari\w*|\bled\b|lampad\w*|refletor\w*|luz(?:es)?\b|luminos\w*|poste\w*\s+(?:de\s+)?(?:iluminac\w*|luz|luminari\w*)|braco\w*\s+(?:de\s+)?(?:iluminac\w*|luminari\w*)|rele\s+fotoeletric\w*|fotocelul\w*|eletric\w*|subestac\w*|transformador\w*|poda\w*|arboriz\w*|arvore\w*|supressao\s+vegetal|natal\w*|ornamentac\w*\s+lumin\w*|decorac\w*\s+lumin\w*|enfeit\w*\s+(?:de\s+)?luz|cascalh\w*|saibro\w*|laterita\w*|revestimento\s+primario|estrada\w*\s+vicinal\w*)\b/.test(text)
+}
+
 function displayIsCampoGrande(item) {
   const object = String(item?.objeto || '').replace(/\s+/g, ' ').trim()
   const match = object.match(/\b(?:no|na|nos|nas)\s+munic[ií]pio(?:s)?\s+de\s+([^.;]{2,120}?)(?=\s*\/\s*MS\b|\s*-\s*MS\b|[,.;]|$)/i)
@@ -814,16 +842,20 @@ async function queryCalendar(month) {
   const nextDate = new Date(Date.UTC(year, monthNumber, 1))
   const end = nextDate.toISOString().slice(0, 10)
   const rows = await fetchPaged(() => supabase.from('licitacoes')
-    .select('id,data_publicacao,is_campo_grande,compatibilidade')
+    .select('id,data_publicacao,is_campo_grande,compatibilidade,categorias,objeto,resumo')
     .gte('data_publicacao', start)
     .lt('data_publicacao', end)
     .order('data_publicacao', { ascending: true }), 20000)
   const days = {}
   rows.forEach((row) => {
-    const day = days[row.data_publicacao] || { total: 0, prioritarias: 0, campoGrande: 0 }
+    const day = days[row.data_publicacao] || { total: 0, campoGrande: 0, interesses: 0, interessesCampoGrande: 0, interessesInterior: 0 }
     day.total += 1
-    if (row.is_campo_grande) day.campoGrande += 1
-    if (row.is_campo_grande && Number(row.compatibilidade || 0) >= PRIORITY_SCORE) day.prioritarias += 1
+    if (displayIsCampoGrande(row)) day.campoGrande += 1
+    if (isInterestTender(row)) {
+      day.interesses += 1
+      if (displayIsCampoGrande(row)) day.interessesCampoGrande += 1
+      else day.interessesInterior += 1
+    }
     days[row.data_publicacao] = day
   })
   return { month, days }
@@ -842,7 +874,7 @@ async function queryDay(date, userId) {
     return {
       ...item,
       favoritada: favorites.has(item.id),
-      edital_url: bestDocumentUrl(docs),
+      edital_url: bestDocumentUrl(docs, item),
       documentos_count: docs.length,
     }
   })
@@ -856,7 +888,7 @@ async function loadDocumentSummaries(ids) {
   for (let index = 0; index < cleanIds.length; index += batchSize) {
     const batch = cleanIds.slice(index, index + batchSize)
     const rows = await checked(supabase.from('licitacao_documentos')
-      .select('licitacao_id,titulo,tipo,url,mime_type,pagina_publicacao')
+      .select('licitacao_id,source_uid,titulo,tipo,url,mime_type,pagina_publicacao')
       .in('licitacao_id', batch))
     for (const doc of rows || []) {
       if (!map.has(doc.licitacao_id)) map.set(doc.licitacao_id, [])
@@ -866,10 +898,11 @@ async function loadDocumentSummaries(ids) {
   return map
 }
 
-function bestDocumentUrl(documents) {
+function bestDocumentUrl(documents, tender = null) {
   const scored = (documents || [])
-    .filter((doc) => safeUrl(doc.url))
-    .map((doc) => {
+    .map((doc) => ({ doc, url: documentOpenUrl(doc, tender) }))
+    .filter((entry) => entry.url)
+    .map(({ doc, url }) => {
       const text = normalize(`${doc.tipo || ''} ${doc.titulo || ''}`)
       let score = 0
       if (/\bedital\b/.test(text)) score += 100
@@ -878,11 +911,11 @@ function bestDocumentUrl(documents) {
       if (/instrumento convocatorio/.test(text)) score += 55
       if (/retificac|aviso/.test(text)) score += 10
       if (/publicacao oficial/.test(text)) score -= 25
-      if (/pdf/.test(String(doc.mime_type || '')) || /\.pdf(?:$|\?)/i.test(String(doc.url || ''))) score += 8
-      return { doc, score }
+      if (/pdf/.test(String(doc.mime_type || '')) || /\.pdf(?:$|\?)/i.test(String(url || ''))) score += 8
+      return { doc, url, score }
     })
     .sort((a, b) => b.score - a.score)
-  return safeUrl(scored[0]?.doc?.url)
+  return scored[0]?.url || ''
 }
 
 async function querySourceStatus() {
@@ -957,6 +990,40 @@ function updateUrl({ tool, replace = false }) {
   history[replace ? 'replaceState' : 'pushState']({}, '', url)
 }
 
+function parsePncpId(value) {
+  const match = String(value || '').trim().match(/^(\d{14})-1-(\d+)\/(\d{4})$/)
+  return match ? { cnpj: match[1], sequential: Number(match[2]), year: Number(match[3]) } : null
+}
+
+function pncpPublicationUrl(value) {
+  const id = parsePncpId(value)
+  return id ? `https://pncp.gov.br/app/editais/${id.cnpj}/${id.year}/${id.sequential}` : ''
+}
+
+function officialPublicationUrl(item) {
+  const pncp = pncpPublicationUrl(item?.pncp_id)
+  return pncp || safeUrl(item?.url_oficial)
+}
+
+function officialSourceUrl(source, tender) {
+  if (/pncp/i.test(String(source?.fonte || ''))) return pncpPublicationUrl(tender?.pncp_id) || safeUrl(source?.url)
+  return safeUrl(source?.url)
+}
+
+function documentOpenUrl(document, tender = null) {
+  if (!document) return ''
+  const direct = safeUrl(document.url)
+  if (direct) return direct
+  const uid = String(document.source_uid || '')
+  const match = uid.match(/^pncp:(\d{14}-1-\d+\/\d{4}):doc:(\d+)$/i)
+  const id = parsePncpId(match?.[1] || tender?.pncp_id)
+  const documentSequence = Number(match?.[2] || 0)
+  if (id && documentSequence > 0) {
+    return `https://pncp.gov.br/api/pncp/v1/orgaos/${id.cnpj}/compras/${id.year}/${id.sequential}/arquivos/${documentSequence}`
+  }
+  return ''
+}
+
 function openSafeUrl(value) {
   const url = safeUrl(value)
   if (!url) return showToast('A fonte não forneceu um endereço oficial válido.')
@@ -965,7 +1032,9 @@ function openSafeUrl(value) {
 
 function safeUrl(value) {
   try {
-    const url = new URL(String(value || ''))
+    const cleaned = String(value || '').trim().replace(/&amp;/gi, '&').replace(/^['"]|['"]$/g, '')
+    if (!cleaned) return ''
+    const url = new URL(cleaned.startsWith('//') ? `https:${cleaned}` : cleaned)
     return ['https:', 'http:'].includes(url.protocol) ? url.toString() : ''
   } catch { return '' }
 }
