@@ -785,27 +785,58 @@ function conciseObject(value) {
   return `${shortened}…`
 }
 
-function isTenderOpenForEntry(item, now = Date.now()) {
-  const official = normalize(item?.situacao)
-  if (/cancel|anulad|revogad|suspens|desert|fracassad|encerr|concluid|finalizad|homologad|adjudicad|julgamento|propostas? encerrad|resultado|vencedor|contratad/.test(official)) return false
-  const deadline = new Date(item?.data_encerramento || '')
-  if (Number.isNaN(deadline.getTime()) || deadline.getTime() <= Number(now)) return false
+function resolveTenderDeadline(item) {
   const raw = item?.raw_data && typeof item.raw_data === 'object' ? item.raw_data : {}
-  const rawText = normalize(JSON.stringify({
-    situacaoCompraNome: raw.situacaoCompraNome,
-    situacao: raw.situacao,
-    status: raw.status,
-    resultado: raw.resultado,
-  }))
-  if (/homologad|adjudicad|encerrad|concluid|finalizad|vencedor|contratad|resultado final/.test(rawText)) return false
+  const candidates = [
+    item?.data_encerramento,
+    item?.dataEncerramentoProposta,
+    raw.dataEncerramentoProposta,
+    raw.data_encerramento,
+    raw.dataFimPropostas,
+    raw.dataFimProposta,
+    raw.dataFinalProposta,
+    raw.dataLimiteProposta,
+    raw.dataLimitePropostas,
+    raw.prazoRecebimentoProposta,
+  ]
+  for (const value of candidates) {
+    if (!value) continue
+    const date = new Date(value)
+    if (!Number.isNaN(date.getTime())) return date
+  }
+  return null
+}
+
+function hasTenderClosedSignal(item) {
+  const raw = item?.raw_data && typeof item.raw_data === 'object' ? item.raw_data : {}
+  const text = normalize([
+    item?.situacao, item?.status,
+    raw.situacaoCompraNome, raw.situacao, raw.status, raw.resultado,
+  ].filter(Boolean).join(' '))
+  if (/cancel|anulad|revogad|suspens|desert|fracassad|encerr|concluid|finalizad|homologad|adjudicad|julgamento|propostas? encerrad|resultado final|vencedor|contratad/.test(text)) return true
   const homologated = Number(raw.valorTotalHomologado || raw.valorHomologado || 0)
-  if (Number.isFinite(homologated) && homologated > 0) return false
-  return true
+  return Number.isFinite(homologated) && homologated > 0
+}
+
+function hasTenderExplicitOpenSignal(item) {
+  const raw = item?.raw_data && typeof item.raw_data === 'object' ? item.raw_data : {}
+  const text = normalize([
+    item?.situacao, item?.status,
+    raw.situacaoCompraNome, raw.situacao, raw.status,
+  ].filter(Boolean).join(' '))
+  return /recebendo propostas|recebimento de propostas|a receber propostas|aberta para propostas|aberto para propostas|em recebimento|prazo aberto/.test(text)
+}
+
+function isTenderOpenForEntry(item, now = Date.now()) {
+  if (hasTenderClosedSignal(item)) return false
+  const deadline = resolveTenderDeadline(item)
+  if (deadline) return deadline.getTime() > Number(now)
+  return hasTenderExplicitOpenSignal(item)
 }
 
 function statusForTender(item) {
   if (!isTenderOpenForEntry(item)) return { label: 'Fora de prazo', kind: 'closed' }
-  const opening = new Date(item.data_abertura || '')
+  const opening = new Date(item.data_abertura || item?.raw_data?.dataAberturaProposta || '')
   if (!Number.isNaN(opening.getTime()) && opening.getTime() > Date.now()) return { label: 'A receber propostas', kind: 'open' }
   return { label: 'Recebendo propostas', kind: 'open' }
 }
