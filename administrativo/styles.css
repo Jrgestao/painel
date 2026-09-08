@@ -542,77 +542,45 @@ select:focus, input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
   .cg-tender-item { min-height: 72px; }
 }
 
-/* JR_ADMIN_VISUAL_V15 — somente visual do Administrativo */
-.admin-loading{
-  background:#ffffff!important;
-  color:#1a2025!important;
-  gap:14px!important;
-}
-.loading-emblem{
-  width:154px!important;
-  height:154px!important;
-  margin:auto!important;
-  background:transparent!important;
-  border:0!important;
-  border-radius:0!important;
-  box-shadow:none!important;
-}
-.loading-emblem img{
-  width:138px!important;
-  height:138px!important;
-  object-fit:contain!important;
-  background:transparent!important;
-  filter:drop-shadow(0 12px 22px rgba(20,32,40,.10));
-}
-.loading-copy{gap:6px!important;}
-.loading-copy strong{
-  color:#12171b!important;
-  font-size:.88rem!important;
-  font-weight:800!important;
-  letter-spacing:.17em!important;
-}
-.loading-copy span{
-  color:#6f7880!important;
-  font-size:.86rem!important;
-}
-.loading-copy::after{
-  content:'Aguarde alguns instantes';
-  margin-top:1px;
-  color:#9aa1a7;
-  font-size:.68rem;
-  font-weight:600;
-}
-.loading-track{
-  width:230px!important;
-  height:4px!important;
-  margin:2px auto 0!important;
-  background:#e9edf0!important;
-  box-shadow:inset 0 0 0 1px rgba(20,30,38,.035);
-}
-.loading-track span{
-  background:linear-gradient(90deg,#aab2b8,#20272c 52%,#aab2b8)!important;
-  box-shadow:0 0 10px rgba(31,39,44,.12);
-}
-.admin-header .brand{
-  min-width:72px!important;
-  gap:0!important;
-}
-.admin-header .brand img{
-  width:68px!important;
-  height:54px!important;
-  padding:0!important;
-  object-fit:contain!important;
-  border:0!important;
-  border-radius:0!important;
-  background:transparent!important;
-  box-shadow:none!important;
-}
-.admin-header .brand span{display:none!important;}
-@media(max-width:780px){
-  .loading-emblem{width:132px!important;height:132px!important;}
-  .loading-emblem img{width:118px!important;height:118px!important;}
-  .admin-header .brand{min-width:58px!important;}
-  .admin-header .brand img{width:56px!important;height:46px!important;}
-}
-/* FIM JR_ADMIN_VISUAL_V15 */
 
+/* JR_ADMIN_VISUAL_V15 preservado dentro da V16 */
+.admin-loading{background:#fff!important;color:#1a2025!important;gap:14px!important}
+.loading-emblem{width:154px!important;height:154px!important;margin:auto!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+.loading-emblem img{width:138px!important;height:138px!important;object-fit:contain!important;background:transparent!important;filter:drop-shadow(0 12px 22px rgba(20,32,40,.10))}
+.loading-copy{gap:6px!important}
+.loading-copy strong{color:#12171b!important;font-size:.88rem!important;font-weight:800!important;letter-spacing:.17em!important}
+.loading-copy span{color:#6f7880!important;font-size:.86rem!important}
+.loading-copy::after{content:'Aguarde alguns instantes';margin-top:1px;color:#9aa1a7;font-size:.68rem;font-weight:600}
+.loading-track{width:230px!important;height:4px!important;margin:2px auto 0!important;background:#e9edf0!important;box-shadow:inset 0 0 0 1px rgba(20,30,38,.035)}
+.loading-track span{background:linear-gradient(90deg,#aab2b8,#20272c 52%,#aab2b8)!important;box-shadow:0 0 10px rgba(31,39,44,.12)}
+.admin-header .brand{min-width:72px!important;gap:0!important}
+.admin-header .brand img{width:68px!important;height:54px!important;padding:0!important;object-fit:contain!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+.admin-header .brand span{display:none!important}
+
+/* JR_GESTAO_LICITACOES_V16_UI */
+.overview-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 18px}
+.overview-strip article{position:relative;overflow:hidden;background:linear-gradient(180deg,#fff,#f8fafc);border:1px solid #e3e8ee;border-radius:18px;padding:16px 17px;box-shadow:0 8px 30px rgba(17,27,39,.055)}
+.overview-strip article::after{content:'';position:absolute;inset:auto -24px -30px auto;width:78px;height:78px;border-radius:999px;background:#eef2f6}
+.overview-strip article.cg::after{background:#e8f1ff}.overview-strip article.open::after{background:#e8f8f0}.overview-strip article.docs::after{background:#f2ecff}
+.overview-strip small{display:block;font-size:.64rem;font-weight:800;letter-spacing:.12em;color:#7d8792;margin-bottom:7px}
+.overview-strip strong{display:block;font-size:1.72rem;line-height:1;color:#151b20;margin-bottom:6px}
+.overview-strip span{position:relative;z-index:1;font-size:.75rem;color:#737e88}
+.day-actions{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
+.sort-field{display:grid;gap:5px}.sort-field>span{font-size:.66rem;font-weight:800;letter-spacing:.08em;color:#7b858f;text-transform:uppercase}
+.sort-field select{height:42px;min-width:174px;border:1px solid #dfe5ea;border-radius:12px;background:#fff;color:#242b31;padding:0 34px 0 12px;font:600 .78rem Inter,sans-serif;outline:none}
+.sort-field select:focus{border-color:#9ba8b3;box-shadow:0 0 0 3px rgba(110,126,140,.10)}
+.action-button.edital-direct{background:#12181d;color:#fff;border-color:#12181d;font-weight:800}
+.action-button.edital-direct:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(15,23,31,.16)}
+.tender-title-button{letter-spacing:-.015em}
+.tender-card{content-visibility:auto;contain-intrinsic-size:280px}
+.result-section{content-visibility:auto;contain-intrinsic-size:600px}
+.cg-tender-item{content-visibility:auto;contain-intrinsic-size:90px}
+@media(max-width:980px){.overview-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){
+  .overview-strip{grid-template-columns:1fr 1fr;gap:8px}
+  .overview-strip article{padding:13px 12px;border-radius:15px}
+  .overview-strip strong{font-size:1.42rem}
+  .day-actions{width:100%}.sort-field{flex:1}.sort-field select{width:100%;min-width:0}
+  .loading-emblem{width:132px!important;height:132px!important}.loading-emblem img{width:118px!important;height:118px!important}
+  .admin-header .brand{min-width:58px!important}.admin-header .brand img{width:56px!important;height:46px!important}
+}

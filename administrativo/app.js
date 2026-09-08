@@ -61,11 +61,7 @@ async function bootstrap() {
   el('admin-app').classList.remove('hidden')
   el('admin-loading').classList.add('hidden')
 
-  // V11: o Modo Administrativo abre direto em Boletins de Licitações.
-  // Só mostramos a tela de ferramentas se ela for solicitada explicitamente.
-  if (params.get('ferramenta') === 'ferramentas') {
-    showTools()
-  } else {
+  if (['licitacoes', 'campo-grande'].includes(params.get('ferramenta'))) {
     await openBulletins({ scope: params.get('ferramenta') === 'campo-grande' ? 'campo' : 'state', preserveHistory: true })
   }
 }
@@ -84,6 +80,7 @@ function bindEvents() {
   el('today-button').addEventListener('click', () => selectDate(todayInCampoGrande()))
   el('toggle-filters').addEventListener('click', toggleFilters)
   el('clear-filters').addEventListener('click', clearFilters)
+  el('sort-results')?.addEventListener('change', renderResults)
   el('close-detail').addEventListener('click', closeDetail)
   el('tender-dialog').addEventListener('click', (event) => {
     if (event.target === el('tender-dialog')) closeDetail()
@@ -103,6 +100,7 @@ function bindEvents() {
     updateUrl({ tool: true })
     renderCalendar()
     populateFilterOptions()
+    renderOverviewStats()
     renderCampoGrandeList()
     renderResults()
   }))
@@ -231,6 +229,7 @@ async function loadDay() {
     renderResults()
   } catch (error) {
     state.results = []
+    renderOverviewStats()
     renderCampoGrandeList()
     const message = readableError(error)
     el('day-error').textContent = message
@@ -320,9 +319,44 @@ async function switchToCampoGrande() {
   requestAnimationFrame(() => el('day-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
 }
 
+
+function renderOverviewStats() {
+  const rows = state.results || []
+  const campo = rows.filter(displayIsCampoGrande).length
+  const open = rows.filter((item) => statusForTender(item).kind === 'open').length
+  const edital = rows.filter((item) => safeUrl(item.edital_url)).length
+  if (el('stat-total')) el('stat-total').textContent = String(rows.length)
+  if (el('stat-cg')) el('stat-cg').textContent = String(campo)
+  if (el('stat-open')) el('stat-open').textContent = String(open)
+  if (el('stat-edital')) el('stat-edital').textContent = String(edital)
+}
+
+function sortResults(rows) {
+  const mode = el('sort-results')?.value || 'smart'
+  return [...rows].sort((a, b) => {
+    if (mode === 'deadline') {
+      const av = new Date(a.data_encerramento || '2999-12-31').getTime()
+      const bv = new Date(b.data_encerramento || '2999-12-31').getTime()
+      return av - bv
+    }
+    if (mode === 'newest') return String(b.data_publicacao || '').localeCompare(String(a.data_publicacao || ''))
+    if (mode === 'value') return Number(b.valor_estimado || 0) - Number(a.valor_estimado || 0)
+    if (mode === 'city') return String(a.municipio || '').localeCompare(String(b.municipio || ''), 'pt-BR')
+    const cg = Number(displayIsCampoGrande(b)) - Number(displayIsCampoGrande(a))
+    if (cg) return cg
+    const interest = displayCompatibility(b) - displayCompatibility(a)
+    if (interest) return interest
+    const open = Number(statusForTender(b).kind === 'open') - Number(statusForTender(a).kind === 'open')
+    if (open) return open
+    const ad = Number(Boolean(safeUrl(b.edital_url))) - Number(Boolean(safeUrl(a.edital_url)))
+    if (ad) return ad
+    return Number(b.valor_estimado || 0) - Number(a.valor_estimado || 0)
+  })
+}
+
 function renderResults() {
   const scoped = scopeResults()
-  const filtered = scoped.filter(matchesFilters)
+  const filtered = sortResults(scoped.filter(matchesFilters))
   const groups = state.scope === 'campo'
     ? [
         { key: 'campo', icon: 'CG', label: 'Campo Grande', description: 'Todas as licitações do município na data', items: filtered },
@@ -381,8 +415,8 @@ function renderTenderCard(item) {
       <div class="tender-value"><small>Valor estimado</small><strong>${formatMoney(item.valor_estimado)}</strong></div>
       <div class="tender-actions">
         <button class="action-button primary" type="button" data-open-tender="${item.id}">${icon('eye')}Ver licitação</button>
-        <button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('file-text')}Edital</button>
-        <button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('archive')}Documentos</button>
+        ${safeUrl(item.edital_url) ? `<button class="action-button edital-direct" type="button" data-safe-url="${escapeHtml(safeUrl(item.edital_url))}">${icon('file-text')}Abrir edital</button>` : `<button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('file-text')}Procurar edital</button>`}
+        <button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('archive')}${Number(item.documentos_count || 0) ? `${Number(item.documentos_count)} documentos` : 'Documentos'}</button>
         <button class="action-button favorite${item.favoritada ? ' active' : ''}" type="button" data-favorite="${item.id}">${icon(item.favoritada ? 'check' : 'save')}${item.favoritada ? 'Favoritada' : 'Favoritar'}</button>
         ${officialUrl ? `<button class="action-button" type="button" data-safe-url="${escapeHtml(officialUrl)}">${icon('arrow-right')}Publicação oficial</button>` : ''}
       </div>
@@ -459,6 +493,7 @@ function renderDetail(payload) {
       <div class="detail-full-object"><small>OBJETO COMPLETO</small><p class="detail-object">${escapeHtml(item.objeto)}</p></div>
       <div class="tender-actions">
         <button class="action-button favorite${item.favoritada ? ' active' : ''}" type="button" data-favorite="${item.id}">${icon(item.favoritada ? 'check' : 'save')}${item.favoritada ? 'Favoritada' : 'Favoritar'}</button>
+        ${safeUrl(bestDocumentUrl(documents)) ? `<button class="action-button edital-direct" type="button" data-safe-url="${escapeHtml(bestDocumentUrl(documents))}">${icon('file-text')}Abrir edital direto</button>` : ''}
         ${safeUrl(item.url_oficial) ? `<button class="action-button primary" type="button" data-safe-url="${escapeHtml(safeUrl(item.url_oficial))}">${icon('arrow-right')}Abrir publicação oficial</button>` : ''}
       </div>
     </section>
@@ -620,13 +655,23 @@ function primaryCategoryLabel(item) {
   if (/\b(?:ambient\w*|licenciamento\s+ambiental|residuos?\s+solidos?)\b/.test(text)) return 'AMBIENTAL'
   if (/\b(?:cascalh\w*|saibro\w*|laterita\w*)\b/.test(text)) return 'CASCALHO'
   if (/\b(?:revestimento\s+primario|nao\s+pavimentad\w*|estrada\w*\s+vicinal\w*)\b/.test(text)) return 'VIAS / REVESTIMENTO'
+  if (/\b(?:medicament\w*)\b/.test(text)) return 'SAÚDE / MEDICAMENTOS'
+  if (/\b(?:hospitalar|odontolog\w*|insumo\w* de saude)\b/.test(text)) return 'SAÚDE / INSUMOS'
+  if (/\b(?:generos? alimenticios?|merenda|alimentos?)\b/.test(text)) return 'ALIMENTAÇÃO'
+  if (/\b(?:informatica|computador\w*|notebook\w*|software)\b/.test(text)) return 'TECNOLOGIA'
+  if (/\b(?:veicul\w*|automove\w*|motociclet\w*)\b/.test(text)) return 'VEÍCULOS'
+  if (/\b(?:reforma|construc\w*|ampliac\w*|engenharia|obra\w*)\b/.test(text)) return 'OBRAS / ENGENHARIA'
+  if (/\b(?:limpeza|conservac\w*|higienizac\w*)\b/.test(text)) return 'SERVIÇOS'
+  if (/\b(?:vigilancia|seguranca patrimonial)\b/.test(text)) return 'SEGURANÇA'
   const categories = displayCategories(item)
   return categories[0] || 'LICITAÇÃO'
 }
 
 function smartTenderSummary(item) {
-  const object = String(item.objeto || item.resumo || '').replace(/\s+/g, ' ').trim()
-  if (!object) return 'Objeto não informado pela fonte oficial'
+  const object = String(item.objeto || '').replace(/\s+/g, ' ').trim()
+  const storedTitle = String(item.resumo || '').replace(/\s+/g, ' ').trim()
+  if (storedTitle && storedTitle.length <= 132 && normalize(storedTitle) !== normalize(object)) return storedTitle
+  if (!object) return storedTitle || 'Objeto não informado pela fonte oficial'
   const text = normalize(object)
 
   // Primeiro entende o objeto real; só depois usa tags de interesse.
@@ -791,8 +836,53 @@ async function queryDay(date, userId) {
     checked(supabase.from('licitacao_favoritos').select('licitacao_id').eq('user_id', userId)),
   ])
   const favorites = new Set((favoriteRows || []).map((item) => item.licitacao_id))
-  const results = rows.map((item) => ({ ...item, favoritada: favorites.has(item.id) }))
+  const documentsByTender = await loadDocumentSummaries((rows || []).map((item) => item.id))
+  const results = (rows || []).map((item) => {
+    const docs = documentsByTender.get(item.id) || []
+    return {
+      ...item,
+      favoritada: favorites.has(item.id),
+      edital_url: bestDocumentUrl(docs),
+      documentos_count: docs.length,
+    }
+  })
   return { date, total: results.length, results }
+}
+
+async function loadDocumentSummaries(ids) {
+  const map = new Map()
+  const cleanIds = [...new Set((ids || []).filter(Boolean))]
+  const batchSize = 120
+  for (let index = 0; index < cleanIds.length; index += batchSize) {
+    const batch = cleanIds.slice(index, index + batchSize)
+    const rows = await checked(supabase.from('licitacao_documentos')
+      .select('licitacao_id,titulo,tipo,url,mime_type,pagina_publicacao')
+      .in('licitacao_id', batch))
+    for (const doc of rows || []) {
+      if (!map.has(doc.licitacao_id)) map.set(doc.licitacao_id, [])
+      map.get(doc.licitacao_id).push(doc)
+    }
+  }
+  return map
+}
+
+function bestDocumentUrl(documents) {
+  const scored = (documents || [])
+    .filter((doc) => safeUrl(doc.url))
+    .map((doc) => {
+      const text = normalize(`${doc.tipo || ''} ${doc.titulo || ''}`)
+      let score = 0
+      if (/\bedital\b/.test(text)) score += 100
+      if (/termo de referencia/.test(text)) score += 70
+      if (/projeto basico/.test(text)) score += 60
+      if (/instrumento convocatorio/.test(text)) score += 55
+      if (/retificac|aviso/.test(text)) score += 10
+      if (/publicacao oficial/.test(text)) score -= 25
+      if (/pdf/.test(String(doc.mime_type || '')) || /\.pdf(?:$|\?)/i.test(String(doc.url || ''))) score += 8
+      return { doc, score }
+    })
+    .sort((a, b) => b.score - a.score)
+  return safeUrl(scored[0]?.doc?.url)
 }
 
 async function querySourceStatus() {
