@@ -28,7 +28,7 @@ bootstrap().catch((error) => showFatal(error))
 
 async function bootstrap() {
   hydrateIcons()
-  setLoadingMessage('Validando seu acesso administrativo…')
+  setLoadingMessage('Validando seu acesso ao modo administrativo…')
   const { data: { session }, error: sessionError } = await supabase.auth.getSession()
   if (sessionError) throw sessionError
   if (!session?.user) {
@@ -42,12 +42,12 @@ async function bootstrap() {
     .eq('id', session.user.id)
     .maybeSingle()
   if (profileError) throw profileError
-  if (!profile?.active || profile.role !== 'admin') {
-    throw new Error('Esta área é exclusiva para administradores ativos.')
+  if (!profile?.active) {
+    throw new Error('Esta área está disponível para usuários ativos do JR Gestão.')
   }
 
   state.profile = profile
-  el('admin-user').textContent = profile.username || profile.team_name || 'Administrador'
+  el('admin-user').textContent = profile.username || profile.team_name || 'Usuário JR Gestão'
   populateDateSelectors()
   bindEvents()
 

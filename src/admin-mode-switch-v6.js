@@ -23,11 +23,11 @@ async function installAdminEntry() {
 
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('role,active')
+    .select('active')
     .eq('id', session.user.id)
     .maybeSingle()
 
-  if (error || !profile?.active || profile.role !== 'admin') return
+  if (error || !profile?.active ) return
 
   const style = document.createElement('style')
   style.id = `${MARKER_ID}-style`
