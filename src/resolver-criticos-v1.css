@@ -1,0 +1,41 @@
+/* JR_GESTAO_RESOLVER_CRITICOS_GITHUB_V1=20260918
+   Somente a nova pagina. Nao altera o restante do painel. */
+.jr-critical-panel-v1{display:grid;gap:18px}
+.jr-critical-security-v1{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#bfc4ca;font-size:11px;font-weight:800;letter-spacing:.05em}
+.jr-critical-security-v1 svg{width:16px;height:16px}
+.jr-critical-toolbar-v1{display:grid;grid-template-columns:minmax(230px,1fr) auto auto;gap:12px;align-items:end}
+.jr-critical-date-v1{display:grid;gap:6px;color:#d7d9dc}
+.jr-critical-date-v1>span{font-size:11px;font-weight:800;letter-spacing:.08em}
+.jr-critical-date-v1>small{color:#858b92}
+.jr-critical-date-v1 input{min-height:44px;width:100%;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.035);color:inherit;padding:0 12px;font:inherit;color-scheme:dark}
+.jr-critical-summary-v1{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.jr-critical-summary-v1 article{border:1px solid rgba(255,255,255,.09);border-radius:12px;background:rgba(255,255,255,.025);padding:15px;display:grid;gap:4px}
+.jr-critical-summary-v1 small{color:#8c9299;font-size:10px;font-weight:800;letter-spacing:.08em}
+.jr-critical-summary-v1 strong{font-size:25px;line-height:1}
+.jr-critical-summary-v1 span{color:#989da4;font-size:12px}
+.jr-critical-loading-v1{min-height:64px;display:flex;align-items:center;justify-content:center;gap:10px;color:#aeb3b9}
+.jr-critical-loading-v1.hidden{display:none!important}
+.jr-critical-list-v1{display:grid;gap:12px}
+.jr-critical-item-v1{border:1px solid rgba(255,255,255,.10);border-left:3px solid #8c9298;border-radius:12px;background:rgba(255,255,255,.025);padding:16px;display:grid;gap:13px}
+.jr-critical-item-v1.ready{border-left-color:#d6d9dc}
+.jr-critical-item-v1.blocked{border-left-color:#8a6767}
+.jr-critical-head-v1{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.jr-critical-head-v1>strong{font-size:14px}
+.jr-critical-head-v1>em{margin-left:auto;color:#8e949b;font-size:11px;font-style:normal;font-weight:700}
+.jr-critical-grid-v1{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.jr-critical-grid-v1>span{min-width:0;display:grid;gap:3px;padding:10px;border-radius:9px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06)}
+.jr-critical-grid-v1 small{font-size:9px;color:#7e858c;font-weight:800;letter-spacing:.06em}
+.jr-critical-grid-v1 strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.jr-critical-item-v1>p{margin:0;color:#a9aeb4;font-size:12px}
+.jr-critical-note-v1{display:flex;align-items:flex-start;gap:8px;border-radius:9px;padding:10px 11px;font-size:12px;line-height:1.45}
+.jr-critical-note-v1 svg{width:16px;height:16px;flex:0 0 16px;margin-top:1px}
+.jr-critical-note-v1.safe{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);color:#d4d7da}
+.jr-critical-note-v1.unsafe{background:rgba(120,65,65,.10);border:1px solid rgba(150,95,95,.20);color:#b9a7a7}
+.jr-critical-actions-v1{display:flex;justify-content:flex-end}
+.jr-critical-actions-v1 button[disabled]{opacity:.48;cursor:not-allowed}
+.jr-critical-empty-v1{min-height:210px;display:grid;place-items:center;align-content:center;text-align:center;gap:8px;border:1px dashed rgba(255,255,255,.10);border-radius:12px;color:#a1a6ac}
+.jr-critical-empty-v1 svg{width:28px;height:28px}
+.jr-critical-empty-v1 strong{color:#e1e3e5;font-size:15px}
+.jr-critical-empty-v1 p{margin:0;max-width:520px;font-size:12px}
+@media(max-width:850px){.jr-critical-toolbar-v1{grid-template-columns:1fr 1fr}.jr-critical-date-v1{grid-column:1/-1}.jr-critical-summary-v1{grid-template-columns:1fr}.jr-critical-grid-v1{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.jr-critical-toolbar-v1{grid-template-columns:1fr}.jr-critical-date-v1{grid-column:auto}.jr-critical-grid-v1{grid-template-columns:1fr}.jr-critical-head-v1>em{margin-left:0;width:100%}.jr-critical-actions-v1 button{width:100%;justify-content:center}}
