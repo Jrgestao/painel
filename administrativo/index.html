@@ -9,20 +9,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=19" />
+  <link rel="stylesheet" href="./styles.css?v=2" />
 </head>
 <body>
-  <!-- JR_GESTAO_LICITACOES_V19_ABERTAS_SEM_SOMIR_PRAZO -->
   <div id="admin-loading" class="admin-loading" role="status" aria-live="polite">
-    <div class="loading-emblem"><img src="../assets/logo.png" alt="JR Gestão" /></div>
-    <div class="loading-copy"><strong>JR GESTÃO</strong><span id="loading-message">Conectando ao painel…</span></div>
+    <div class="loading-emblem"><img src="./logo.png" alt="JR Gestão" /></div>
+    <div class="loading-copy"><strong>MODO ADMINISTRATIVO</strong><span id="loading-message">Preparando suas ferramentas…</span></div>
     <div class="loading-track"><span></span></div>
   </div>
 
   <div id="admin-app" class="admin-app hidden">
     <header class="admin-header">
       <a class="brand" href="./" data-go-tools>
-        <img src="../assets/logo.png" alt="JR Gestão" />
+        <img src="./logo.png" alt="JR Gestão" />
         <span><strong>JR GESTÃO</strong><small>ADMINISTRATIVO</small></span>
       </a>
       <div class="header-actions">
@@ -40,7 +39,7 @@
         <div class="tools-grid">
           <button id="open-bulletins" class="tool-card" type="button">
             <span class="tool-card-icon" data-icon="calendar"></span>
-            <span class="tool-card-copy"><small>MONITORAMENTO ESTADUAL</small><strong>Boletins de Licitações</strong><span>Todas as licitações publicadas em Mato Grosso do Sul, com Campo Grande em destaque, edital e análise inteligente.</span></span>
+            <span class="tool-card-copy"><small>MONITORAMENTO ESTADUAL</small><strong>Boletins de Licitações</strong><span>Oportunidades publicadas em todo Mato Grosso do Sul, organizadas por data oficial.</span></span>
             <span class="tool-card-arrow" data-icon="arrow-right"></span>
           </button>
 
@@ -52,7 +51,7 @@
           <div>
             <button class="back-tools" type="button" data-go-tools><span data-icon="arrow-left"></span>Nossas ferramentas</button>
             <span id="bulletin-eyebrow" class="eyebrow">BOLETINS DE LICITAÇÕES</span>
-            <h1 id="bulletin-title">Licitações de Mato Grosso do Sul</h1>
+            <h1 id="bulletin-title">Calendário de oportunidades</h1>
             <div class="scope-switch" role="group" aria-label="Abrangência das licitações">
               <button type="button" data-scope="state" class="active">Todo MS</button>
               <button type="button" data-scope="campo">Só Campo Grande</button>
@@ -77,31 +76,45 @@
             </div>
             <div class="weekdays" aria-hidden="true"><span>DOM</span><span>SEG</span><span>TER</span><span>QUA</span><span>QUI</span><span>SEX</span><span>SÁB</span></div>
             <div id="calendar-grid" class="calendar-grid" role="grid" aria-label="Calendário mensal"></div>
-            <div class="calendar-legend">
-              <span><i class="legend-dot cg-interest"></i>Interesse • Campo Grande</span>
-              <span><i class="legend-dot ms-interest"></i>Interesse • Interior MS</span>
-              <span><i class="legend-dot mixed-interest"></i>CG + Interior</span>
-              <small>Dias coloridos têm licitações ligadas aos serviços de interesse da JR</small>
-            </div>
+            <div class="calendar-legend"><span><i class="legend-dot priority"></i>Prioridade</span><span><i class="legend-dot opportunities"></i>Publicações</span><small>Contagem baseada na data oficial de publicação</small></div>
           </article>
 
-          <aside class="radar-panel campo-list-panel surface">
-            <div class="radar-heading campo-list-heading">
-              <span class="radar-star campo-pin" aria-hidden="true">CG</span>
-              <div><span id="radar-eyebrow" class="eyebrow">CAMPO GRANDE</span><h2 id="radar-title">Licitações do dia</h2></div>
+          <aside class="radar-panel surface">
+            <div class="radar-heading">
+              <span class="radar-star" aria-hidden="true">★</span>
+              <div><span id="radar-eyebrow" class="eyebrow">EM EVIDÊNCIA</span><h2 id="radar-title">Radar Prioritário</h2></div>
             </div>
-            <p class="campo-list-copy">Campo Grande fica em destaque sem misturar sede do órgão com local real de execução. Clique para ver prazo, valor, edital e fonte oficial.</p>
-            <div id="radar-summary" class="radar-summary campo-list-summary"><strong>0</strong><span>licitações de Campo Grande neste dia</span></div>
-            <div id="radar-list" class="radar-list campo-list"></div>
+            <div id="state-radar-tabs" class="radar-tabs" role="tablist" aria-label="Filtros do Radar Prioritário">
+              <button type="button" role="tab" data-radar="campo" aria-selected="false">Campo Grande</button>
+              <button type="button" role="tab" data-radar="interesses" aria-selected="false">Meus interesses</button>
+              <button type="button" role="tab" data-radar="combined" aria-selected="true" class="active">Campo Grande + interesses</button>
+            </div>
+            <p id="campo-radar-copy" class="campo-radar-copy hidden">Somente oportunidades publicadas por órgãos de Campo Grande.</p>
+            <div id="radar-summary" class="radar-summary"><strong>0</strong><span>oportunidades na data</span></div>
+            <div id="radar-list" class="radar-list"></div>
           </aside>
         </section>
 
         <section class="day-panel surface">
           <div class="day-heading">
-            <div><span class="eyebrow">OPORTUNIDADES ABERTAS</span><h2 id="day-title">Licitações abertas</h2><p id="day-summary">Somente licitações com prazo vigente para envio de proposta.</p></div>
-            <div class="day-actions">
-              <label class="sort-field"><span>Ordenar</span><select id="sort-results" aria-label="Ordenar licitações"><option value="smart">Mais relevantes</option><option value="deadline">Prazo mais próximo</option><option value="newest">Mais recentes</option><option value="value">Maior valor</option><option value="city">Município A–Z</option></select></label>
-              <button id="toggle-filters" class="filter-toggle" type="button" aria-expanded="false"><span data-icon="search"></span>Filtrar resultados<span id="filter-count" class="filter-count hidden">0</span></button>
+            <div><span class="eyebrow">PUBLICAÇÕES DO DIA</span><h2 id="day-title">Licitações de hoje</h2><p id="day-summary">Selecione uma data no calendário.</p></div>
+            <button id="toggle-filters" class="filter-toggle" type="button" aria-expanded="false"><span data-icon="search"></span>Filtrar resultados<span id="filter-count" class="filter-count hidden">0</span></button>
+          </div>
+
+          <div id="campo-quick-filters" class="campo-quick-filters hidden" aria-label="Filtros rápidos de Campo Grande">
+            <div><span class="eyebrow">ATALHOS DO RADAR</span><strong>O que você procura?</strong></div>
+            <div class="quick-filter-buttons">
+              <button type="button" data-cg-filter="interests" class="active">★ Meus interesses</button>
+              <button type="button" data-cg-filter="all">Todas de Campo Grande</button>
+              <button type="button" data-cg-filter="ILUMINAÇÃO">Iluminação</button>
+              <button type="button" data-cg-filter="ELÉTRICA">Elétrica</button>
+              <button type="button" data-cg-filter="MÁQUINAS">Locação de máquinas</button>
+              <button type="button" data-cg-filter="PODA E ARBORIZAÇÃO">Poda e arborização</button>
+              <button type="button" data-cg-filter="AMBIENTAL">Ambiental</button>
+              <button type="button" data-cg-filter="NATAL">Natal</button>
+              <button type="button" data-cg-filter="EVENTOS DE ILUMINAÇÃO">Iluminação para eventos</button>
+              <button type="button" data-cg-filter="CASCALHO">Cascalho</button>
+              <button type="button" data-cg-filter="REVESTIMENTO PRIMÁRIO">Vias e revestimento</button>
             </div>
           </div>
 
@@ -111,6 +124,7 @@
             <label><span>Órgão</span><select id="agency-filter"><option value="">Todos</option></select></label>
             <label><span>Categoria</span><select id="category-filter"><option value="">Todas</option></select></label>
             <label><span>Modalidade</span><select id="modality-filter"><option value="">Todas</option></select></label>
+            <label><span>Status</span><select id="status-filter"><option value="">Todos</option></select></label>
             <label><span>Fonte</span><select id="source-filter"><option value="">Todas</option></select></label>
             <label><span>Compatibilidade</span><select id="compatibility-filter"><option value="0">Qualquer</option><option value="35">35% ou mais</option><option value="60">60% ou mais</option><option value="80">80% ou mais</option></select></label>
             <label><span>Valor mínimo</span><input id="min-value-filter" type="number" min="0" step="1000" placeholder="R$ 0" /></label>
@@ -138,6 +152,7 @@
   </dialog>
 
   <div id="toast" class="toast" aria-live="polite"></div>
+  <script src="../src/vendor/supabase-js-2.57.4-local-20260801-221649.js?v=20260801-221649"></script>
   <script type="module" src="./app.js?v=admin-todos-multifontes-v21-20260915"></script>
 </body>
 </html>

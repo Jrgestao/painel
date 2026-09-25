@@ -1,6 +1,9 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../src/config.js?v=3'
-import { hydrateIcons, icon } from '../src/icons.js?v=9'
+const createClient = window.supabase?.createClient
+if (typeof createClient !== 'function') throw new Error('Biblioteca local do Supabase não carregou.')
+import * as JR_CONFIG from '../src/config.js?v=admin-restore-20260904'
+const SUPABASE_URL = JR_CONFIG.SUPABASE_URL
+const SUPABASE_PUBLISHABLE_KEY = JR_CONFIG.SUPABASE_PUBLISHABLE_KEY || JR_CONFIG.SUPABASE_ANON_KEY || JR_CONFIG.ANON_KEY
+import { hydrateIcons, icon } from './icons.js?v=admin-restore-20260904'
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
@@ -9,7 +12,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 const PRIORITY_SCORE = 35
 const DATE_ZONE = 'America/Campo_Grande'
-const FILTER_IDS = ['text', 'municipality', 'agency', 'category', 'modality', 'source', 'compatibility', 'min-value', 'max-value']
+const FILTER_IDS = ['text', 'municipality', 'agency', 'category', 'modality', 'status', 'source', 'compatibility', 'min-value', 'max-value']
 
 const state = {
   profile: null,
@@ -17,7 +20,9 @@ const state = {
   selectedDate: '',
   calendar: {},
   results: [],
+  radar: 'combined',
   scope: 'state',
+  campoFilter: 'interests',
   openTenderId: null,
   toastTimer: null,
 }
@@ -80,7 +85,6 @@ function bindEvents() {
   el('today-button').addEventListener('click', () => selectDate(todayInCampoGrande()))
   el('toggle-filters').addEventListener('click', toggleFilters)
   el('clear-filters').addEventListener('click', clearFilters)
-  el('sort-results')?.addEventListener('change', renderResults)
   el('close-detail').addEventListener('click', closeDetail)
   el('tender-dialog').addEventListener('click', (event) => {
     if (event.target === el('tender-dialog')) closeDetail()
@@ -91,25 +95,38 @@ function bindEvents() {
     const node = el(`${name}-filter`)
     node.addEventListener(name === 'text' ? 'input' : 'change', () => renderResults())
   })
+  document.querySelectorAll('[data-radar]').forEach((button) => button.addEventListener('click', () => {
+    state.radar = button.dataset.radar
+    document.querySelectorAll('[data-radar]').forEach((item) => {
+      const active = item.dataset.radar === state.radar
+      item.classList.toggle('active', active)
+      item.setAttribute('aria-selected', String(active))
+    })
+    renderRadar()
+  }))
   document.querySelectorAll('[data-scope]').forEach((button) => button.addEventListener('click', async () => {
     const scope = button.dataset.scope
     if (scope === state.scope) return
     state.scope = scope
+    state.campoFilter = 'interests'
     clearFilters({ render: false })
     syncScopeUi()
     updateUrl({ tool: true })
     renderCalendar()
     populateFilterOptions()
-    renderCampoGrandeList()
+    renderRadar()
     renderResults()
   }))
-
+  document.querySelectorAll('[data-cg-filter]').forEach((button) => button.addEventListener('click', () => {
+    state.campoFilter = button.dataset.cgFilter
+    syncCampoFilters()
+    renderRadar()
+    renderResults()
+  }))
 
   document.addEventListener('click', async (event) => {
     const day = event.target.closest('[data-calendar-date]')
     if (day) return selectDate(day.dataset.calendarDate)
-    const showCampo = event.target.closest('[data-show-campo]')
-    if (showCampo) return switchToCampoGrande()
     const detail = event.target.closest('[data-open-tender]')
     if (detail) return openDetail(detail.dataset.openTender)
     const favorite = event.target.closest('[data-favorite]')
@@ -121,6 +138,7 @@ function bindEvents() {
 
 async function openBulletins({ scope = 'state', preserveHistory = false } = {}) {
   state.scope = scope
+  state.campoFilter = 'interests'
   clearFilters({ render: false })
   el('tools-view').classList.add('hidden')
   el('bulletins-view').classList.remove('hidden')
@@ -193,31 +211,16 @@ function renderCalendar() {
     const date = new Date(gridStart)
     date.setUTCDate(gridStart.getUTCDate() + index)
     const iso = date.toISOString().slice(0, 10)
-    const counts = state.calendar[iso] || { total: 0, campoGrande: 0, interesses: 0, interessesCampoGrande: 0, interessesInterior: 0 }
+    const counts = state.calendar[iso] || { total: 0, prioritarias: 0, campoGrande: 0 }
     const visibleCount = state.scope === 'campo' ? Number(counts.campoGrande || 0) : Number(counts.total || 0)
-    const interestCg = Number(counts.interessesCampoGrande || 0)
-    const interestInterior = state.scope === 'campo' ? 0 : Number(counts.interessesInterior || 0)
-    const hasCgInterest = interestCg > 0
-    const hasInteriorInterest = interestInterior > 0
-    const interestClass = hasCgInterest && hasInteriorInterest
-      ? ' has-interest-mixed'
-      : hasCgInterest
-        ? ' has-interest-cg-only'
-        : hasInteriorInterest
-          ? ' has-interest-ms-only'
-          : ''
     const outside = date.getUTCMonth() + 1 !== month
-    const highlights = [
-      hasCgInterest ? `${interestCg} de interesse em Campo Grande` : '',
-      hasInteriorInterest ? `${interestInterior} de interesse no interior de MS` : '',
-    ].filter(Boolean).join(', ')
-    const label = `${formatDate(iso, { weekday: 'long', day: 'numeric', month: 'long' })}${visibleCount ? `, ${visibleCount} licitações abertas` : ', nenhuma licitação aberta'}${highlights ? `; ${highlights}` : ''}`
+    const label = `${formatDate(iso, { weekday: 'long', day: 'numeric', month: 'long' })}${visibleCount ? `, ${visibleCount} licitações` : ', nenhuma licitação'}`
     cells.push(`
-      <button type="button" role="gridcell" class="calendar-day${interestClass}${outside ? ' outside' : ''}${iso === today ? ' today' : ''}${iso === state.selectedDate ? ' selected' : ''}" data-calendar-date="${iso}" aria-label="${escapeHtml(label)}" aria-selected="${iso === state.selectedDate}">
+      <button type="button" role="gridcell" class="calendar-day${outside ? ' outside' : ''}${iso === today ? ' today' : ''}${iso === state.selectedDate ? ' selected' : ''}" data-calendar-date="${iso}" aria-label="${escapeHtml(label)}" aria-selected="${iso === state.selectedDate}">
         <span class="day-number"><span>${date.getUTCDate()}</span><i>HOJE</i></span>
         <span class="day-count">
-          ${visibleCount ? `<strong>${visibleCount} ${visibleCount === 1 ? 'licitação' : 'licitações'}</strong><span>abertas</span>` : '<span>—</span>'}
-          ${(hasCgInterest || hasInteriorInterest) ? `<span class="calendar-interest-badges">${hasCgInterest ? `<b class="interest-badge cg">CG ★ ${interestCg}</b>` : ''}${hasInteriorInterest ? `<b class="interest-badge ms">MS ★ ${interestInterior}</b>` : ''}</span>` : ''}
+          ${visibleCount ? `<strong>${visibleCount} ${visibleCount === 1 ? 'licitação' : 'licitações'}</strong><span>publicadas</span>` : '<span>—</span>'}
+          ${counts.prioritarias ? `<span class="priority-count">★ ${counts.prioritarias} prioritária${counts.prioritarias === 1 ? '' : 's'}</span>` : ''}
         </span>
       </button>`)
   }
@@ -236,14 +239,14 @@ async function loadDay() {
       ? `Licitações de Campo Grande em ${formatDate(state.selectedDate)}`
       : `Licitações de ${formatDate(state.selectedDate)}`
     el('day-summary').textContent = state.scope === 'campo'
-      ? `${scoped.length} ${scoped.length === 1 ? 'licitação aberta para participação em Campo Grande' : 'licitações abertas para participação em Campo Grande'}.`
-      : `${payload.total || 0} ${payload.total === 1 ? 'licitação aberta para participação' : 'licitações abertas para participação'} em Mato Grosso do Sul.`
+      ? `${scoped.length} ${scoped.length === 1 ? 'publicação oficial de Campo Grande localizada' : 'publicações oficiais de Campo Grande localizadas'}.`
+      : `${payload.total || 0} ${payload.total === 1 ? 'publicação oficial localizada' : 'publicações oficiais localizadas'} em Mato Grosso do Sul.`
     populateFilterOptions()
-    renderCampoGrandeList()
+    renderRadar()
     renderResults()
   } catch (error) {
     state.results = []
-    renderCampoGrandeList()
+    renderRadar()
     const message = readableError(error)
     el('day-error').textContent = message
     el('day-error').classList.remove('hidden')
@@ -279,94 +282,35 @@ async function loadCollectorStatus() {
   }
 }
 
-function renderCampoGrandeList() {
-  const matches = state.results
-    .filter((item) => displayIsCampoGrande(item))
-    .sort((a, b) => {
-      const interest = Number(isDisplayPriority(b)) - Number(isDisplayPriority(a))
-      if (interest) return interest
-      const score = displayCompatibility(b) - displayCompatibility(a)
-      if (score) return score
-      return Number(b.valor_estimado || 0) - Number(a.valor_estimado || 0)
-    })
-
-  el('radar-summary').innerHTML = `<strong>${matches.length}</strong><span>${matches.length === 1 ? 'licitação aberta de Campo Grande neste dia' : 'licitações abertas de Campo Grande neste dia'}</span>`
+function renderRadar() {
+  const matches = scopeResults()
+    .filter((item) => state.scope === 'campo' ? campoFilterMatches(item) : radarMatches(item, state.radar))
+    .sort((a, b) => Number(b.compatibilidade || 0) - Number(a.compatibilidade || 0))
+  el('radar-summary').innerHTML = `<strong>${matches.length}</strong><span>${matches.length === 1 ? 'oportunidade na data' : 'oportunidades na data'}</span>`
   if (!matches.length) {
-    el('radar-list').innerHTML = '<div class="cg-empty"><strong>Nenhuma licitação aberta de Campo Grande nesta data.</strong><span>Escolha outro dia no calendário para consultar.</span></div>'
+    el('radar-list').innerHTML = '<p class="radar-empty">Nenhuma oportunidade corresponde a este recorte na data selecionada.</p>'
     return
   }
-
-  const items = matches.slice(0, 8).map((item) => {
-    const status = statusForTender(item)
-    const title = smartTenderSummary(item)
-    const category = primaryCategoryLabel(item)
-    const value = Number(item.valor_estimado || 0) > 0 ? formatMoney(item.valor_estimado) : 'Valor não informado'
-    return `
-      <button type="button" class="cg-tender-item" data-open-tender="${item.id}">
-        <span class="cg-tender-accent"></span>
-        <span class="cg-tender-copy">
-          <small>${escapeHtml(category)}</small>
-          <strong>${escapeHtml(title)}</strong>
-          <span>${escapeHtml(status.label)} • ${escapeHtml(value)}</span>
-        </span>
-        <span class="cg-tender-arrow">${icon('chevron-right')}</span>
-      </button>`
-  }).join('')
-  const more = matches.length > 8
-    ? `<button type="button" class="cg-show-all" data-show-campo>Ver todas as ${matches.length} de Campo Grande ${icon('arrow-right')}</button>`
-    : `<button type="button" class="cg-show-all" data-show-campo>Ver Campo Grande em lista completa ${icon('arrow-right')}</button>`
-  el('radar-list').innerHTML = items + more
-}
-
-async function switchToCampoGrande() {
-  if (state.scope !== 'campo') {
-    state.scope = 'campo'
-    clearFilters({ render: false })
-    syncScopeUi()
-    updateUrl({ tool: true })
-    renderCalendar()
-    populateFilterOptions()
-  }
-  renderCampoGrandeList()
-  renderResults()
-  requestAnimationFrame(() => el('day-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-}
-
-
-function sortResults(rows) {
-  const mode = el('sort-results')?.value || 'smart'
-  return [...rows].sort((a, b) => {
-    if (mode === 'deadline') {
-      const av = new Date(a.data_encerramento || '2999-12-31').getTime()
-      const bv = new Date(b.data_encerramento || '2999-12-31').getTime()
-      return av - bv
-    }
-    if (mode === 'newest') return String(b.data_publicacao || '').localeCompare(String(a.data_publicacao || ''))
-    if (mode === 'value') return Number(b.valor_estimado || 0) - Number(a.valor_estimado || 0)
-    if (mode === 'city') return String(a.municipio || '').localeCompare(String(b.municipio || ''), 'pt-BR')
-    const cg = Number(displayIsCampoGrande(b)) - Number(displayIsCampoGrande(a))
-    if (cg) return cg
-    const interest = displayCompatibility(b) - displayCompatibility(a)
-    if (interest) return interest
-    const open = Number(statusForTender(b).kind === 'open') - Number(statusForTender(a).kind === 'open')
-    if (open) return open
-    const ad = Number(Boolean(safeUrl(b.edital_url))) - Number(Boolean(safeUrl(a.edital_url)))
-    if (ad) return ad
-    return Number(b.valor_estimado || 0) - Number(a.valor_estimado || 0)
-  })
+  const top = matches.slice(0, 5).map((item) => `
+    <button type="button" class="radar-item" data-open-tender="${item.id}">
+      <strong>${escapeHtml(smartTenderSummary(item))}</strong>
+      <span>${escapeHtml(item.municipio || 'MS')} • ${statusForTender(item).label} • ${Number(item.compatibilidade || 0)}% compatível</span>
+    </button>`).join('')
+  const more = matches.length > 5 ? `<p class="radar-more">+ ${matches.length - 5} oportunidade(s) nos resultados abaixo.</p>` : ''
+  el('radar-list').innerHTML = top + more
 }
 
 function renderResults() {
   const scoped = scopeResults()
-  const filtered = sortResults(scoped.filter(matchesFilters))
+  const filtered = scoped.filter((item) => campoFilterMatches(item)).filter(matchesFilters)
   const groups = state.scope === 'campo'
     ? [
-        { key: 'campo', icon: 'CG', label: 'Campo Grande', description: 'Licitações abertas para participação no município', items: filtered },
+        { key: 'priority', icon: 'CG', label: campoFilterLabel(), description: 'Somente Campo Grande', items: filtered },
       ]
     : [
-        { key: 'priority', icon: '★', label: 'Prioridade para você', description: 'Abertas em Campo Grande + categorias de interesse', items: filtered.filter(isPriority) },
-        { key: 'campo', icon: '●', label: 'Campo Grande', description: 'Outras oportunidades abertas do município', items: filtered.filter((item) => displayIsCampoGrande(item) && !isPriority(item)) },
-        { key: 'state', icon: 'MS', label: 'Mato Grosso do Sul', description: 'Oportunidades abertas no interior e em órgãos de MS', items: filtered.filter((item) => !displayIsCampoGrande(item)) },
+        { key: 'priority', icon: '★', label: 'Prioridade para você', description: 'Campo Grande + categorias de interesse', items: filtered.filter(isPriority) },
+        { key: 'campo', icon: '●', label: 'Campo Grande', description: 'Outras oportunidades do município', items: filtered.filter((item) => item.is_campo_grande && !isPriority(item)) },
+        { key: 'state', icon: 'MS', label: 'Mato Grosso do Sul', description: 'Interior, órgãos estaduais e federais relacionados a MS', items: filtered.filter((item) => !item.is_campo_grande) },
       ]
   const activeCount = countActiveFilters()
   el('filter-count').textContent = String(activeCount)
@@ -374,7 +318,7 @@ function renderResults() {
 
   if (!filtered.length) {
     el('results-container').innerHTML = `
-      <div class="empty-state"><strong>Nenhuma licitação aberta neste recorte</strong><p>${scoped.length ? 'Tente outro atalho ou limpe os filtros.' : 'Só aparecem oportunidades com prazo vigente para envio de proposta.'}</p></div>`
+      <div class="empty-state"><strong>Nenhuma licitação neste recorte</strong><p>${scoped.length ? 'Tente outro atalho ou limpe os filtros.' : 'Assim que uma fonte oficial publicar uma oportunidade nesta data, ela aparecerá aqui.'}</p></div>`
     return
   }
 
@@ -386,15 +330,14 @@ function renderResults() {
 }
 
 function renderTenderCard(item) {
-  const score = displayCompatibility(item)
+  const score = Number(item.compatibilidade || 0)
   const status = statusForTender(item)
   const shortSummary = smartTenderSummary(item)
-  const officialUrl = safeUrl(item.publicacao_url) || officialPublicationUrl(item)
-  const editalUrl = safeUrl(item.edital_url)
+  const officialUrl = safeUrl(item.url_oficial)
   const tenderNumber = item.processo || item.numero_compra || 'Não informado'
-  const tags = displayCategories(item).map((category) => `<span class="category-chip">${escapeHtml(category)}</span>`).join('')
+  const tags = (item.categorias || []).map((category) => `<span class="category-chip">${escapeHtml(category)}</span>`).join('')
   return `
-    <article class="tender-card${isDisplayPriority(item) ? ' priority' : ''}">
+    <article class="tender-card${isPriority(item) ? ' priority' : ''}">
       <div class="tender-main">
         <div class="tender-topline">
           <span class="source-badge">${escapeHtml(item.fonte_principal || 'Fonte oficial')}</span>
@@ -418,10 +361,10 @@ function renderTenderCard(item) {
       <div class="tender-value"><small>Valor estimado</small><strong>${formatMoney(item.valor_estimado)}</strong></div>
       <div class="tender-actions">
         <button class="action-button primary" type="button" data-open-tender="${item.id}">${icon('eye')}Ver licitação</button>
-        ${editalUrl ? `<a class="action-button edital-direct" href="${escapeHtml(editalUrl)}" target="_blank" rel="noopener noreferrer">${icon('file-text')}Baixar edital</a>` : `<button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('archive')}Ver documentos</button>`}
-        <button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('archive')}${Number(item.documentos_count || 0) ? `${Number(item.documentos_count)} documentos` : 'Documentos'}</button>
+        <button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('file-text')}Edital</button>
+        <button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('archive')}Documentos</button>
         <button class="action-button favorite${item.favoritada ? ' active' : ''}" type="button" data-favorite="${item.id}">${icon(item.favoritada ? 'check' : 'save')}${item.favoritada ? 'Favoritada' : 'Favoritar'}</button>
-        ${officialUrl ? `<a class="action-button official-direct" href="${escapeHtml(officialUrl)}" target="_blank" rel="noopener noreferrer">${icon('arrow-right')}Ver licitação oficial</a>` : ''}
+        ${officialUrl ? `<button class="action-button" type="button" data-safe-url="${escapeHtml(officialUrl)}">${icon('arrow-right')}Publicação oficial</button>` : ''}
       </div>
     </article>`
 }
@@ -468,13 +411,13 @@ function renderDetail(payload) {
   const resources = sources.map((source) => resourceItem({
     title: source.fonte,
     subtitle: [source.edicao, source.pagina ? `Página ${source.pagina}` : '', source.data_publicacao ? formatDate(source.data_publicacao) : ''].filter(Boolean).join(' • '),
-    url: pageUrl(officialSourceUrl(source, item), source.pagina),
+    url: pageUrl(source.url, source.pagina),
     action: source.pagina ? `Abrir página ${source.pagina}` : 'Abrir fonte',
   })).join('')
   const documentItems = documents.map((document) => resourceItem({
     title: document.titulo || document.tipo || 'Documento',
     subtitle: [document.tipo, document.pagina_publicacao ? `Publicação na página ${document.pagina_publicacao}` : '', document.analisado_em ? 'Analisado' : 'Disponível'].filter(Boolean).join(' • '),
-    url: pageUrl(documentOpenUrl(document, item), document.pagina_publicacao),
+    url: pageUrl(document.url, document.pagina_publicacao),
     action: 'Abrir documento',
   })).join('')
 
@@ -484,20 +427,19 @@ function renderDetail(payload) {
       <h4>${escapeHtml(category)}</h4>
       ${rows.map((requirement) => {
         const document = documents.find((doc) => doc.id === requirement.documento_id)
-        const url = pageUrl(documentOpenUrl(document, item), requirement.pagina)
+        const url = pageUrl(document?.url, requirement.pagina)
         return `<div class="requirement"><strong>${escapeHtml(requirement.titulo)}</strong><p>${escapeHtml(requirement.descricao)}${requirement.trecho ? ` — “${escapeHtml(trimText(requirement.trecho, 220))}”` : ''}</p>${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">VER NO EDITAL${requirement.pagina ? ` • PÁGINA ${requirement.pagina}` : ''}</a>` : ''}</div>`
       }).join('')}
     </div>`).join('')
 
   el('detail-content').innerHTML = `
     <section class="detail-hero">
-      <div class="detail-badges"><span class="source-badge">${escapeHtml(item.fonte_principal)}</span><span class="status-badge ${status.kind}">${escapeHtml(status.label)}</span><span class="compatibility${displayCompatibility(item) >= 60 ? ' high' : ''}">${displayCompatibility(item)}% compatível</span>${displayCategories(item).map((value) => `<span class="category-chip">${escapeHtml(value)}</span>`).join('')}</div>
-      <p class="detail-summary"><strong>Resumo inteligente:</strong> ${escapeHtml(smartTenderSummary(item))}</p>
+      <div class="detail-badges"><span class="source-badge">${escapeHtml(item.fonte_principal)}</span><span class="status-badge ${status.kind}">${escapeHtml(status.label)}</span><span class="compatibility${Number(item.compatibilidade) >= 60 ? ' high' : ''}">${Number(item.compatibilidade || 0)}% compatível</span>${(item.categorias || []).map((value) => `<span class="category-chip">${escapeHtml(value)}</span>`).join('')}</div>
+      <p class="detail-summary"><strong>Resumo simples:</strong> ${escapeHtml(smartTenderSummary(item))}</p>
       <div class="detail-full-object"><small>OBJETO COMPLETO</small><p class="detail-object">${escapeHtml(item.objeto)}</p></div>
       <div class="tender-actions">
         <button class="action-button favorite${item.favoritada ? ' active' : ''}" type="button" data-favorite="${item.id}">${icon(item.favoritada ? 'check' : 'save')}${item.favoritada ? 'Favoritada' : 'Favoritar'}</button>
-        ${bestEdictDocumentUrl(documents, item) ? `<a class="action-button edital-direct" href="${escapeHtml(bestEdictDocumentUrl(documents, item))}" target="_blank" rel="noopener noreferrer">${icon('file-text')}Baixar edital</a>` : ''}
-        ${(safeUrl(item.publicacao_url) || officialPublicationUrl(item)) ? `<a class="action-button primary official-direct" href="${escapeHtml(safeUrl(item.publicacao_url) || officialPublicationUrl(item))}" target="_blank" rel="noopener noreferrer">${icon('arrow-right')}Ver licitação oficial</a>` : ''}
+        ${safeUrl(item.url_oficial) ? `<button class="action-button primary" type="button" data-safe-url="${escapeHtml(safeUrl(item.url_oficial))}">${icon('arrow-right')}Abrir publicação oficial</button>` : ''}
       </div>
     </section>
     <div class="detail-grid">${fields.map(([label, value]) => `<div class="detail-field"><small>${label}</small><strong>${escapeHtml(value || 'Não informado')}</strong></div>`).join('')}</div>
@@ -580,6 +522,7 @@ function populateFilterOptions() {
   setOptions('agency-filter', unique(rows.map((item) => item.orgao)), 'Todos')
   setOptions('category-filter', unique(rows.flatMap((item) => item.categorias || [])), 'Todas')
   setOptions('modality-filter', unique(rows.map((item) => item.modalidade)), 'Todas')
+  setOptions('status-filter', unique(rows.map((item) => statusForTender(item).label)), 'Todos')
   setOptions('source-filter', unique(rows.map((item) => item.fonte_principal)), 'Todas')
 }
 
@@ -602,168 +545,109 @@ function matchesFilters(item) {
   return (!text || haystack.includes(text))
     && exact('municipality', item.municipio)
     && exact('agency', item.orgao)
-    && (!category || displayCategories(item).includes(category))
+    && (!category || (item.categorias || []).includes(category))
     && exact('modality', item.modalidade)
+    && exact('status', statusForTender(item).label)
     && exact('source', item.fonte_principal)
-    && displayCompatibility(item) >= minimumScore
+    && Number(item.compatibilidade || 0) >= minimumScore
     && (!minimumValue || value >= minimumValue)
     && (!maximumValue || (value > 0 && value <= maximumValue))
 }
 
-function scopeResults() {
-  return state.scope === 'campo' ? state.results.filter((item) => displayIsCampoGrande(item)) : state.results
+function radarMatches(item, radar) {
+  if (radar === 'campo') return Boolean(item.is_campo_grande)
+  if (radar === 'interesses') return Number(item.compatibilidade || 0) >= PRIORITY_SCORE
+  return isPriority(item)
 }
 
+function scopeResults() {
+  return state.scope === 'campo' ? state.results.filter((item) => Boolean(item.is_campo_grande)) : state.results
+}
+
+function campoFilterMatches(item) {
+  if (state.scope !== 'campo' || state.campoFilter === 'all') return true
+  if (state.campoFilter === 'interests') return Number(item.compatibilidade || 0) >= PRIORITY_SCORE
+  return (item.categorias || []).includes(state.campoFilter)
+}
+
+function campoFilterLabel() {
+  if (state.campoFilter === 'all') return 'Todas de Campo Grande'
+  if (state.campoFilter === 'interests') return 'Prioridade para você'
+  return state.campoFilter === 'MÁQUINAS' ? 'Máquinas e equipamentos' : state.campoFilter
+}
 
 function syncScopeUi() {
   const campo = state.scope === 'campo'
   document.querySelectorAll('[data-scope]').forEach((button) => button.classList.toggle('active', button.dataset.scope === state.scope))
-  el('bulletin-eyebrow').textContent = campo ? 'CAMPO GRANDE' : 'BOLETINS DE LICITAÇÕES'
+  el('bulletin-eyebrow').textContent = campo ? 'RADAR CAMPO GRANDE' : 'BOLETINS DE LICITAÇÕES'
   el('bulletin-title').textContent = campo ? 'Licitações de Campo Grande' : 'Calendário de oportunidades'
-  el('radar-eyebrow').textContent = 'CAMPO GRANDE'
-  el('radar-title').textContent = 'Licitações do dia'
+  el('radar-eyebrow').textContent = campo ? 'SOMENTE CAMPO GRANDE' : 'EM EVIDÊNCIA'
+  el('radar-title').textContent = campo ? 'Meus interesses' : 'Radar Prioritário'
+  el('state-radar-tabs').classList.toggle('hidden', campo)
+  el('campo-radar-copy').classList.toggle('hidden', !campo)
+  el('campo-quick-filters').classList.toggle('hidden', !campo)
+  syncCampoFilters()
   if (state.selectedDate) {
     const scoped = scopeResults()
     el('day-title').textContent = campo
       ? `Licitações de Campo Grande em ${formatDate(state.selectedDate)}`
       : `Licitações de ${formatDate(state.selectedDate)}`
     el('day-summary').textContent = campo
-      ? `${scoped.length} ${scoped.length === 1 ? 'licitação aberta para participação em Campo Grande' : 'licitações abertas para participação em Campo Grande'}.`
-      : `${state.results.length} ${state.results.length === 1 ? 'licitação aberta para participação' : 'licitações abertas para participação'} em Mato Grosso do Sul.`
+      ? `${scoped.length} ${scoped.length === 1 ? 'publicação oficial de Campo Grande localizada' : 'publicações oficiais de Campo Grande localizadas'}.`
+      : `${state.results.length} ${state.results.length === 1 ? 'publicação oficial localizada' : 'publicações oficiais localizadas'} em Mato Grosso do Sul.`
   }
 }
 
-
-function isPriority(item) {
-  return displayIsCampoGrande(item) && displayCompatibility(item) >= PRIORITY_SCORE
+function syncCampoFilters() {
+  document.querySelectorAll('[data-cg-filter]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.cgFilter === state.campoFilter)
+  })
+  if (state.scope === 'campo') {
+    el('radar-title').textContent = campoFilterLabel()
+    el('campo-radar-copy').textContent = `Somente oportunidades de Campo Grande • ${campoFilterLabel()}.`
+  }
 }
 
-function isDisplayPriority(item) { return isPriority(item) }
+function isPriority(item) {
+  return Boolean(item.is_campo_grande) && Number(item.compatibilidade || 0) >= PRIORITY_SCORE
+}
 
 function primaryCategoryLabel(item) {
-  const text = normalize(String(item.objeto || item.resumo || ''))
-  if (isPavingAndDrainageText(text)) return 'PAVIMENTAÇÃO + DRENAGEM'
-  if (/\bpavimentac\w*\s+asfalt\w*\b|\basfalto\b/.test(text)) return 'PAVIMENTAÇÃO'
-  if (/\bdrenagem\s+(?:de\s+)?aguas?\s+pluviais?\b|\bdrenagem\s+pluvial\b/.test(text)) return 'DRENAGEM'
-  const natal = /\b(?:natal|natalin\w*|natalino\w*)\b/.test(text)
-  const light = /\b(?:iluminac\w*|luminari\w*|luminotecn\w*|luminos\w*)\b/.test(text)
-  if (natal && light) return 'NATAL + ILUMINAÇÃO'
-  if (natal) return 'NATAL'
-  if (light) return 'ILUMINAÇÃO'
-  if (/\b(?:eletric\w*|eletricit\w*|subestac\w*|transformador\w*)\b/.test(text)) return 'ELÉTRICA'
-  if (/\b(?:maquin\w*|hora\s+maquina|motonivelador\w*|patrolament\w*|retroescav\w*|escavadeir\w*|terraplan\w*)\b/.test(text)) return 'MÁQUINAS'
-  if (/\b(?:poda\w*|arboriz\w*|arbore\w*|arvore\w*)\b/.test(text)) return 'PODA / ARBORIZAÇÃO'
-  if (/\b(?:ambient\w*|licenciamento\s+ambiental|residuos?\s+solidos?)\b/.test(text)) return 'AMBIENTAL'
-  if (/\b(?:cascalh\w*|saibro\w*|laterita\w*)\b/.test(text)) return 'CASCALHO'
-  if (/\b(?:revestimento\s+primario|nao\s+pavimentad\w*|estrada\w*\s+vicinal\w*)\b/.test(text)) return 'VIAS / REVESTIMENTO'
-  if (/\b(?:medicament\w*)\b/.test(text)) return 'SAÚDE / MEDICAMENTOS'
-  if (/\b(?:hospitalar|odontolog\w*|insumo\w* de saude)\b/.test(text)) return 'SAÚDE / INSUMOS'
-  if (/\b(?:generos? alimenticios?|merenda|alimentos?)\b/.test(text)) return 'ALIMENTAÇÃO'
-  if (/\b(?:informatica|computador\w*|notebook\w*|software)\b/.test(text)) return 'TECNOLOGIA'
-  if (/\b(?:veicul\w*|automove\w*|motociclet\w*)\b/.test(text)) return 'VEÍCULOS'
-  if (/\b(?:reforma|construc\w*|ampliac\w*|engenharia|obra\w*)\b/.test(text)) return 'OBRAS / ENGENHARIA'
-  if (/\b(?:limpeza|conservac\w*|higienizac\w*)\b/.test(text)) return 'SERVIÇOS'
-  if (/\b(?:vigilancia|seguranca patrimonial)\b/.test(text)) return 'SEGURANÇA'
-  const categories = displayCategories(item)
-  return categories[0] || 'LICITAÇÃO'
+  const categories = item.categorias || []
+  if (categories.includes('NATAL') && categories.includes('ILUMINAÇÃO')) return 'NATAL + ILUMINAÇÃO'
+  return categories[0] || 'OUTRA OPORTUNIDADE'
 }
 
 function smartTenderSummary(item) {
-  const object = String(item.objeto || '').replace(/\s+/g, ' ').trim()
-  const storedTitle = String(item.resumo || '').replace(/\s+/g, ' ').trim()
-  if (storedTitle && storedTitle.length <= 132 && normalize(storedTitle) !== normalize(object)) return storedTitle
-  if (!object) return storedTitle || 'Objeto não informado pela fonte oficial'
-  const text = normalize(object)
+  const categories = item.categorias || []
+  const object = String(item.objeto || item.resumo || '').replace(/\s+/g, ' ').trim()
+  const normalizedObject = normalize(object)
+  const summaries = []
 
-  // Primeiro entende o objeto real; só depois usa tags de interesse.
-  if (isPavingAndDrainageText(text)) return 'Pavimentação asfáltica e drenagem pluvial'
-  if (/\bpavimentac\w*\s+asfalt\w*\b|\basfalto\b/.test(text)) return 'Pavimentação asfáltica'
-  if (/\bdrenagem\s+(?:de\s+)?aguas?\s+pluviais?\b|\bdrenagem\s+pluvial\b/.test(text)) return 'Drenagem de águas pluviais'
-
-  const hasNatal = /\b(?:natal|natalin\w*|natalino\w*)\b/.test(text)
-  const hasLighting = /\b(?:iluminac\w*|luminari\w*|luminotecn\w*|luminos\w*)\b/.test(text)
-  const hasElectric = /\b(?:eletric\w*|eletricit\w*|subestac\w*|transformador\w*)\b/.test(text)
-  const hasMachines = /\b(?:maquin\w*|hora\s+maquina|motonivelador\w*|patrolament\w*|retroescav\w*|escavadeir\w*|terraplan\w*)\b/.test(text)
-  const hasPruning = /\b(?:poda\w*|arboriz\w*|arbore\w*|arvore\w*|supressao\s+vegetal)\b/.test(text)
-  const hasEnvironmental = /\b(?:ambient\w*|licenciamento\s+ambiental|residuos?\s+solidos?)\b/.test(text)
-  const hasGravel = /\b(?:cascalh\w*|saibro\w*|laterita\w*)\b/.test(text)
-  const hasPrimarySurfacing = /\b(?:revestimento\s+primario|nao\s+pavimentad\w*|estrada\w*\s+vicinal\w*)\b/.test(text)
-  const hasEvent = /\b(?:evento\w*|festividad\w*|show\w*|cenic\w*)\b/.test(text)
-
-  if (hasNatal && hasLighting) return 'Iluminação e decoração de Natal'
-  if (hasNatal) return 'Decoração e serviços de Natal'
-  if (hasEvent && hasLighting) return 'Iluminação para eventos'
-  if (hasLighting) {
-    if (/\b(?:moderniz\w*|eficientiz\w*|manutenc\w*)\b/.test(text)) return 'Manutenção e modernização da iluminação pública'
-    if (/\b(?:fornec\w*|instal\w*|aquis\w*)\b/.test(text)) return 'Fornecimento e instalação de iluminação'
-    return 'Serviços de iluminação pública'
+  if (categories.includes('NATAL') && categories.includes('ILUMINAÇÃO')) {
+    summaries.push('Decoração e iluminação natalina')
+  } else if (categories.includes('NATAL')) {
+    summaries.push('Decoração e serviços para o Natal')
+  } else if (categories.includes('ILUMINAÇÃO')) {
+    if (/moderniz|eficientiz|manutenc/.test(normalizedObject)) summaries.push('Manutenção e modernização da iluminação pública')
+    else if (/fornec|instal|aquis/.test(normalizedObject)) summaries.push('Fornecimento e instalação de iluminação')
+    else summaries.push('Serviços de iluminação pública')
   }
-  if (hasElectric) return 'Serviços e instalações elétricas'
-  if (hasPruning) return 'Poda de árvores e arborização'
-  if (hasEnvironmental) return 'Serviços ambientais e de meio ambiente'
-  if (hasMachines) {
-    if (/\b(?:hora\s+maquina|loca\w*|operador\w*)\b/.test(text)) return 'Locação de máquinas com operador'
-    if (/\b(?:patrol\w*|terraplan\w*)\b/.test(text)) return 'Máquinas para patrolamento e terraplanagem'
-    return 'Máquinas e equipamentos pesados'
+  if (categories.includes('ELÉTRICA') && !summaries.some((value) => normalize(value).includes('iluminacao'))) summaries.push('Serviços e instalações elétricas')
+  if (categories.includes('PODA E ARBORIZAÇÃO')) summaries.push('Poda de árvores e arborização')
+  if (categories.includes('AMBIENTAL')) summaries.push('Serviços ambientais e de meio ambiente')
+  if (categories.includes('MÁQUINAS')) {
+    if (/hora.?maquina|loca|operador/.test(normalizedObject)) summaries.push('Locação de máquinas com operador')
+    else if (/patrol|terraplan/.test(normalizedObject)) summaries.push('Máquinas para patrolamento e terraplanagem')
+    else summaries.push('Máquinas e equipamentos pesados')
   }
-  if (hasGravel) return 'Cascalhamento e material para vias'
-  if (hasPrimarySurfacing) return 'Manutenção de vias e revestimento primário'
+  if (categories.includes('CASCALHO')) summaries.push('Cascalhamento e material para vias')
+  if (categories.includes('REVESTIMENTO PRIMÁRIO')) summaries.push('Manutenção de vias e revestimento primário')
+  if (categories.includes('EVENTOS DE ILUMINAÇÃO')) summaries.push('Iluminação e serviços elétricos para eventos')
+
+  const uniqueSummaries = [...new Set(summaries)]
+  if (uniqueSummaries.length) return uniqueSummaries.slice(0, 2).join(' + ')
   return conciseObject(object)
-}
-
-const INTEREST_CATEGORIES = new Set([
-  'MÁQUINAS', 'AMBIENTAL', 'ILUMINAÇÃO', 'ELÉTRICA', 'PODA E ARBORIZAÇÃO', 'NATAL',
-  'EVENTOS DE ILUMINAÇÃO', 'CASCALHO', 'REVESTIMENTO PRIMÁRIO',
-])
-
-function isInterestTender(item) {
-  if (displayCategories(item).some((category) => INTEREST_CATEGORIES.has(category))) return true
-  const text = normalize(`${item?.objeto || ''} ${item?.resumo || ''}`)
-  if (!text) return false
-  return /\b(?:maquin\w*|hora\s+maquina|motonivelador\w*|retroescav\w*|escavadeir\w*|patrolament\w*|terraplan\w*|ambient\w*|licenciamento\s+ambiental|residuos?\s+solidos?|iluminac\w*|luminari\w*|\bled\b|lampad\w*|refletor\w*|luz(?:es)?\b|luminos\w*|poste\w*\s+(?:de\s+)?(?:iluminac\w*|luz|luminari\w*)|braco\w*\s+(?:de\s+)?(?:iluminac\w*|luminari\w*)|rele\s+fotoeletric\w*|fotocelul\w*|eletric\w*|subestac\w*|transformador\w*|poda\w*|arboriz\w*|arvore\w*|supressao\s+vegetal|natal\w*|ornamentac\w*\s+lumin\w*|decorac\w*\s+lumin\w*|enfeit\w*\s+(?:de\s+)?luz|cascalh\w*|saibro\w*|laterita\w*|revestimento\s+primario|estrada\w*\s+vicinal\w*)\b/.test(text)
-}
-
-function displayIsCampoGrande(item) {
-  const object = String(item?.objeto || '').replace(/\s+/g, ' ').trim()
-  const match = object.match(/\b(?:no|na|nos|nas)\s+munic[ií]pio(?:s)?\s+de\s+([^.;]{2,120}?)(?=\s*\/\s*MS\b|\s*-\s*MS\b|[,.;]|$)/i)
-    || object.match(/\bmunic[ií]pio(?:s)?\s*[:\-]?\s*([^.;]{2,120}?)(?=\s*\/\s*MS\b|\s*-\s*MS\b|[,.;]|$)/i)
-  if (match?.[1]) return normalize(match[1]).includes('campo grande')
-  const direct = normalize(object)
-  if (/\bcampo grande\s*ms\b/.test(direct)) return true
-  return Boolean(item?.is_campo_grande)
-}
-
-function displayCategories(item) {
-  const saved = Array.isArray(item.categorias) ? item.categorias : []
-  const text = normalize(String(item.objeto || item.resumo || ''))
-  return saved.filter((category) => categorySupportedByObject(category, text))
-}
-
-function displayCompatibility(item) {
-  const saved = Array.isArray(item.categorias) ? item.categorias : []
-  if (!saved.length) return 0
-  return displayCategories(item).length ? Number(item.compatibilidade || 0) : 0
-}
-
-function categorySupportedByObject(category, text) {
-  if (!text) return false
-  const rules = {
-    'MÁQUINAS': /\b(?:maquin\w*|hora\s+maquina|motonivelador\w*|patrolament\w*|retroescav\w*|escavadeir\w*|terraplan\w*)\b/,
-    'AMBIENTAL': /\b(?:ambient\w*|licenciamento\s+ambiental|residuos?\s+solidos?)\b/,
-    'ILUMINAÇÃO': /\b(?:iluminac\w*|luminari\w*|luminotecn\w*|luminos\w*)\b/,
-    'ELÉTRICA': /\b(?:eletric\w*|eletricit\w*|subestac\w*|transformador\w*)\b/,
-    'PODA E ARBORIZAÇÃO': /\b(?:poda\w*|arboriz\w*|arbore\w*|arvore\w*|supressao\s+vegetal)\b/,
-    'NATAL': /\b(?:natal|natalin\w*|natalino\w*)\b/,
-    'EVENTOS DE ILUMINAÇÃO': /\b(?:evento\w*|festividad\w*|show\w*|cenic\w*)\b.*\b(?:iluminac\w*|eletric\w*)\b|\b(?:iluminac\w*|eletric\w*)\b.*\b(?:evento\w*|festividad\w*|show\w*|cenic\w*)\b/,
-    'CASCALHO': /\b(?:cascalh\w*|saibro\w*|laterita\w*)\b/,
-    'REVESTIMENTO PRIMÁRIO': /\b(?:revestimento\s+primario|nao\s+pavimentad\w*|estrada\w*\s+vicinal\w*|patrolament\w*)\b/,
-  }
-  return rules[category] ? rules[category].test(text) : true
-}
-
-function isPavingAndDrainageText(text) {
-  return /\b(?:pavimentac\w*\s+asfalt\w*|asfalto)\b/.test(text)
-    && /\bdrenagem\s+(?:de\s+)?aguas?\s+pluviais?\b|\bdrenagem\s+pluvial\b/.test(text)
 }
 
 function conciseObject(value) {
@@ -778,67 +662,22 @@ function conciseObject(value) {
   text = text.split(/;\s*(?:conforme|de acordo|dotação|processo)/i)[0]
   text = text.replace(/[.;,:\s]+$/, '').trim()
   if (!text) return 'Objeto não informado pela fonte oficial'
-  if (text === text.toUpperCase() && /[A-ZÁÉÍÓÚÃÕÇ]/.test(text)) text = text.toLocaleLowerCase('pt-BR')
-  text = text.charAt(0).toLocaleUpperCase('pt-BR') + text.slice(1)
+  text = text.charAt(0).toUpperCase() + text.slice(1)
   if (text.length <= 118) return text
   const shortened = text.slice(0, 115).replace(/\s+\S*$/, '').trim()
   return `${shortened}…`
 }
 
-function resolveTenderDeadline(item) {
-  const raw = item?.raw_data && typeof item.raw_data === 'object' ? item.raw_data : {}
-  const candidates = [
-    item?.data_encerramento,
-    item?.dataEncerramentoProposta,
-    raw.dataEncerramentoProposta,
-    raw.data_encerramento,
-    raw.dataFimPropostas,
-    raw.dataFimProposta,
-    raw.dataFinalProposta,
-    raw.dataLimiteProposta,
-    raw.dataLimitePropostas,
-    raw.prazoRecebimentoProposta,
-  ]
-  for (const value of candidates) {
-    if (!value) continue
-    const date = new Date(value)
-    if (!Number.isNaN(date.getTime())) return date
-  }
-  return null
-}
-
-function hasTenderClosedSignal(item) {
-  const raw = item?.raw_data && typeof item.raw_data === 'object' ? item.raw_data : {}
-  const text = normalize([
-    item?.situacao, item?.status,
-    raw.situacaoCompraNome, raw.situacao, raw.status, raw.resultado,
-  ].filter(Boolean).join(' '))
-  if (/cancel|anulad|revogad|suspens|desert|fracassad|encerr|concluid|finalizad|homologad|adjudicad|julgamento|propostas? encerrad|resultado final|vencedor|contratad/.test(text)) return true
-  const homologated = Number(raw.valorTotalHomologado || raw.valorHomologado || 0)
-  return Number.isFinite(homologated) && homologated > 0
-}
-
-function hasTenderExplicitOpenSignal(item) {
-  const raw = item?.raw_data && typeof item.raw_data === 'object' ? item.raw_data : {}
-  const text = normalize([
-    item?.situacao, item?.status,
-    raw.situacaoCompraNome, raw.situacao, raw.status,
-  ].filter(Boolean).join(' '))
-  return /recebendo propostas|recebimento de propostas|a receber propostas|aberta para propostas|aberto para propostas|em recebimento|prazo aberto/.test(text)
-}
-
-function isTenderOpenForEntry(item, now = Date.now()) {
-  if (hasTenderClosedSignal(item)) return false
-  const deadline = resolveTenderDeadline(item)
-  if (deadline) return deadline.getTime() > Number(now)
-  return hasTenderExplicitOpenSignal(item)
-}
-
 function statusForTender(item) {
-  if (!isTenderOpenForEntry(item)) return { label: 'Fora de prazo', kind: 'closed' }
-  const opening = new Date(item.data_abertura || item?.raw_data?.dataAberturaProposta || '')
-  if (!Number.isNaN(opening.getTime()) && opening.getTime() > Date.now()) return { label: 'A receber propostas', kind: 'open' }
-  return { label: 'Recebendo propostas', kind: 'open' }
+  const official = normalize(item.situacao)
+  if (/cancel|anulad|revogad|desert|fracassad/.test(official)) return { label: 'Cancelada', kind: 'cancelled' }
+  if (/suspens|suspensa/.test(official)) return { label: 'Suspensa', kind: 'suspended' }
+  if (/encerr|concluid|homologad|adjudicad|finalizad/.test(official)) return { label: 'Encerrada', kind: 'closed' }
+  const deadline = new Date(item.data_encerramento || '')
+  if (!Number.isNaN(deadline.getTime()) && deadline.getTime() < Date.now()) return { label: 'Encerrada', kind: 'closed' }
+  const opening = new Date(item.data_abertura || '')
+  if (Number.isNaN(deadline.getTime()) && !Number.isNaN(opening.getTime()) && opening.getTime() < Date.now()) return { label: 'Encerrada', kind: 'closed' }
+  return { label: 'Em prazo', kind: 'open' }
 }
 
 function countActiveFilters() {
@@ -871,20 +710,16 @@ async function queryCalendar(month) {
   const nextDate = new Date(Date.UTC(year, monthNumber, 1))
   const end = nextDate.toISOString().slice(0, 10)
   const rows = await fetchPaged(() => supabase.from('licitacoes')
-    .select('id,data_publicacao,is_campo_grande,compatibilidade,categorias,objeto,resumo,situacao,data_abertura,data_encerramento,raw_data,pncp_id,url_oficial')
+    .select('id,data_publicacao,is_campo_grande,compatibilidade')
     .gte('data_publicacao', start)
     .lt('data_publicacao', end)
     .order('data_publicacao', { ascending: true }), 20000)
   const days = {}
-  rows.filter(isTenderOpenForEntry).forEach((row) => {
-    const day = days[row.data_publicacao] || { total: 0, campoGrande: 0, interesses: 0, interessesCampoGrande: 0, interessesInterior: 0 }
+  rows.forEach((row) => {
+    const day = days[row.data_publicacao] || { total: 0, prioritarias: 0, campoGrande: 0 }
     day.total += 1
-    if (displayIsCampoGrande(row)) day.campoGrande += 1
-    if (isInterestTender(row)) {
-      day.interesses += 1
-      if (displayIsCampoGrande(row)) day.interessesCampoGrande += 1
-      else day.interessesInterior += 1
-    }
+    if (row.is_campo_grande) day.campoGrande += 1
+    if (row.is_campo_grande && Number(row.compatibilidade || 0) >= PRIORITY_SCORE) day.prioritarias += 1
     days[row.data_publicacao] = day
   })
   return { month, days }
@@ -892,99 +727,13 @@ async function queryCalendar(month) {
 
 async function queryDay(date, userId) {
   if (!validDate(date)) throw new Error('Data inválida.')
-  const rawRows = await fetchPaged(() => supabase.from('licitacoes').select('*').eq('data_publicacao', date).order('compatibilidade', { ascending: false }).order('data_abertura', { ascending: true, nullsFirst: false }), 2000)
-  const rows = (rawRows || []).filter(isTenderOpenForEntry)
-  const [favoriteRows, documentsByTender, sourcesByTender] = await Promise.all([
+  const [rows, favoriteRows] = await Promise.all([
+    fetchPaged(() => supabase.from('licitacoes').select('*').eq('data_publicacao', date).order('compatibilidade', { ascending: false }).order('data_abertura', { ascending: true, nullsFirst: false }), 2000),
     checked(supabase.from('licitacao_favoritos').select('licitacao_id').eq('user_id', userId)),
-    loadDocumentSummaries(rows.map((item) => item.id)),
-    loadSourceSummaries(rows.map((item) => item.id)),
   ])
   const favorites = new Set((favoriteRows || []).map((item) => item.licitacao_id))
-  const results = rows.map((item) => {
-    const docs = documentsByTender.get(item.id) || []
-    const sources = sourcesByTender.get(item.id) || []
-    return {
-      ...item,
-      favoritada: favorites.has(item.id),
-      edital_url: bestEdictDocumentUrl(docs, item),
-      publicacao_url: bestOfficialPublicationUrl(sources, item),
-      documentos_count: docs.length,
-    }
-  })
+  const results = rows.map((item) => ({ ...item, favoritada: favorites.has(item.id) }))
   return { date, total: results.length, results }
-}
-
-async function loadSourceSummaries(ids) {
-  const map = new Map()
-  const cleanIds = [...new Set((ids || []).filter(Boolean))]
-  const batchSize = 120
-  for (let index = 0; index < cleanIds.length; index += batchSize) {
-    const batch = cleanIds.slice(index, index + batchSize)
-    const rows = await checked(supabase.from('licitacao_fontes')
-      .select('licitacao_id,fonte,url,pagina,data_publicacao,source_uid')
-      .in('licitacao_id', batch))
-    for (const source of rows || []) {
-      if (!map.has(source.licitacao_id)) map.set(source.licitacao_id, [])
-      map.get(source.licitacao_id).push(source)
-    }
-  }
-  return map
-}
-
-async function loadDocumentSummaries(ids) {
-  const map = new Map()
-  const cleanIds = [...new Set((ids || []).filter(Boolean))]
-  const batchSize = 120
-  for (let index = 0; index < cleanIds.length; index += batchSize) {
-    const batch = cleanIds.slice(index, index + batchSize)
-    const rows = await checked(supabase.from('licitacao_documentos')
-      .select('licitacao_id,source_uid,titulo,tipo,url,mime_type,pagina_publicacao')
-      .in('licitacao_id', batch))
-    for (const doc of rows || []) {
-      if (!map.has(doc.licitacao_id)) map.set(doc.licitacao_id, [])
-      map.get(doc.licitacao_id).push(doc)
-    }
-  }
-  return map
-}
-
-function bestEdictDocumentUrl(documents, tender = null) {
-  const scored = (documents || [])
-    .map((doc) => ({ doc, url: documentOpenUrl(doc, tender) }))
-    .filter((entry) => entry.url)
-    .map(({ doc, url }) => {
-      const text = normalize(`${doc.tipo || ''} ${doc.titulo || ''}`)
-      let score = -999
-      if (/\bedital\b/.test(text)) score = 120
-      else if (/instrumento convocatorio/.test(text)) score = 105
-      else if (/aviso de contratacao direta/.test(text)) score = 90
-      else if (/termo de referencia/.test(text)) score = 45
-      if (/retificac|resultado|homolog|adjudic|ata|contrato/.test(text)) score -= 90
-      if (/pdf/.test(String(doc.mime_type || '')) || /\.pdf(?:$|\?)/i.test(String(url || ''))) score += 8
-      return { doc, url, score }
-    })
-    .filter((entry) => entry.score >= 80)
-    .sort((a, b) => b.score - a.score)
-  return scored[0]?.url || ''
-}
-
-function bestOfficialPublicationUrl(sources, tender) {
-  const pncp = pncpPublicationUrl(tender?.pncp_id)
-  if (pncp) return pncp
-  const ranked = (sources || [])
-    .map((source) => {
-      const url = pageUrl(safeUrl(source?.url), source?.pagina)
-      const name = normalize(source?.fonte)
-      let score = url ? 10 : -100
-      if (/pncp/.test(name)) score += 100
-      if (source?.pagina) score += 35
-      if (/diogrande|diario oficial de campo grande/.test(name)) score += 30
-      if (/doe|diario oficial.*estado/.test(name)) score += 25
-      return { url, score }
-    })
-    .filter((entry) => entry.url)
-    .sort((a, b) => b.score - a.score)
-  return ranked[0]?.url || safeUrl(tender?.url_oficial)
 }
 
 async function querySourceStatus() {
@@ -1015,7 +764,7 @@ async function queryDetail(id, userId) {
   if (!(requirements || []).length && (documents || []).length) {
     checked(supabase.from('licitacao_fila_analise').upsert({ licitacao_id: id, prioridade: 10, status: 'pendente', solicitado_em: new Date().toISOString(), erro: null }, { onConflict: 'licitacao_id' })).catch(() => null)
   }
-  return { tender: { ...tender, favoritada: Boolean(favorites?.length), publicacao_url: bestOfficialPublicationUrl(sources || [], tender) }, sources: sources || [], documents: documents || [], requirements: requirements || [], analysisPending: !(requirements || []).length && Boolean((documents || []).length) }
+  return { tender: { ...tender, favoritada: Boolean(favorites?.length) }, sources: sources || [], documents: documents || [], requirements: requirements || [], analysisPending: !(requirements || []).length && Boolean((documents || []).length) }
 }
 
 async function updateFavorite(id, userId, payload) {
@@ -1059,53 +808,15 @@ function updateUrl({ tool, replace = false }) {
   history[replace ? 'replaceState' : 'pushState']({}, '', url)
 }
 
-function parsePncpId(value) {
-  const match = String(value || '').trim().match(/^(\d{14})-1-(\d+)\/(\d{4})$/)
-  return match ? { cnpj: match[1], sequential: Number(match[2]), year: Number(match[3]) } : null
-}
-
-function pncpPublicationUrl(value) {
-  const id = parsePncpId(value)
-  return id ? `https://pncp.gov.br/app/editais/${id.cnpj}/${id.year}/${id.sequential}` : ''
-}
-
-function officialPublicationUrl(item) {
-  const pncp = pncpPublicationUrl(item?.pncp_id)
-  if (pncp) return pncp
-  return safeUrl(item?.url_oficial)
-}
-
-function officialSourceUrl(source, tender) {
-  if (/pncp/i.test(String(source?.fonte || ''))) return pncpPublicationUrl(tender?.pncp_id) || safeUrl(source?.url)
-  return safeUrl(source?.url)
-}
-
-function documentOpenUrl(document, tender = null) {
-  if (!document) return ''
-  const direct = safeUrl(document.url, 'https://pncp.gov.br/')
-  if (direct) return direct
-  const uid = String(document.source_uid || '')
-  const match = uid.match(/^pncp:(\d{14}-1-\d+\/\d{4}):doc:(\d+)$/i)
-  const id = parsePncpId(match?.[1] || tender?.pncp_id)
-  const documentSequence = Number(match?.[2] || 0)
-  if (id && documentSequence > 0) {
-    return `https://pncp.gov.br/api/pncp/v1/orgaos/${id.cnpj}/compras/${id.year}/${id.sequential}/arquivos/${documentSequence}`
-  }
-  return ''
-}
-
 function openSafeUrl(value) {
   const url = safeUrl(value)
   if (!url) return showToast('A fonte não forneceu um endereço oficial válido.')
   window.open(url, '_blank', 'noopener,noreferrer')
 }
 
-function safeUrl(value, base = window.location.origin) {
+function safeUrl(value) {
   try {
-    const cleaned = String(value || '').trim().replace(/&amp;/gi, '&').replace(/^['"]|['"]$/g, '')
-    if (!cleaned) return ''
-    const normalized = cleaned.startsWith('//') ? `https:${cleaned}` : cleaned
-    const url = new URL(normalized, base)
+    const url = new URL(String(value || ''))
     return ['https:', 'http:'].includes(url.protocol) ? url.toString() : ''
   } catch { return '' }
 }
