@@ -1,3 +1,4 @@
+// JR_GESTAO_HORARIO_PONTOS_V41_2=20261002
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=2'
 import { hydrateIcons } from './icons.js?v=9'
 import { initializeUiControls, refreshCustomSelect, setUiControlValue } from './ui-controls.js?v=9'
@@ -13,11 +14,12 @@ import {
   isMetricHidden,
   isObservationHidden,
   metricPeriod,
+  pointDayEndMinutesForMonth,
   normalizeReportSetting,
   normalizeText,
   serializeReportSetting,
   SERVICE_PERIOD_LABELS,
-} from './services-board-core-v21.mjs?v=nomes-por-planilha-v38-20260811'
+} from './services-board-core-v21.mjs?v=horario-pontos-v41-2-20261002'
 import {
   appendAddressContextV30,
   getCesipSmartResolverV30,
@@ -1684,6 +1686,15 @@ const els = {
   importSummary: $('#services-import-summary'),
   importStatus: $('#services-import-status'),
   importApply: $('#services-import-apply'),
+
+  pointCutoff: $('#services-point-cutoff'),
+  pointCutoffDialog: $('#services-point-cutoff-dialog'),
+  pointCutoffMonth: $('#services-point-cutoff-month'),
+  pointCutoffTime: $('#services-point-cutoff-time'),
+  pointCutoffInfo: $('#services-point-cutoff-info'),
+  pointCutoffSave: $('#services-point-cutoff-save'),
+  pointCutoffReset: $('#services-point-cutoff-reset'),
+  pointCutoffCancel: $('#services-point-cutoff-cancel'),
 }
 
 // JR_GESTAO_MES_CAMPO_GRANDE_V40_16_11=20260902
@@ -2089,6 +2100,48 @@ function bindEvents() {
   els.importButton?.addEventListener(
     'click',
     openImportDialog,
+  )
+
+  els.pointCutoff?.addEventListener(
+    'click',
+    openPointCutoffDialogV42,
+  )
+
+  els.pointCutoffCancel?.addEventListener(
+    'click',
+    closePointCutoffDialogV42,
+  )
+
+  els.pointCutoffDialog?.addEventListener(
+    'cancel',
+    (event) => {
+      event.preventDefault()
+      closePointCutoffDialogV42()
+    },
+  )
+
+  els.pointCutoffSave?.addEventListener(
+    'click',
+    async () => {
+      const minutes =
+        timeToMinutesV42(
+          els.pointCutoffTime?.value,
+        )
+
+      if (minutes === null) {
+        showToast('Informe um horário válido.', true)
+        return
+      }
+
+      await savePointCutoffV42(minutes)
+    },
+  )
+
+  els.pointCutoffReset?.addEventListener(
+    'click',
+    async () => {
+      await savePointCutoffV42(null)
+    },
   )
 
   els.importFile?.addEventListener(
@@ -2851,6 +2904,9 @@ async function loadSettingsAndRender(
         state.teamFilterSignatureV22 = ''
         state.settingsRevisionV22 =
           nextRevision
+
+        /* JR_GESTAO_RECALC_SETTING_V41_2 */
+        jrClearMatrixRuntimeCachesV401616()
       }
 
       state.settingsMonth = state.month
@@ -3279,7 +3335,7 @@ function buildTeamSheets() {
         /* JR_GESTAO_V37_1_NAO_CLASSIFICA_HORARIO_AUSENTE */
         if (!Number.isFinite(pointMinutesV371)) {
           // Sem horario confiavel: nao inventar M/T nem Noite.
-        } else if (isDayMinutesV28(pointMinutesV371)) {
+        } else if (isPointDayMinuteV42(pointMinutesV371)) {
           day.dayPoints += score.normal
 
           detected.forEach(
@@ -3543,6 +3599,7 @@ function renderBoard() {
     els.showAllColumns,
     els.toggleObservations,
     els.importButton,
+    els.pointCutoff,
   ].forEach((button) =>
     button?.classList.toggle('hidden', !admin),
   )
@@ -3626,16 +3683,25 @@ function renderBoard() {
         draft,
         state.metric,
       )
-      const overridden = hasScoreOverride(
-        draft,
-        state.metric,
-        dayNumber,
-      )
-      const imported = hasImportedScore(
-        draft,
-        state.metric,
-        dayNumber,
-      )
+      const liveScore = Number(day?.[state.metric] || 0)
+      const hasLiveScore = Number.isFinite(liveScore) && liveScore > 0
+
+      const overridden =
+        !hasLiveScore &&
+        hasScoreOverride(
+          draft,
+          state.metric,
+          dayNumber,
+        )
+
+      const imported =
+        !hasLiveScore &&
+        !overridden &&
+        hasImportedScore(
+          draft,
+          state.metric,
+          dayNumber,
+        )
       const noteParts = renderNotePartsV39(sheet, dayNumber)
       const important = noteParts.hasImportant
       const manual = noteParts.hasManual
@@ -3775,7 +3841,7 @@ function renderBoard() {
         <strong>${escapeHtml(metric.label)}</strong>
         <span class="services-period-chip">${escapeHtml(periodLabel)}</span>
       </div>
-      <span>${sheets.length} equipe(s) visível(is) • ${hiddenColumnCount} coluna(s) oculta(s) • Observações ${observationsHidden ? 'ocultas' : 'visíveis'} nesta planilha • ${monthLabel(state.month)}</span>
+      <span>${sheets.length} equipe(s) visível(is) • ${hiddenColumnCount} coluna(s) oculta(s) • Observações ${observationsHidden ? 'ocultas' : 'visíveis'} nesta planilha • ${monthLabel(state.month)}${admin ? ` • Pontos M/T até ${minutesToTimeV42(pointDayEndMinutesV42())}` : ''}</span>
     </div>
 
     <div class="services-matrix-scroll">
@@ -4679,6 +4745,200 @@ function closeNotesDialog() {
   updateSaveState()
 }
 
+
+/* JR_GESTAO_FERRAMENTA_HORARIO_ADMIN_V41_2 */
+function openPointCutoffDialogV42() {
+  if (!isAdmin() || !els.pointCutoffDialog) return
+
+  if (hasUnsavedChanges()) {
+    showToast(
+      'Salve ou descarte as alterações pendentes antes de mudar o horário do mês.',
+      true,
+    )
+    return
+  }
+
+  const saved =
+    state.settings.get(GLOBAL_KEY)
+      ?.pointDayEndMinutes
+
+  const effective =
+    pointDayEndMinutesForMonth(
+      state.month,
+      saved,
+    )
+
+  if (els.pointCutoffMonth) {
+    els.pointCutoffMonth.textContent =
+      monthLabel(state.month)
+  }
+
+  if (els.pointCutoffTime) {
+    els.pointCutoffTime.value =
+      minutesToTimeV42(effective)
+  }
+
+  if (els.pointCutoffInfo) {
+    const custom =
+      Number.isInteger(Number(saved))
+
+    if (custom) {
+      els.pointCutoffInfo.textContent =
+        `Regra personalizada: Pontos M/T até ${minutesToTimeV42(effective)} inclusive.`
+    } else if (state.month === '2026-09') {
+      els.pointCutoffInfo.textContent =
+        'Regra especial de setembro/2026: Pontos M/T até 18:00 inclusive.'
+    } else {
+      els.pointCutoffInfo.textContent =
+        'Regra padrão: Pontos M/T até 17:29; Pontos Noite desde 17:30.'
+    }
+  }
+
+  if (typeof els.pointCutoffDialog.showModal === 'function') {
+    els.pointCutoffDialog.showModal()
+  } else {
+    els.pointCutoffDialog.setAttribute('open', '')
+  }
+}
+
+function closePointCutoffDialogV42() {
+  if (!els.pointCutoffDialog) return
+  if (typeof els.pointCutoffDialog.close === 'function') {
+    if (els.pointCutoffDialog.open) {
+      els.pointCutoffDialog.close()
+    }
+  } else {
+    els.pointCutoffDialog.removeAttribute('open')
+  }
+}
+
+async function savePointCutoffV42(value) {
+  if (!isAdmin()) {
+    showToast('Somente administrador pode alterar o horário de corte.', true)
+    return false
+  }
+
+  if (hasUnsavedChanges()) {
+    showToast(
+      'Salve ou descarte as alterações pendentes antes de mudar o horário.',
+      true,
+    )
+    return false
+  }
+
+  const minutes =
+    value === null
+      ? null
+      : Number(value)
+
+  if (
+    minutes !== null &&
+    (
+      !Number.isInteger(minutes) ||
+      minutes < 360 ||
+      minutes > 1439
+    )
+  ) {
+    showToast('Escolha um horário válido entre 06:00 e 23:59.', true)
+    return false
+  }
+
+  const { data: sessionData } =
+    await supabase.auth.getSession()
+
+  const userId =
+    sessionData.session?.user?.id
+
+  if (!userId) {
+    showToast('Sua sessão expirou. Entre novamente.', true)
+    return false
+  }
+
+  const current =
+    state.settings.get(GLOBAL_KEY) ||
+    normalizeReportSetting({})
+
+  const payloadDraft = {
+    ...current,
+    pointDayEndMinutes: minutes,
+  }
+
+  if (els.pointCutoffSave) {
+    els.pointCutoffSave.disabled = true
+    els.pointCutoffSave.textContent = 'Salvando...'
+  }
+  if (els.pointCutoffReset) {
+    els.pointCutoffReset.disabled = true
+  }
+
+  try {
+    const { data, error } =
+      await supabase
+        .from('service_report_settings')
+        .upsert(
+          {
+            month_key: state.month,
+            team_key: GLOBAL_KEY,
+            display_name:
+              current.displayName ||
+              'Matriz mensal',
+            hidden_days:
+              [...(current.hiddenDays || [])]
+                .sort((a, b) => a - b),
+            manual_notes:
+              serializeReportSetting(
+                payloadDraft,
+              ),
+            updated_by: userId,
+          },
+          {
+            onConflict: 'month_key,team_key',
+          },
+        )
+        .select(
+          'month_key, team_key, display_name, hidden_days, manual_notes, updated_at',
+        )
+        .single()
+
+    if (error) throw error
+
+    state.settings.set(
+      GLOBAL_KEY,
+      normalizeReportSetting(data),
+    )
+    state.drafts.delete(GLOBAL_KEY)
+    state.settingsLoadedAtV22 = Date.now()
+    state.settingsRevisionV22 = ''
+    jrClearMatrixRuntimeCachesV401616()
+
+    renderTeamFilter()
+    renderBoard()
+    closePointCutoffDialogV42()
+
+    showToast(
+      minutes === null
+        ? `Horário restaurado para a regra padrão de ${monthLabel(state.month)}.`
+        : `Pontos M/T de ${monthLabel(state.month)} agora vão até ${minutesToTimeV42(minutes)} inclusive.`,
+    )
+
+    return true
+  } catch (error) {
+    showToast(
+      `Não foi possível salvar o horário: ${friendlyError(error)}`,
+      true,
+    )
+    return false
+  } finally {
+    if (els.pointCutoffSave) {
+      els.pointCutoffSave.disabled = false
+      els.pointCutoffSave.textContent = 'Salvar horário'
+    }
+    if (els.pointCutoffReset) {
+      els.pointCutoffReset.disabled = false
+    }
+  }
+}
+
 function draftFor(teamKey) {
   if (state.drafts.has(teamKey)) {
     return state.drafts.get(teamKey)
@@ -4749,6 +5009,7 @@ function draftFor(teamKey) {
     matrixCacheV21: setting.matrixCacheV21
       ? JSON.parse(JSON.stringify(setting.matrixCacheV21))
       : null,
+    pointDayEndMinutes: setting.pointDayEndMinutes,
     dirty: false,
   }
 
@@ -6998,7 +7259,21 @@ function pointMinutesV28(row) {
   const fromDate = minutesFromDateValueV28(record.timePhotoTakenAt)
   if (Number.isFinite(fromDate)) return fromDate
   const parsed = parseImportMinutes(record.timePhotoTakenAt)
-  return Number.isFinite(parsed) ? parsed : null
+  if (Number.isFinite(parsed)) return parsed
+
+  /* JR_GESTAO_HORARIO_FALLBACK_REAL_V41_1_1 */
+  for (const value of [
+    row?.data,
+    record?.createdAt,
+    record?.created_at,
+    row?.updated_at,
+  ]) {
+    const fallbackDate = minutesFromDateValueV28(value)
+    if (Number.isFinite(fallbackDate)) return fallbackDate
+    const fallbackParsed = parseImportMinutes(value)
+    if (Number.isFinite(fallbackParsed)) return fallbackParsed
+  }
+  return null
 }
 
 function surveyMinutesV28(row) {
@@ -7016,6 +7291,18 @@ function surveyMinutesV28(row) {
   const parsed = parseImportMinutes(record.surveyPhotoTakenAt)
   if (Number.isFinite(parsed)) return parsed
   if (isServiceLevantamento(record)) return pointMinutesV28(row)
+
+  for (const value of [
+    row?.data,
+    record?.createdAt,
+    record?.created_at,
+    row?.updated_at,
+  ]) {
+    const fallbackDate = minutesFromDateValueV28(value)
+    if (Number.isFinite(fallbackDate)) return fallbackDate
+    const fallbackParsed = parseImportMinutes(value)
+    if (Number.isFinite(fallbackParsed)) return fallbackParsed
+  }
   return null
 }
 
@@ -7025,6 +7312,45 @@ function isDayMinutesV28(minutes) {
     minutes >= 360 &&
     minutes < 1050
   )
+}
+
+/* JR_GESTAO_CORTE_PONTOS_SITE_V41_2 */
+function pointDayEndMinutesV42() {
+  const configured =
+    draftFor(GLOBAL_KEY)
+      ?.pointDayEndMinutes
+
+  return pointDayEndMinutesForMonth(
+    state.month,
+    configured,
+  )
+}
+
+function isPointDayMinuteV42(minutes) {
+  return (
+    Number.isFinite(minutes) &&
+    minutes >= 360 &&
+    minutes <= pointDayEndMinutesV42()
+  )
+}
+
+function minutesToTimeV42(minutes) {
+  const value = Number(minutes)
+  if (!Number.isInteger(value) || value < 0 || value > 1439) return '17:29'
+  const hour = Math.floor(value / 60)
+  const minute = value % 60
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+}
+
+function timeToMinutesV42(value) {
+  const match = String(value || '').match(/^(\d{2}):(\d{2})$/)
+  if (!match) return null
+  const hour = Number(match[1])
+  const minute = Number(match[2])
+  if (!Number.isInteger(hour) || !Number.isInteger(minute) || hour > 23 || minute > 59) {
+    return null
+  }
+  return hour * 60 + minute
 }
 
 function recordMinutes(row) {

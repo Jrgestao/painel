@@ -12,6 +12,39 @@ export const SERVICE_PERIOD_LABELS = Object.freeze({
   night: 'Noite',
 })
 
+/* JR_GESTAO_CORTE_PONTOS_V41_2
+   Somente Servicos Executados:
+   - regra historica: Pontos M/T ate 17:29; Noite desde 17:30
+   - setembro/2026: Pontos M/T ate 18:00 inclusive
+   - administrador pode personalizar por mes
+*/
+export const DEFAULT_POINT_DAY_END_MINUTES = 17 * 60 + 29
+export const SEPTEMBER_2026_POINT_DAY_END_MINUTES = 18 * 60
+
+export function cleanPointDayEndMinutes(value) {
+  if (value === null || value === undefined || value === '') return null
+  const number = Number(value)
+  if (!Number.isInteger(number) || number < 0 || number > 1439) return null
+  return number
+}
+
+export function pointDayEndMinutesForMonth(monthKey, configured = null) {
+  const saved = cleanPointDayEndMinutes(configured)
+  if (saved !== null) return saved
+  return String(monthKey || '') === '2026-09'
+    ? SEPTEMBER_2026_POINT_DAY_END_MINUTES
+    : DEFAULT_POINT_DAY_END_MINUTES
+}
+
+export function isPointDayMinute(minutes, monthKey, configured = null) {
+  const value = Number(minutes)
+  if (!Number.isFinite(value)) return false
+  return (
+    value >= 360 &&
+    value <= pointDayEndMinutesForMonth(monthKey, configured)
+  )
+}
+
 export function normalizeText(value) {
   return String(value || '')
     .normalize('NFD')
@@ -339,6 +372,9 @@ export function normalizeReportSetting(item = {}) {
     matrixCacheV21: cleanMatrixCacheV21(
       raw.matrix_cache_v21,
     ),
+    pointDayEndMinutes: cleanPointDayEndMinutes(
+      raw.point_day_end_minutes,
+    ),
   }
 }
 
@@ -366,7 +402,7 @@ export function serializeReportSetting(draft) {
   })
 
   return {
-    _version: 8,
+    _version: 9,
     display_names_by_metric: cleanDisplayNamesByMetricV38(
       draft?.displayNamesByMetric || {},
       draft?.displayName || '',
@@ -394,6 +430,9 @@ export function serializeReportSetting(draft) {
     matrix_cache_v21: cleanMatrixCacheV21(
       draft?.matrixCacheV21,
     ),
+    point_day_end_minutes: cleanPointDayEndMinutes(
+      draft?.pointDayEndMinutes,
+    ),
   }
 }
 
@@ -412,6 +451,10 @@ export function hasImportedScore(draft, metric, day) {
 }
 
 export function effectiveScore(dayData, draft, metric) {
+  /* JR_GESTAO_PONTUACAO_REAL_PRIORITARIA_V41_1_1 */
+  const real = Number(dayData?.[metric] || 0)
+  if (Number.isFinite(real) && real > 0) return real
+
   const dayKey = String(dayData?.day)
   const override = draft?.scoreOverrides?.[metric]?.[dayKey]
   if (Number.isFinite(Number(override))) return Number(override)
@@ -419,7 +462,7 @@ export function effectiveScore(dayData, draft, metric) {
   const imported = draft?.importedScoresByMetric?.[metric]?.[dayKey]
   if (Number.isFinite(Number(imported))) return Number(imported)
 
-  return Number(dayData?.[metric] || 0)
+  return Number.isFinite(real) ? real : 0
 }
 
 export function isMetricHidden(draft, metric) {

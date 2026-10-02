@@ -85,7 +85,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v40-16-22.js?v=v40-16-22-20260902-observacoes-core-restaurado'
+        './services-board-v40-16-22.js?v=v41-2-20261002-horario-pontos'
       )
         .then((module) => {
           const first =

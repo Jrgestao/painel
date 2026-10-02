@@ -8,7 +8,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
 })
 
-const FIVE_MINUTES = 5 * 60 * 1000
+const FIVE_MINUTES = 5 * 60 * 1000\nconst CRITICAL_AFTER = 30 * 60 * 1000
 let profile = null
 let current = null
 let busy = false
@@ -42,6 +42,13 @@ function fmtDateTime(v) {
 function olderThan5(v) {
   const t = new Date(v || 0).getTime()
   return Number.isFinite(t) && t > 0 ? Date.now() - t >= FIVE_MINUTES : true
+}
+function issueAgeMs(v) {
+  const t = new Date(v || 0).getTime()
+  return Number.isFinite(t) && t > 0 ? Math.max(0, Date.now() - t) : CRITICAL_AFTER
+}
+function issueSeverity(v) {
+  return issueAgeMs(v) >= CRITICAL_AFTER ? 'critical' : 'delayed'
 }
 function parseIds(v) {
   let x = v
@@ -144,8 +151,12 @@ function dedupe(items) {
   return [...m.values()]
 }
 function resolvable(issue) {
-  return Boolean(issue?.serverRecord && !issue.serverRecord.deleted_at &&
-    ['Fila de envio','Conflito'].includes(issue.type))
+  return Boolean(
+    issue?.severity === 'critical' &&
+    issue?.serverRecord &&
+    !issue.serverRecord.deleted_at &&
+    ['Fila de envio','Conflito'].includes(issue.type)
+  )
 }
 function notify(message,error=false) {
   const t=$('#toast')
@@ -190,7 +201,7 @@ async function collect(date) {
     if (recordMap.has(id)) continue
     const o=ownerFor(owners.active,id,date)
     if (!olderThan5(o.sentAt)) continue
-    issues.push({type:'Ponto não recebido',id,...o,title:'Ponto salvo no celular, mas ausente no Supabase',
+    issues.push({type:'Ponto não recebido',id,...o,severity:issueSeverity(o.sentAt),title:'Ponto salvo no celular, mas ausente no Supabase',
       problem:'O registro ainda não chegou ao servidor.',serverRecord:null,
       blocked:'Ainda falta o ponto no Supabase.'})
   }
@@ -199,7 +210,7 @@ async function collect(date) {
     if (!row || row.deleted_at) continue
     const o=ownerFor(owners.deleted,id,date)
     if (!olderThan5(o.sentAt)) continue
-    issues.push({type:'Exclusão pendente',id,...o,title:'Exclusão ainda não confirmada',
+    issues.push({type:'Exclusão pendente',id,...o,severity:issueSeverity(o.sentAt),title:'Exclusão ainda não confirmada',
       problem:'O celular marcou como excluído, mas o servidor ainda mantém o ponto válido.',
       serverRecord:row,blocked:'Não é seguro cancelar uma exclusão automaticamente pelo site.'})
   }
@@ -207,25 +218,27 @@ async function collect(date) {
     const o=ownerFor(owners.pending,id,date)
     if (!olderThan5(o.sentAt)) continue
     const row=recordMap.get(id)||null
-    issues.push({type:'Fila de envio',id,...o,title:'Alteração aguardando confirmação do servidor',
+    issues.push({type:'Fila de envio',id,...o,severity:issueSeverity(o.sentAt),title:'Alteração aguardando confirmação do servidor',
       problem:row?'O ponto já existe no Supabase; a confirmação ficou presa no aparelho.':'A versão ainda não apareceu no servidor.',
-      serverRecord:row,blocked:row?'':'A versão ainda não chegou ao Supabase.'})
+      serverRecord:row,blocked:row?'Aguardando 30 minutos antes de permitir intervenção.':'A versão ainda não chegou ao Supabase.'})
   }
   for (const id of sets.conflict) {
     const o=ownerFor(owners.conflict,id,date)
     const row=recordMap.get(id)||null
-    issues.push({type:'Conflito',id,...o,title:'Ponto alterado em mais de um celular',
+    issues.push({type:'Conflito',id,...o,severity:'critical',title:'Ponto alterado em mais de um celular',
       problem:row?'Existe uma versão atual no Supabase que pode ser mantida pelo administrador.':'Nenhuma versão válida foi encontrada no servidor.',
       serverRecord:row,blocked:row?'':'Não existe uma versão do servidor para manter.'})
   }
 
   for (const row of records) {
     if (row.deleted_at || !olderThan5(row.updated_at || row.data)) continue
+    if (sets.pending.has(String(row.id))) continue
     const r=row.registro||{}
     const common={
       type:'Foto faltando',id:String(row.id),userId:String(row.user_id||''),
       deviceId:String(row.device_id||''),workDate:date,
       team:teamName(row,profileMap)||'Sem equipe identificada',sentAt:row.updated_at||row.data,
+      severity:issueSeverity(row.updated_at||row.data),
       serverRecord:row,blocked:'A foto ainda precisa chegar ao Storage.'
     }
     const label=`${common.team} • ${r.orderNumber || row.id} • ${streetName(r)||'Sem rua'}`
@@ -266,7 +279,7 @@ function ensureUi() {
           <div class="jr-critical-security-v1">${icon('shield-check')} SOMENTE ADMINISTRADOR</div>
         </div>
         <div class="jr-critical-toolbar-v1">
-          <label class="jr-critical-date-v1"><span>DATA DO SERVIÇO</span><input id="jr-critical-date-input-v1" type="date"><small>Pendência de envio vira crítica após 5 minutos.</small></label>
+          <label class="jr-critical-date-v1"><span>DATA DO SERVIÇO</span><input id="jr-critical-date-input-v1" type="date"><small>Após 5 min aparece como ATRASADO. Só vira CRÍTICO após 30 min.</small></label>
           <button id="jr-critical-refresh-v1" class="outline-button" type="button">${icon('refresh')} ATUALIZAR</button>
           <button id="jr-critical-all-v1" class="primary-button" type="button">${icon('shield-check')} RESOLVER COMPLETOS</button>
         </div>
@@ -315,11 +328,14 @@ function setBusy(v) {
 }
 function render() {
   if (!current) return
-  const total=current.issues.length, ready=current.resolvable.length, blocked=total-ready
+  const total=current.issues.length
+  const critical=current.issues.filter(i=>i.severity==='critical').length
+  const delayed=current.issues.filter(i=>i.severity!=='critical').length
+  const ready=current.resolvable.length
   $('#jr-critical-summary-v1').innerHTML=`
-    <article><small>CRÍTICOS</small><strong>${total}</strong><span>${esc(fmtDate(current.date))}</span></article>
-    <article><small>PRONTOS PARA RESOLVER</small><strong>${ready}</strong><span>Versão já existe no servidor</span></article>
-    <article><small>BLOQUEADOS</small><strong>${blocked}</strong><span>Ainda falta dado/foto/confirmação</span></article>`
+    <article><small>CRÍTICOS</small><strong>${critical}</strong><span>${esc(fmtDate(current.date))}</span></article>
+    <article><small>ATRASADOS</small><strong>${delayed}</strong><span>Envio ainda em recuperação</span></article>
+    <article><small>PRONTOS PARA RESOLVER</small><strong>${ready}</strong><span>Crítico com versão no servidor</span></article>`
   $('#jr-critical-all-v1').disabled=busy || ready===0
   if (!total) {
     $('#jr-critical-list-v1').innerHTML=`<div class="jr-critical-empty-v1">${icon('shield-check')}<strong>Nenhum ponto crítico nesta data</strong><p>Nenhuma pendência acima de 5 minutos exige intervenção.</p></div>`
@@ -329,7 +345,7 @@ function render() {
     const row=i.serverRecord, r=row?.registro||{}, ok=resolvable(i)
     const updated=row?.updated_at||row?.data
     return `<article class="jr-critical-item-v1 ${ok?'ready':'blocked'}">
-      <div class="jr-critical-head-v1"><span class="status-pill pending">CRÍTICO</span><strong>${esc(i.title)}</strong><em>${esc(i.type)}</em></div>
+      <div class="jr-critical-head-v1"><span class="status-pill pending">${i.severity==='critical'?'CRÍTICO':'ATRASADO'}</span><strong>${esc(i.title)}</strong><em>${esc(i.type)}</em></div>
       <div class="jr-critical-grid-v1">
         <span><small>EQUIPE</small><strong>${esc(i.team||'Sem equipe')}</strong></span>
         <span><small>ID</small><strong>${esc(i.id)}</strong></span>

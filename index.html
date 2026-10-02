@@ -909,6 +909,7 @@
             <button id="services-show-all-columns" class="outline-button services-action-button" type="button">Mostrar todas as equipes desta planilha</button>
             <button id="services-toggle-observations" class="outline-button services-action-button" type="button"><span data-icon="eye"></span><span class="button-label">Ocultar observações</span></button>
             <button id="services-import-workbook" class="outline-button services-action-button services-import-button" type="button"><span data-icon="file-spreadsheet"></span><span class="button-label">Importar planilha</span></button>
+            <button id="services-point-cutoff" class="outline-button services-action-button hidden" type="button" title="Definir até que horário os Pontos contam como Manhã/Tarde neste mês"><span data-icon="calendar"></span><span class="button-label">Horário M/T</span></button>
             <button id="services-download" class="primary-button services-action-button services-download-button" type="button"><span data-icon="download"></span><span class="button-label">Baixar planilha</span></button>
 
             <div id="services-dirty-actions" class="services-dirty-actions hidden" aria-label="Alterações pendentes">
@@ -960,6 +961,29 @@
             role="tooltip"
             aria-hidden="true"></div>
         </section>
+
+        <dialog id="services-point-cutoff-dialog" class="services-action-confirm-dialog">
+          <section class="services-action-confirm-card" style="max-width:560px">
+            <div class="services-action-confirm-copy">
+              <small style="display:block;margin-bottom:8px">SOMENTE ADMINISTRADOR</small>
+              <h3>Horário dos Pontos Manhã/Tarde</h3>
+              <p>Mês selecionado: <strong id="services-point-cutoff-month">—</strong></p>
+              <p id="services-point-cutoff-info">Carregando regra...</p>
+
+              <label class="picker-field" style="margin-top:16px">
+                <span>Pontos M/T até (inclusive)</span>
+                <input id="services-point-cutoff-time" type="time" step="60" min="06:00" max="23:59" />
+                <small>Altera somente Pontos. Levantamentos continuam com a regra normal.</small>
+              </label>
+            </div>
+
+            <div class="services-action-confirm-actions" style="flex-wrap:wrap">
+              <button id="services-point-cutoff-reset" class="outline-button" type="button">Usar regra padrão</button>
+              <button id="services-point-cutoff-cancel" class="outline-button" type="button">Cancelar</button>
+              <button id="services-point-cutoff-save" class="primary-button" type="button">Salvar horário</button>
+            </div>
+          </section>
+        </dialog>
 
         <dialog id="services-note-dialog" class="services-note-dialog">
           <form method="dialog" class="services-note-dialog-card" onsubmit="return false">
@@ -1344,6 +1368,6 @@
 <!-- JR_GESTAO_SERVICOS_BOOT_V40_16_22_FIM -->
 <!-- JR_GESTAO_ADMIN_MODE_SWITCH_V7 -->
 <script type="module" src="./src/admin-mode-switch-v7.js?v=20260904-v7"></script>
-  <script type="module" src="./src/resolver-criticos-v1.js?v=20260925-v52"></script>
+  <script type="module" src="./src/resolver-criticos-v1.js?v=20261001-v41-1"></script>
 </body>
 </html>
