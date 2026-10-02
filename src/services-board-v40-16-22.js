@@ -1,3 +1,4 @@
+// JR_GESTAO_OBSERVACAO_OVERRIDE_V41_5=20261002
 // JR_GESTAO_OBSERVACAO_EDITAVEL_V41_4=20261002
 // JR_GESTAO_PONTUACAO_EDITAVEL_V41_3=20261002
 // JR_GESTAO_HORARIO_PONTOS_V41_2=20261002
@@ -971,10 +972,35 @@ function jrObsNormalizeV413(value) {
 }
 
 function jrRawObservationPartsV413(day, draft, metricKey) {
-  if (typeof originalEffectiveObservationPartsV412 === 'function') {
-    return originalEffectiveObservationPartsV412(day, draft, metricKey)
+  const parts =
+    typeof originalEffectiveObservationPartsV412 === 'function'
+      ? originalEffectiveObservationPartsV412(day, draft, metricKey)
+      : effectiveObservationParts(day, draft, metricKey)
+
+  /*
+    JR_GESTAO_OBSERVACAO_OVERRIDE_V41_5
+    Uma observacao manual salva pelo administrador e a versao final daquele
+    dia/equipe/metrica. Ela substitui automatico/importado na exibicao.
+    Apagar a observacao manual volta ao automatico.
+  */
+  const manual = String(parts?.manual || '').trim()
+
+  if (!manual) {
+    return parts || {}
   }
-  return effectiveObservationParts(day, draft, metricKey)
+
+  return {
+    ...(parts || {}),
+    automatic: '',
+    imported: '',
+    manual,
+    text: manual,
+    hasManual: true,
+    hasImported: false,
+    hasImportant:
+      Boolean(manual) ||
+      Boolean(parts?.manualImportant),
+  }
 }
 
 // JR_GESTAO_OBSERVACOES_PLANILHA_INTELIGENTES_V40_16_2=20260902
@@ -1449,17 +1475,24 @@ function compactAutomaticObservationV412(value) {
 
 function compactEffectiveObservationPartsV412(day, draft, metricKey) {
   const parts = originalEffectiveObservationPartsV412(day, draft, metricKey) || {}
-  const automatic = compactAutomaticObservationV412(parts.automatic)
   const manual = String(parts.manual || '').trim()
+  const automatic = manual
+    ? ''
+    : compactAutomaticObservationV412(parts.automatic)
 
   return {
     ...parts,
     automatic,
+    imported: manual ? '' : parts.imported,
     manual,
-    text: [automatic, manual].filter(Boolean).join('\n'),
+    text: manual || automatic,
     hasAutomatic: Boolean(automatic),
     hasManual: Boolean(manual),
-    hasImportant: Boolean(automatic) || Boolean(parts.manualImportant),
+    hasImported: manual ? false : Boolean(parts.imported),
+    hasImportant:
+      Boolean(manual) ||
+      Boolean(automatic) ||
+      Boolean(parts.manualImportant),
   }
 }
 
@@ -4417,13 +4450,35 @@ function renderNoteEditorRows() {
     const draft = draftFor(selectedSheet.key)
     const dayKey = String(state.dialogDay)
 
-    const automatic = String(
-      day.autoObservationByMetric?.[state.metric] || '',
-    ).trim()
+    const sourceParts =
+      originalEffectiveObservationPartsV412(
+        day,
+        draft,
+        state.metric,
+      ) || {}
 
-    const manual = String(
+    const automatic =
+      smartObservationSummaryV413(
+        sourceParts.automatic,
+      )
+
+    const imported =
+      importedObservationDisplayV26(
+        sourceParts.imported,
+      )
+
+    const savedManual = String(
       draft.manualNotesByMetric?.[state.metric]?.[dayKey] || '',
     ).trim()
+
+    const manual =
+      savedManual ||
+      automatic ||
+      imported
+
+    const editingGeneratedObservation =
+      !savedManual &&
+      Boolean(automatic || imported)
 
     const suppressed = Boolean(
       draft.suppressedNotesByMetric?.[state.metric]?.has(state.dialogDay),
@@ -4450,7 +4505,9 @@ function renderNoteEditorRows() {
     return `<section class="services-note-editor-row" data-note-row="${row.id}">
       ${selector}
 
-      <section class="services-note-editor services-note-editor-selected" data-note-team="${escapeHtml(selectedSheet.key)}">
+      <section class="services-note-editor services-note-editor-selected"
+        data-note-team="${escapeHtml(selectedSheet.key)}"
+        data-note-generated="${editingGeneratedObservation ? '1' : '0'}">
         <div class="services-note-editor-heading">
           <div>
             <strong>${escapeHtml(displayNameFor(selectedSheet))}</strong>
@@ -4512,8 +4569,9 @@ function renderNoteEditorRows() {
         </div>
 
         <label class="services-note-field">
-          <span>Rascunho / comunicado • ${escapeHtml(metric.label)}</span>
-          <textarea maxlength="1600" data-note-text placeholder="Escreva a observação desta equipe.">${escapeHtml(manual)}</textarea>
+          <span>Observação editável • ${escapeHtml(metric.label)}</span>
+          <textarea maxlength="1600" data-note-text placeholder="Edite aqui exatamente a observação que deve aparecer.">${escapeHtml(manual)}</textarea>
+          <small>Ao salvar, este texto passa a ser a observação final exibida para esta equipe/dia. Apague o texto e salve para voltar ao automático.</small>
         </label>
 
         <label class="services-note-important-toggle">
@@ -4533,8 +4591,8 @@ function renderNoteEditorRows() {
         </label>
 
         <label class="services-note-suppress">
-          <input type="checkbox" data-note-suppress ${suppressed ? 'checked' : ''} />
-          <span>Ocultar o serviço automático somente em ${escapeHtml(metric.label)} neste dia</span>
+          <input type="checkbox" data-note-suppress ${(suppressed || editingGeneratedObservation) ? 'checked' : ''} />
+          <span>Usar esta observação no lugar da automática em ${escapeHtml(metric.label)} neste dia</span>
         </label>
       </section>
     </section>`
@@ -4686,9 +4744,13 @@ function applyNotesDialog(closeAfter = true) {
       section.querySelector('[data-note-text]')?.value || '',
     ).trim().slice(0, 1600)
 
-    const suppress = Boolean(
+    let suppress = Boolean(
       section.querySelector('[data-note-suppress]')?.checked,
     )
+
+    if (!text) {
+      suppress = false
+    }
 
     if (!draft.manualNotesByMetric[state.metric]) {
       draft.manualNotesByMetric[state.metric] = {}
