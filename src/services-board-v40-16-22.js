@@ -1,3 +1,4 @@
+// JR_GESTAO_OBSERVACAO_EDITAVEL_V41_4=20261002
 // JR_GESTAO_PONTUACAO_EDITAVEL_V41_3=20261002
 // JR_GESTAO_HORARIO_PONTOS_V41_2=20261002
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=2'
@@ -1759,6 +1760,8 @@ const state = {
   noteSelectTouchY: 0,
 
   noteDialogDirty: false,
+  noteDialogSavingV414: false,
+  noteDialogChangedTeamsV414: [],
 
   importWorkbook: null,
   importEntries: [],
@@ -2478,7 +2481,7 @@ function bindEvents() {
     markNoteDialogDirty()
   })
 
-  els.dialogSave?.addEventListener('click', applyNotesDialog)
+  els.dialogSave?.addEventListener('click', saveNotesDialogV414)
   els.dialogCancel?.addEventListener('click', closeNotesDialog)
   els.dialog?.addEventListener('cancel', (event) => {
     event.preventDefault()
@@ -4579,7 +4582,7 @@ function renderNoteEditorRows() {
   hydrateIcons(els.dialogBody)
 }
 
-function openNotesDialog(dayNumber) {
+function openNotesDialog(dayNumber, preferredTeamKey = '') {
   if (!isAdmin() || !els.dialog || !els.dialogBody) return
 
   if (draftFor(GLOBAL_KEY).hiddenDays.has(dayNumber)) {
@@ -4591,21 +4594,56 @@ function openNotesDialog(dayNumber) {
 
   state.dialogDay = dayNumber
   state.noteDialogDirty = false
+  state.noteDialogChangedTeamsV414 = []
   state.noteEditorRows = []
   state.noteEditorNextId = 1
 
   const sheets = availableNoteEditorSheets()
+  const preferred = String(preferredTeamKey || '').trim()
 
-  if (state.selectedTeam !== 'all' && sheets.some((sheet) => sheet.key === state.selectedTeam)) {
+  if (
+    preferred &&
+    sheets.some((sheet) => sheet.key === preferred)
+  ) {
+    state.noteEditorRows.push({
+      id: state.noteEditorNextId++,
+      teamKey: preferred,
+    })
+  } else if (
+    state.selectedTeam !== 'all' &&
+    sheets.some((sheet) => sheet.key === state.selectedTeam)
+  ) {
     state.noteEditorRows.push({
       id: state.noteEditorNextId++,
       teamKey: state.selectedTeam,
     })
   } else {
-    state.noteEditorRows.push({
-      id: state.noteEditorNextId++,
-      teamKey: '',
+    const withObservation = sheets.filter((sheet) => {
+      const day = sheet.days[dayNumber - 1]
+      const parts = compactEffectiveObservationPartsV412(
+        day,
+        draftFor(sheet.key),
+        state.metric,
+      )
+      return Boolean(
+        parts.text ||
+        parts.manualImportant
+      )
     })
+
+    if (withObservation.length) {
+      withObservation.forEach((sheet) => {
+        state.noteEditorRows.push({
+          id: state.noteEditorNextId++,
+          teamKey: sheet.key,
+        })
+      })
+    } else {
+      state.noteEditorRows.push({
+        id: state.noteEditorNextId++,
+        teamKey: '',
+      })
+    }
   }
 
   const metric = metricDefinition(state.metric)
@@ -4621,7 +4659,7 @@ function openNotesDialog(dayNumber) {
   }
 }
 
-function applyNotesDialog() {
+function applyNotesDialog(closeAfter = true) {
   if (!isAdmin() || !state.dialogDay) {
     return false
   }
@@ -4636,6 +4674,7 @@ function applyNotesDialog() {
   }
 
   let changed = false
+  const changedTeams = new Set()
 
   sections.forEach((section) => {
     const teamKey = String(section.dataset.noteTeam || '')
@@ -4710,16 +4749,22 @@ function applyNotesDialog() {
       beforeImportant !== important
     ) {
       markDirty(teamKey)
+      changedTeams.add(teamKey)
       changed = true
     }
   })
 
   state.noteDialogDirty = false
+  state.noteDialogChangedTeamsV414 =
+    [...changedTeams]
 
-  closeNotesDialog()
+  if (closeAfter) {
+    closeNotesDialog()
+  }
+
   renderBoard()
 
-  if (changed) {
+  if (changed && closeAfter) {
     showToast(
       'Observações aplicadas ao rascunho.',
     )
@@ -4728,6 +4773,153 @@ function applyNotesDialog() {
   updateSaveState()
   return true
 }
+
+
+/* JR_GESTAO_OBSERVACAO_EDITAVEL_V41_4 */
+async function saveNotesDialogV414() {
+  if (
+    !isAdmin() ||
+    state.noteDialogSavingV414
+  ) {
+    return false
+  }
+
+  state.noteDialogSavingV414 = true
+
+  const originalLabel =
+    els.dialogSave?.textContent ||
+    'Salvar observação'
+
+  if (els.dialogSave) {
+    els.dialogSave.disabled = true
+    els.dialogSave.textContent = 'Salvando...'
+  }
+
+  clearError()
+
+  try {
+    const applied =
+      applyNotesDialog(false)
+
+    if (!applied) return false
+
+    const teamKeys =
+      [...new Set(
+        state.noteDialogChangedTeamsV414 || [],
+      )].filter(Boolean)
+
+    if (!teamKeys.length) {
+      closeNotesDialog()
+      showToast('Nenhuma alteração na observação.')
+      return true
+    }
+
+    const { data: sessionData } =
+      await supabase.auth.getSession()
+
+    const userId =
+      sessionData.session?.user?.id
+
+    if (!userId) {
+      throw new Error(
+        'Sua sessão expirou. Entre novamente.',
+      )
+    }
+
+    const payloads =
+      teamKeys.map((teamKey) => {
+        const draft = draftFor(teamKey)
+
+        return {
+          month_key: state.month,
+          team_key: teamKey,
+          display_name:
+            draft.displayName.trim(),
+          hidden_days: [],
+          manual_notes:
+            serializeReportSetting(draft),
+          updated_by: userId,
+        }
+      })
+
+    const { data: saved, error } =
+      await supabase
+        .from('service_report_settings')
+        .upsert(
+          payloads,
+          {
+            onConflict:
+              'month_key,team_key',
+          },
+        )
+        .select(
+          'month_key, team_key, display_name, hidden_days, manual_notes, updated_at',
+        )
+
+    if (error) throw error
+
+    ;(saved || []).forEach((item) => {
+      const key =
+        String(item.team_key)
+
+      state.settings.set(
+        key,
+        normalizeReportSetting(item),
+      )
+
+      state.drafts.delete(key)
+    })
+
+    state.settingsLoadedAtV22 =
+      Date.now()
+
+    state.teamFilterSignatureV22 = ''
+    state.noteDialogChangedTeamsV414 = []
+    state.noteDialogDirty = false
+
+    renderTeamFilter()
+    renderBoard()
+    closeNotesDialog()
+
+    showToast(
+      teamKeys.length === 1
+        ? 'Observação salva no Supabase.'
+        : `${teamKeys.length} observações salvas no Supabase.`,
+    )
+
+    document.dispatchEvent(
+      new CustomEvent(
+        'jr:services-settings-updated',
+        {
+          detail: {
+            month: state.month,
+            updatedAt: Date.now(),
+          },
+        },
+      ),
+    )
+
+    return true
+  } catch (error) {
+    const message =
+      friendlyError(error)
+
+    setError(message)
+    showToast(message, true)
+    return false
+  } finally {
+    state.noteDialogSavingV414 = false
+
+    if (els.dialogSave) {
+      els.dialogSave.disabled = false
+      els.dialogSave.textContent =
+        originalLabel
+    }
+
+    updateSaveState()
+  }
+}
+
 
 function closeNotesDialog() {
   state.dialogDay = 0
@@ -7183,21 +7375,25 @@ async function downloadWorkbook() {
       },
     )
 
-    const teamLabel = state.selectedTeam === 'all'
-      ? 'TODAS_EQUIPES'
-      : (sheets[0] ? displayNameFor(sheets[0]) : state.selectedTeam)
-    const teamSuffix = String(teamLabel || 'EQUIPE')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_')
-      .replace(/[^a-zA-Z0-9 _.-]+/g, '_')
-      .replace(/\s+/g, '_')
-      .replace(/_+/g, '_')
-      .replace(/^_+|_+$/g, '') || 'EQUIPE'
+    const [fileYear, fileMonth] =
+      String(state.month || '').split('-')
+
+    const fileYearShort =
+      String(fileYear || '').slice(-2)
+
+    const fechamentoLabel =
+      fileMonth && fileYearShort
+        ? `${fileMonth}-${fileYearShort}`
+        : String(state.month || 'MES')
+
+    workbook.title =
+      fileMonth && fileYearShort
+        ? `PLANILHA FECHAMENTO ${fileMonth}/${fileYearShort}`
+        : 'PLANILHA FECHAMENTO'
 
     downloadBlob(
       blob,
-      `JR_SERVICOS_EXECUTADOS_${state.month}_${teamSuffix}.xlsx`,
+      `PLANILHA FECHAMENTO ${fechamentoLabel}.xlsx`,
     )
 
     showToast(

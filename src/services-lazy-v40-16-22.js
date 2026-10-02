@@ -85,7 +85,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v40-16-22.js?v=v41-3-20261002-pontuacao-editavel'
+        './services-board-v40-16-22.js?v=v41-4-20261002-observacao-editavel'
       )
         .then((module) => {
           const first =
