@@ -85,7 +85,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v40-16-22.js?v=v41-5-1-20261002-editor-modal'
+        './services-board-v40-16-22.js?v=v41-5-2-20261002-employee-names'
       )
         .then((module) => {
           const first =

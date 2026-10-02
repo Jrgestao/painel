@@ -4369,6 +4369,70 @@ function availableNoteEditorSheets() {
     )
 }
 
+/* JR_GESTAO_EMPLOYEE_NAMES_V41_5_2=20261002
+   Funcao faltante que quebrava o editor de observacoes.
+*/
+function employeeNamesForSheet(sheet) {
+  const key = String(sheet?.key || '')
+
+  const profiles =
+    Array.isArray(state.cache?.profiles)
+      ? state.cache.profiles
+      : []
+
+  const profile =
+    profiles.find(
+      (item) =>
+        String(item?.id || '') === key,
+    ) || null
+
+  const source =
+    String(
+      profile?.team_name ||
+      sheet?.originalName ||
+      displayNameFor(sheet) ||
+      profile?.username ||
+      '',
+    ).trim()
+
+  if (!source) return []
+
+  const cleaned =
+    source
+      .replace(/^\\s*equipe\\s*[:\\-–—]?\\s*/i, '')
+      .trim()
+
+  if (!cleaned) return []
+
+  const names =
+    cleaned
+      .split(/\\s+(?:e|&|\\+|\\/)\\s+|,\\s*/i)
+      .map((name) => String(name || '').trim())
+      .filter(Boolean)
+
+  const unique = []
+
+  names.forEach((name) => {
+    if (
+      !unique.some(
+        (saved) =>
+          saved.localeCompare(
+            name,
+            'pt-BR',
+            { sensitivity: 'base' },
+          ) === 0,
+      )
+    ) {
+      unique.push(name)
+    }
+  })
+
+  return unique.length
+    ? unique
+    : [cleaned]
+}
+
+
 function noteEditorDestinationPeople(allSheets) {
   return allSheets.flatMap(
     (targetSheet) =>
