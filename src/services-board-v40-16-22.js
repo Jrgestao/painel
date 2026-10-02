@@ -1,3 +1,4 @@
+// JR_GESTAO_PONTUACAO_EDITAVEL_V41_3=20261002
 // JR_GESTAO_HORARIO_PONTOS_V41_2=20261002
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=2'
 import { hydrateIcons } from './icons.js?v=9'
@@ -19,7 +20,7 @@ import {
   normalizeText,
   serializeReportSetting,
   SERVICE_PERIOD_LABELS,
-} from './services-board-core-v21.mjs?v=horario-pontos-v41-2-20261002'
+} from './services-board-core-v21.mjs?v=pontuacao-editavel-v41-3-20261002'
 import {
   appendAddressContextV30,
   getCesipSmartResolverV30,
@@ -3686,8 +3687,12 @@ function renderBoard() {
       const liveScore = Number(day?.[state.metric] || 0)
       const hasLiveScore = Number.isFinite(liveScore) && liveScore > 0
 
+      /*
+        JR_GESTAO_BADGE_OVERRIDE_V41_3
+        Override manual e intencional, entao continua marcado como "alterado"
+        mesmo quando existe valor real no Supabase.
+      */
       const overridden =
-        !hasLiveScore &&
         hasScoreOverride(
           draft,
           state.metric,
@@ -3695,8 +3700,8 @@ function renderBoard() {
         )
 
       const imported =
-        !hasLiveScore &&
         !overridden &&
+        !hasLiveScore &&
         hasImportedScore(
           draft,
           state.metric,

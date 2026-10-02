@@ -451,16 +451,37 @@ export function hasImportedScore(draft, metric, day) {
 }
 
 export function effectiveScore(dayData, draft, metric) {
-  /* JR_GESTAO_PONTUACAO_REAL_PRIORITARIA_V41_1_1 */
+  /*
+    JR_GESTAO_OVERRIDE_ADMIN_V41_3
+    Ordem correta:
+    1. alteracao manual EXPLICITA do administrador;
+    2. pontuacao real calculada dos registros do Supabase;
+    3. importacao antiga apenas como fallback quando nao existe pontuacao real.
+  */
+  const dayKey = String(dayData?.day)
+
+  const overrides =
+    draft?.scoreOverrides?.[metric] || {}
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      overrides,
+      dayKey,
+    )
+  ) {
+    const override = Number(overrides[dayKey])
+    if (Number.isFinite(override)) return override
+  }
+
   const real = Number(dayData?.[metric] || 0)
   if (Number.isFinite(real) && real > 0) return real
 
-  const dayKey = String(dayData?.day)
-  const override = draft?.scoreOverrides?.[metric]?.[dayKey]
-  if (Number.isFinite(Number(override))) return Number(override)
+  const imported =
+    draft?.importedScoresByMetric?.[metric]?.[dayKey]
 
-  const imported = draft?.importedScoresByMetric?.[metric]?.[dayKey]
-  if (Number.isFinite(Number(imported))) return Number(imported)
+  if (Number.isFinite(Number(imported))) {
+    return Number(imported)
+  }
 
   return Number.isFinite(real) ? real : 0
 }

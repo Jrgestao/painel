@@ -85,7 +85,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v40-16-22.js?v=v41-2-20261002-horario-pontos'
+        './services-board-v40-16-22.js?v=v41-3-20261002-pontuacao-editavel'
       )
         .then((module) => {
           const first =
