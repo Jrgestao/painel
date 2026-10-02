@@ -85,7 +85,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v40-16-22.js?v=v41-5-2-20261002-employee-names'
+        './services-board-v40-16-22.js?v=v41-5-3-20261002-regex-hotfix'
       )
         .then((module) => {
           const first =

@@ -1,3 +1,4 @@
+// JR_GESTAO_REGEX_HOTFIX_V41_5_3=20261002
 // JR_GESTAO_OBSERVACAO_BOTAO_V41_5_1=20261002
 // JR_GESTAO_OBSERVACAO_OVERRIDE_V41_5=20261002
 // JR_GESTAO_OBSERVACAO_EDITAVEL_V41_4=20261002
@@ -4399,14 +4400,14 @@ function employeeNamesForSheet(sheet) {
 
   const cleaned =
     source
-      .replace(/^\\s*equipe\\s*[:\\-–—]?\\s*/i, '')
+      .replace(/^\s*equipe\s*[:\-–—]?\s*/i, '')
       .trim()
 
   if (!cleaned) return []
 
   const names =
     cleaned
-      .split(/\\s+(?:e|&|\\+|\\/)\\s+|,\\s*/i)
+      .split(/\s+(?:e|&|\+|\/)\s+|,\s*/i)
       .map((name) => String(name || '').trim())
       .filter(Boolean)
 
