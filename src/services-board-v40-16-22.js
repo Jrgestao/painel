@@ -1,3 +1,4 @@
+// JR_GESTAO_OBSERVACAO_BOTAO_V41_5_1=20261002
 // JR_GESTAO_OBSERVACAO_OVERRIDE_V41_5=20261002
 // JR_GESTAO_OBSERVACAO_EDITAVEL_V41_4=20261002
 // JR_GESTAO_PONTUACAO_EDITAVEL_V41_3=20261002
@@ -2535,11 +2536,31 @@ function bindEvents() {
     renderObservationViewer()
   })
 
-  els.viewerEdit?.addEventListener('click', () => {
-    if (!isAdmin() || !state.viewerDay) return
+  els.viewerEdit?.addEventListener('click', (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (!isAdmin() || !state.viewerDay) {
+      showToast('Somente administrador pode editar observações.', true)
+      return
+    }
+
     const day = state.viewerDay
+
     closeObservationViewer()
-    openNotesDialog(day)
+
+    window.setTimeout(() => {
+      try {
+        openNotesDialog(day)
+      } catch (error) {
+        console.error('[JR V41.5.1] Falha ao abrir editor:', error)
+        showToast(
+          'Erro ao abrir editor: ' +
+            String(error?.message || error || 'erro desconhecido'),
+          true,
+        )
+      }
+    }, 100)
   })
 
   els.viewerClose?.addEventListener('click', closeObservationViewer)
@@ -4641,7 +4662,26 @@ function renderNoteEditorRows() {
 }
 
 function openNotesDialog(dayNumber, preferredTeamKey = '') {
-  if (!isAdmin() || !els.dialog || !els.dialogBody) return
+  els.dialog =
+    document.getElementById('services-note-dialog') ||
+    els.dialog
+  els.dialogTitle =
+    document.getElementById('services-note-dialog-title') ||
+    els.dialogTitle
+  els.dialogBody =
+    document.getElementById('services-note-dialog-body') ||
+    els.dialogBody
+  els.dialogSave =
+    document.getElementById('services-note-dialog-save') ||
+    els.dialogSave
+  els.dialogCancel =
+    document.getElementById('services-note-dialog-cancel') ||
+    els.dialogCancel
+
+  if (!isAdmin() || !els.dialog || !els.dialogBody) {
+    showToast('Não foi possível abrir o editor de observações.', true)
+    return
+  }
 
   if (draftFor(GLOBAL_KEY).hiddenDays.has(dayNumber)) {
     showToast(
@@ -4710,11 +4750,32 @@ function openNotesDialog(dayNumber, preferredTeamKey = '') {
 
   renderNoteEditorRows()
 
-  if (typeof els.dialog.showModal === 'function') {
-    els.dialog.showModal()
-  } else {
+  els.dialog.removeAttribute('hidden')
+  els.dialog.classList.remove('hidden')
+  els.dialog.setAttribute('aria-hidden', 'false')
+
+  try {
+    if (!els.dialog.open && typeof els.dialog.showModal === 'function') {
+      els.dialog.showModal()
+    } else if (!els.dialog.open) {
+      els.dialog.setAttribute('open', '')
+    }
+  } catch (error) {
+    console.warn('[JR V41.5.1] showModal falhou; usando fallback.', error)
     els.dialog.setAttribute('open', '')
   }
+
+  if (!els.dialog.hasAttribute('open')) {
+    els.dialog.setAttribute('open', '')
+  }
+
+  window.requestAnimationFrame(() => {
+    try {
+      els.dialogBody
+        ?.querySelector('[data-note-text]')
+        ?.focus({ preventScroll: true })
+    } catch (_) {}
+  })
 }
 
 function applyNotesDialog(closeAfter = true) {

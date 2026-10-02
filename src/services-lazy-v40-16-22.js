@@ -85,7 +85,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v40-16-22.js?v=v41-5-20261002-observacao-override-real'
+        './services-board-v40-16-22.js?v=v41-5-1-20261002-editor-modal'
       )
         .then((module) => {
           const first =
