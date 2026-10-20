@@ -351,3 +351,164 @@
 @media (prefers-reduced-motion: reduce) {
   #login-view *, #login-view *::before, #login-view *::after { animation: none !important; }
 }
+
+
+/* JR GESTAO — refinamento premium da marca e atmosfera animada 20261020-b */
+/* Aplica somente ao login. Não altera chamadas, sessões, nem componentes do painel. */
+#login-view.login-page {
+  background:
+    radial-gradient(ellipse at 48% 38%, rgba(49, 58, 64, .12), transparent 65%),
+    #090d0f !important;
+}
+#login-view.login-page::before,
+#login-view.login-page::after {
+  content: none !important;
+  display: none !important;
+  border: 0 !important;
+}
+#login-view .login-shell {
+  border-color: rgba(151, 163, 174, .18) !important;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, .34) !important;
+}
+#login-view .login-brand-panel {
+  position: relative !important;
+  isolation: isolate;
+  overflow: hidden !important;
+  background: linear-gradient(150deg, #171c20, #0d1114) !important;
+}
+/* Halo difuso em movimento atrás do monograma, grafite e prata de baixa opacidade. */
+#login-view .login-brand-panel::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  z-index: 0;
+  pointer-events: none;
+  left: 4%;
+  top: 7%;
+  width: 92%;
+  height: 77%;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background:
+    radial-gradient(ellipse at 30% 55%, rgba(153, 167, 181, .18), transparent 45%),
+    radial-gradient(ellipse at 76% 33%, rgba(63, 98, 120, .11), transparent 50%),
+    radial-gradient(ellipse at 55% 88%, rgba(178, 186, 195, .09), transparent 44%) !important;
+  filter: blur(25px);
+  opacity: .60;
+  transform: translate3d(-3%, 0, 0) scale(.96);
+  animation: jr-halo-ambiental 17s ease-in-out infinite alternate !important;
+}
+#login-view .login-brand-panel::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  z-index: 0;
+  pointer-events: none;
+  width: min(86%, 420px);
+  aspect-ratio: 1;
+  left: 50%;
+  top: 38%;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: conic-gradient(
+    from 45deg,
+    transparent 0deg,
+    rgba(159, 172, 185, .12) 52deg,
+    transparent 100deg,
+    rgba(67, 103, 129, .06) 170deg,
+    transparent 210deg,
+    rgba(197, 202, 208, .11) 272deg,
+    transparent 330deg
+  ) !important;
+  mask-image: radial-gradient(circle, transparent 37%, #000 61%, transparent 73%);
+  -webkit-mask-image: radial-gradient(circle, transparent 37%, #000 61%, transparent 73%);
+  filter: blur(13px);
+  opacity: .38;
+  transform: translate(-50%, -50%) rotate(0deg);
+  animation: jr-anel-prata 36s linear infinite !important;
+}
+#login-view .login-brand-panel > * {
+  position: relative;
+  z-index: 1;
+}
+#login-view .login-logo {
+  display: block !important;
+  width: min(350px, 82%) !important;
+  height: auto !important;
+  max-height: 365px !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  filter: drop-shadow(0 14px 23px rgba(0, 0, 0, .28)) !important;
+  image-rendering: auto !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+#login-view .login-brand-copy {
+  margin-top: 2px !important;
+}
+#login-view .login-brand-copy h1 {
+  color: #dde2e6 !important;
+  font-size: clamp(23px, 2.7vw, 32px) !important;
+  font-weight: 800 !important;
+  line-height: 1.3 !important;
+  letter-spacing: .16em !important;
+  background: linear-gradient(
+    176deg,
+    #f8fafb 0%, #dce2e6 24%, #8997a2 42%,
+    #fafcfc 57%, #aab4bd 77%, #e3e8eb 100%
+  ) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  text-shadow: none !important;
+}
+#login-view .login-brand-accent {
+  width: 58px !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent, #9aa7b0, transparent) !important;
+  box-shadow: none !important;
+}
+#login-view .login-brand-copy p { color: #aab5bf !important; font-weight: 500 !important; }
+#login-view .login-heading p {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: #aab5bf !important;
+  font-size: 18px !important;
+}
+#login-view #login-button {
+  color: #0a1014 !important;
+  background: linear-gradient(175deg, #f3f5f7 0%, #c3cbd2 34%, #e8ecef 65%, #acb7c1 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.65), 0 11px 23px rgba(0,0,0,.22) !important;
+}
+@keyframes jr-halo-ambiental {
+  0% { transform: translate3d(-7%, -2%, 0) scale(.92); opacity: .40; }
+  50% { transform: translate3d(4%, 3%, 0) scale(1.06); opacity: .57; }
+  100% { transform: translate3d(-2%, 1%, 0) scale(.97); opacity: .42; }
+}
+@keyframes jr-anel-prata {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@media (max-width: 860px) {
+  #login-view .login-logo {
+    width: min(245px, 65vw) !important;
+    max-height: 260px !important;
+  }
+  #login-view .login-brand-copy h1 { font-size: clamp(21px, 4.3vw, 27px) !important; }
+  #login-view .login-heading p { font-size: 16px !important; }
+}
+@media (max-width: 480px) {
+  #login-view .login-logo {
+    width: min(206px, 64vw) !important;
+    max-height: 220px !important;
+  }
+  #login-view .login-brand-copy h1 { font-size: 21px !important; }
+  #login-view .login-heading p { font-size: 15px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #login-view .login-brand-panel::before,
+  #login-view .login-brand-panel::after { animation: none !important; }
+}
