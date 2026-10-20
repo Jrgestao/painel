@@ -1,0 +1,82 @@
+/* JR Gestão: corrige fundo travando e restaura integralmente o layout administrativo.
+ * Não altere estilos #app-view aqui.
+ * Usamos animação de compositor em lugar do vídeo 2 FPS. */
+#login-view.login-page {
+  isolation: isolate !important;
+  position: relative !important;
+  background: #090d0f !important;
+}
+#login-view.login-page::before,#login-view.login-page::after {
+  display: none !important;
+  content: none !important;
+}
+#login-view .jr-login-fluido-v2 {
+  position: absolute;
+  inset: -18%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: .22;
+  background:
+    radial-gradient(ellipse 37% 52% at 28% 37%, rgba(165,181,195,.48) 0%,rgba(52,69,82,.24) 30%,transparent 78%),
+    radial-gradient(ellipse 43% 40% at 70% 76%, rgba(91,125,147,.26) 0%,rgba(35,54,70,.12) 38%,transparent 80%);
+  transform: translate3d(0,0,0) scale(1.1);
+  will-change: transform, opacity;
+  animation: jr-login-fluir-v2 20s cubic-bezier(.44,.02,.57,.98) infinite alternate;
+}
+#login-view .jr-login-fluido-v2::before {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  border-radius: 42%;
+  pointer-events: none;
+  background:
+    conic-gradient(from 70deg at 47% 52%,transparent 0 17%,rgba(162,171,183,.25) 26%, transparent 38% 59%,rgba(96,122,139,.25) 69%,transparent 84%);
+  filter: blur(60px);
+  animation: jr-login-metal-v2 34s linear infinite;
+}
+#login-view .login-shell,#login-view .login-footer {
+  position: relative !important;
+  z-index: 1 !important;
+}
+@keyframes jr-login-fluir-v2 {
+  0% {transform: translate3d(-4%,-1%,0) scale(1.05);opacity:.17;}
+  50% {transform: translate3d(3%,2%,0) scale(1.14);opacity:.25;}
+  100% {transform: translate3d(-2%,3%,0) scale(1.08);opacity:.19;}
+}
+@keyframes jr-login-metal-v2 {
+  from {transform:rotate(0deg) scale(1);}
+  to {transform:rotate(360deg) scale(1);}
+}
+/* Logo do carregamento perfeitamente centralizada, sem ampliar/remodelar o vetor. */
+#jr-safe-loading-v86 .jr-safe-loading-logo-v86 {
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  width:116px !important;
+  height:125px !important;
+  margin:0 auto !important;
+}
+#jr-safe-loading-v86 .jr-safe-loading-logo-v86 img {
+  display:block !important;
+  width:102px !important;
+  height:116px !important;
+  margin:0 auto !important;
+  object-fit:contain !important;
+  filter:drop-shadow(0 3px 10px rgba(203,217,228,.10)) !important;
+  animation:jr-loading-flutuar-v2 4s ease-in-out infinite !important;
+}
+@keyframes jr-loading-flutuar-v2 {
+  0%,100% {transform:translate3d(-3px,2px,0) scale(1);}
+  50% {transform:translate3d(-3px,-5px,0) scale(1.025);}
+}
+@media (prefers-reduced-motion:reduce) {
+  #login-view .jr-login-fluido-v2,#login-view .jr-login-fluido-v2::before {
+    animation:none !important;
+    will-change:auto;
+  }
+  #jr-safe-loading-v86 .jr-safe-loading-logo-v86 img {
+    animation:none !important;
+    transform:translateX(-3px);
+  }
+}
