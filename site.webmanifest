@@ -8,28 +8,10 @@
   "theme_color": "#050505",
   "icons": [
     {
-      "src": "./favicon-192x192.png?v=jr-full-v11",
-      "sizes": "192x192",
-      "type": "image/png",
+      "src": "./assets/jr-favicon-prata-v1.svg?v=jr-logo-20261020",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any"
-    },
-    {
-      "src": "./favicon-512x512.png?v=jr-full-v11",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "./favicon-maskable-192x192.png?v=jr-full-v11",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "./favicon-maskable-512x512.png?v=jr-full-v11",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ]
 }
