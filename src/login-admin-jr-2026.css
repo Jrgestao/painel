@@ -512,3 +512,25 @@
   #login-view .login-brand-panel::before,
   #login-view .login-brand-panel::after { animation: none !important; }
 }
+
+/* 20261020-c: acabamento do login e efeito externo discreto, sem quadros decorativos */
+#login-view.login-page::before, #login-view.login-page::after {
+  display: none !important;
+  content: none !important;
+}
+#login-view .login-brand-panel::before, #login-view .login-brand-panel::after {
+  opacity: .3 !important;
+}
+#login-view .login-brand-copy h1 {
+  font-weight: 850 !important;
+  color: #e5e8ea !important;
+  background: linear-gradient(160deg,#fff 4%,#a9b5bd 22%,#f8fbfd 39%,#7a858d 55%,#e1e7eb 73%,#f9fbfd 94%) !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  letter-spacing: .17em !important;
+}
+#login-view .login-logo { object-fit: contain !important; image-rendering: auto !important; }
+#login-view .login-shell { box-shadow: 0 18px 50px rgba(0,0,0,.38) !important; }
+#jr-safe-loading-v86 .jr-safe-loading-logo-v86 img,
+.jr-loading-logo-v7 { object-fit: contain !important; filter: none !important; }

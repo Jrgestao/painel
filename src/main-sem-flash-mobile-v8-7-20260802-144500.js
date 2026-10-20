@@ -1023,7 +1023,7 @@ function ensureLoadingScreenV7() {
   screen.innerHTML = `
     <div class="jr-loading-card-v7">
       <div class="jr-loading-logo-shell-v7">
-        <img class="jr-loading-logo-v7" src="./assets/logo-metal-liquido-v24.png" alt="JR Gestão">
+        <img class="jr-loading-logo-v7" src="./assets/jr-monograma-prata-v2.svg" alt="JR Gestão">
       </div>
       <strong>JR GESTÃO</strong>
       <p id="jr-loading-message-v7">Preparando o painel...</p>
@@ -1035,7 +1035,7 @@ function ensureLoadingScreenV7() {
 
   const image = screen.querySelector('.jr-loading-logo-v7')
   image?.addEventListener('error', () => {
-    image.src = './assets/logo.png'
+    image.src = './assets/jr-monograma-prata-v2.svg'
   }, { once: true })
 
   return screen
@@ -1077,7 +1077,7 @@ function showLoadingScreenV34(message = 'Conectando ao painel...') {
     screen.innerHTML = `
       <div class="jr-safe-loading-card-v86">
         <div class="jr-safe-loading-logo-v86">
-          <img src="./assets/logo-metal-liquido-v24.png" alt="JR Gestão">
+          <img src="./assets/jr-monograma-prata-v2.svg" alt="JR Gestão">
         </div>
         <strong>JR GESTÃO</strong>
         <p id="jr-safe-loading-message-v86">Conectando ao painel...</p>
@@ -1861,7 +1861,7 @@ function installFluidMetalThemeV26() {
 
   document.getElementById('jr-liquid-metal-background-v24')?.remove()
 
-  const logoPath = './assets/jr-monograma-prata-v1.webp'
+  const logoPath = './assets/jr-monograma-prata-v2.svg'
   document.querySelectorAll('.login-logo').forEach((image) => {
     image.src = logoPath
     image.removeAttribute('srcset')
@@ -1870,7 +1870,7 @@ function installFluidMetalThemeV26() {
     image.style.filter = 'none'
   })
   document.querySelectorAll('.topbar-system-logo').forEach((image) => {
-    image.src = './assets/jr-monograma-prata-v1.webp'
+    image.src = './assets/jr-monograma-prata-v2.svg'
     image.removeAttribute('srcset')
     image.style.filter = 'none'
   })
