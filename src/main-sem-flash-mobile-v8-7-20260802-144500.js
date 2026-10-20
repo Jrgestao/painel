@@ -1861,7 +1861,7 @@ function installFluidMetalThemeV26() {
 
   document.getElementById('jr-liquid-metal-background-v24')?.remove()
 
-  const logoPath = './assets/logo-metal-liquido-v24.png'
+  const logoPath = './assets/jr-monograma-prata-v1.webp'
   document.querySelectorAll('.login-logo').forEach((image) => {
     image.src = logoPath
     image.removeAttribute('srcset')

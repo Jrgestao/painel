@@ -402,6 +402,7 @@
 </style>
 <!-- JR_GESTAO_SPINNER_SERVICOS_V40_16_14_FIM -->
   <link rel="stylesheet" href="./src/resolver-criticos-v1.css?v=20260925-v52" />
+  <link rel="stylesheet" href="./src/login-admin-jr-2026.css?v=20261020-a" />
 </head>
 <body>
   <div
@@ -427,23 +428,18 @@
   <section id="login-view" class="login-page">
     <div class="login-shell">
       <aside class="login-brand-panel">
-        <img src="./assets/logo.png" alt="Logo oficial JR Gestão" class="login-logo" />
+        <img src="./assets/jr-monograma-prata-v1.webp" alt="Monograma cromado JR Gestão" class="login-logo" width="290" height="320" decoding="async" fetchpriority="high" />
         <div class="login-brand-copy">
           <h1>JR GESTÃO</h1>
-          <p>CONTROLE DE CAMPO E CONFERÊNCIA</p>
-        </div>
-        <div class="restricted-badge">
-          <span data-icon="shield"></span>
-          <div><strong>ACESSO RESTRITO</strong><small>Ambiente administrativo protegido</small></div>
+          <span class="login-brand-accent" aria-hidden="true"></span>
+          <p>GESTÃO | CONTROLE | RELATÓRIOS</p>
         </div>
       </aside>
 
       <main class="login-form-panel">
         <div class="login-heading">
-          <span class="eyebrow">ADMINISTRAÇÃO</span>
-          <h2><span>PAINEL</span> <span>ADMINISTRATIVO</span></h2>
-          <span class="heading-line"></span>
-
+          <h2><span>PAINEL</span><span>ADMINISTRATIVO</span></h2>
+          <p>Sistema de gestão empresarial</p>
         </div>
 
         <form id="login-form" novalidate>
@@ -460,10 +456,13 @@
             <button id="toggle-password" class="icon-button" type="button" aria-label="Mostrar ou esconder senha" data-icon-button="eye"></button>
           </div>
 
-          <label class="remember-login-row">
-            <input id="remember-login" type="checkbox" checked />
-            <span><strong>Manter conectado</strong><small>Não pedir login toda hora neste aparelho</small></span>
-          </label>
+          <div class="login-options-row">
+            <label class="remember-login-row">
+              <input id="remember-login" type="checkbox" checked />
+              <span><strong>Manter conectado</strong></span>
+            </label>
+            <span class="login-recovery-label" title="Solicite a redefinição da senha ao administrador">Esqueci minha senha</span>
+          </div>
 
           <button id="login-button" class="primary-button login-button" type="submit">
             <span class="button-label">ENTRAR</span><span data-icon="arrow-right"></span>
