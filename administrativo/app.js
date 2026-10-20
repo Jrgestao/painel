@@ -364,7 +364,7 @@ function renderTenderCard(item) {
         <button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('file-text')}Edital</button>
         <button class="action-button" type="button" data-open-tender="${item.id}" data-detail-section="documents">${icon('archive')}Documentos</button>
         <button class="action-button favorite${item.favoritada ? ' active' : ''}" type="button" data-favorite="${item.id}">${icon(item.favoritada ? 'check' : 'save')}${item.favoritada ? 'Favoritada' : 'Favoritar'}</button>
-        ${officialUrl ? `<button class="action-button" type="button" data-safe-url="${escapeHtml(officialUrl)}">${icon('arrow-right')}Publicação oficial</button>` : ''}
+        ${officialUrl ? `<a class="action-button" href="${escapeHtml(officialUrl)}" target="_blank" rel="noopener noreferrer">${icon('arrow-right')}Publicação oficial</a>` : ''}
       </div>
     </article>`
 }
@@ -439,7 +439,7 @@ function renderDetail(payload) {
       <div class="detail-full-object"><small>OBJETO COMPLETO</small><p class="detail-object">${escapeHtml(item.objeto)}</p></div>
       <div class="tender-actions">
         <button class="action-button favorite${item.favoritada ? ' active' : ''}" type="button" data-favorite="${item.id}">${icon(item.favoritada ? 'check' : 'save')}${item.favoritada ? 'Favoritada' : 'Favoritar'}</button>
-        ${safeUrl(item.url_oficial) ? `<button class="action-button primary" type="button" data-safe-url="${escapeHtml(safeUrl(item.url_oficial))}">${icon('arrow-right')}Abrir publicação oficial</button>` : ''}
+        ${safeUrl(item.url_oficial) ? `<a class="action-button primary" href="${escapeHtml(safeUrl(item.url_oficial))}" target="_blank" rel="noopener noreferrer">${icon('arrow-right')}Abrir publicação oficial</a>` : ''}
       </div>
     </section>
     <div class="detail-grid">${fields.map(([label, value]) => `<div class="detail-field"><small>${label}</small><strong>${escapeHtml(value || 'Não informado')}</strong></div>`).join('')}</div>
