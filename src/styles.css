@@ -4362,3 +4362,22 @@ body.viewer-mode #loading-state {
     padding-inline: 11px;
   }
 }
+
+/* JR Gestao: identidade prata no painel, mantendo tela de login inalterada. */
+#app-view .sidebar-logo-wrap,
+#app-view .sidebar-monogram { display: none !important; }
+#app-view .welcome-logo {
+  width: clamp(112px, 12vw, 164px);
+  height: clamp(100px, 11vw, 146px);
+  max-width: 100%;
+  object-fit: contain;
+  justify-self: end;
+  filter: none;
+}
+#app-view .admin-topbar .topbar-system-logo { object-fit: contain !important; }
+@media (max-width: 860px) {
+  #app-view .welcome-logo { width: 110px; height: 105px; }
+}
+@media (max-width: 520px) {
+  #app-view .welcome-logo { width: 110px; height: 105px; opacity: .20; }
+}

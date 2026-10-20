@@ -1862,11 +1862,16 @@ function installFluidMetalThemeV26() {
   document.getElementById('jr-liquid-metal-background-v24')?.remove()
 
   const logoPath = './assets/logo-metal-liquido-v24.png'
-  document.querySelectorAll('.login-logo, .sidebar-logo, .topbar-system-logo').forEach((image) => {
+  document.querySelectorAll('.login-logo').forEach((image) => {
     image.src = logoPath
     image.removeAttribute('srcset')
     image.loading = 'eager'
     image.decoding = 'async'
+    image.style.filter = 'none'
+  })
+  document.querySelectorAll('.topbar-system-logo').forEach((image) => {
+    image.src = './assets/jr-monograma-prata-v1.webp'
+    image.removeAttribute('srcset')
     image.style.filter = 'none'
   })
 }
