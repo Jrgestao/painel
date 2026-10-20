@@ -1,5 +1,5 @@
 // JR_GESTAO_HOME_SCORE_IGUAL_EXPORT_V36=20260811
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=2'
+import { supabase } from './jr-auth-client-v1.js?v=jr-auth-20261020'
 import { normalizeReportSetting } from './services-board-core-v21.mjs?v=1'
 import {
   mergeRebuiltImportedScoresV28,
@@ -7,12 +7,6 @@ import {
   rebuildImportedScoresByMetricV28,
 } from './services-import-core-v28.mjs?v=28'
 
-const createClient = window.supabase?.createClient
-if (typeof createClient !== 'function') {
-  throw new Error('Cliente local do Supabase não carregou para o resumo importado.')
-}
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 const METRICS = ['dayPoints', 'daySurveys', 'nightPoints', 'nightSurveys']
 
 const homeDateFormatterV22 = new Intl.DateTimeFormat('en-CA', {
@@ -266,7 +260,7 @@ async function refreshImportedRowsV36(month, force = false) {
   if (!bounds) { state.importedRowsV36 = []; return [] }
   try {
     if (!window.__JR_IMPORTED_RECORDS_V21__) {
-      await import('./services-import-bridge-v21.js?v=bridge-v21-20260807')
+      await import('./services-import-bridge-v21.js?v=bridge-v21-20260807-jr-auth-20261020')
     }
     await window.__JR_IMPORTED_RECORDS_V21__?.refreshRange?.(bounds.start, bounds.end, force)
     state.importedRowsV36 = window.__JR_IMPORTED_RECORDS_V21__?.recordsForRange?.(bounds.start, bounds.end) || []

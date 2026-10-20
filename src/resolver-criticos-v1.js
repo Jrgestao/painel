@@ -1,12 +1,8 @@
 // JR_GESTAO_RESOLVER_CRITICOS_GITHUB_V1=20260918
 // Modulo isolado: nao altera dashboard, logo, cores ou funcoes existentes.
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm'
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=2'
+import { supabase as sb } from './jr-auth-client-v1.js?v=jr-auth-20261020'
 import { icon } from './icons.js?v=9'
 
-const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
-})
 
 const FIVE_MINUTES = 5 * 60 * 1000\nconst CRITICAL_AFTER = 30 * 60 * 1000
 let profile = null

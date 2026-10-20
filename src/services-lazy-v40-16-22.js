@@ -85,7 +85,7 @@ function loadBoardV25(replay = true) {
 
     loaded.board =
       import(
-        './services-board-v40-16-22.js?v=v41-5-3-20261002-regex-hotfix'
+        './services-board-v40-16-22.js?v=v41-5-3-20261002-regex-hotfix-jr-auth-20261020'
       )
         .then((module) => {
           const first =
@@ -135,7 +135,7 @@ function loadHomeV25() {
   if (!loaded.home) {
     loaded.home =
       import(
-        './services-home-overlay-v29.js?v=periodo-foto-v37-1-20260811'
+        './services-home-overlay-v29.js?v=periodo-foto-v37-1-20260811-jr-auth-20261020'
       ).catch((error) => {
         loaded.home = null
 
@@ -163,7 +163,7 @@ function loadBridgeV25() {
   if (!loaded.bridge) {
     loaded.bridge =
       import(
-        './services-import-bridge-v21.js?v=bridge-v21-20260807'
+        './services-import-bridge-v21.js?v=bridge-v21-20260807-jr-auth-20261020'
       ).catch((error) => {
         loaded.bridge = null
 
@@ -207,10 +207,10 @@ function prepareModulesV25() {
     './src/services-board-v40-16-22.js?v=v40-16-22-20260902-observacoes-core-restaurado',
   )
   modulePreloadV25(
-    './src/services-home-overlay-v29.js?v=periodo-foto-v37-1-20260811',
+    './src/services-home-overlay-v29.js?v=periodo-foto-v37-1-20260811-jr-auth-20261020',
   )
   modulePreloadV25(
-    './src/services-import-bridge-v21.js?v=bridge-v21-20260807',
+    './src/services-import-bridge-v21.js?v=bridge-v21-20260807-jr-auth-20261020',
   )
 }
 

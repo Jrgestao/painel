@@ -4,7 +4,7 @@
 // JR_GESTAO_OBSERVACAO_EDITAVEL_V41_4=20261002
 // JR_GESTAO_PONTUACAO_EDITAVEL_V41_3=20261002
 // JR_GESTAO_HORARIO_PONTOS_V41_2=20261002
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=2'
+import { supabase } from './jr-auth-client-v1.js?v=jr-auth-20261020'
 import { hydrateIcons } from './icons.js?v=9'
 import { initializeUiControls, refreshCustomSelect, setUiControlValue } from './ui-controls.js?v=9'
 import {
@@ -45,12 +45,6 @@ import {
   shouldKeepImportedRow,
 } from './services-import-core-v28.mjs?v=34'
 
-// JR_GESTAO_SUPABASE_LOCAL_SERVICOS_V40_16_9=20260902
-const createClient = window.supabase?.createClient
-if (typeof createClient !== 'function') {
-  throw new Error('Cliente local do Supabase não carregou em Serviços Executados.')
-}
-const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 const $ = (selector) => document.querySelector(selector)
 const GLOBAL_KEY = '__matrix__'
 

@@ -1,13 +1,5 @@
-const createClient = window.supabase?.createClient
-if (typeof createClient !== 'function') throw new Error('Biblioteca local do Supabase não carregou.')
-import * as JR_CONFIG from '../src/config.js?v=admin-restore-20260904'
-const SUPABASE_URL = JR_CONFIG.SUPABASE_URL
-const SUPABASE_PUBLISHABLE_KEY = JR_CONFIG.SUPABASE_PUBLISHABLE_KEY || JR_CONFIG.SUPABASE_ANON_KEY || JR_CONFIG.ANON_KEY
+import { supabase } from '../src/jr-auth-client-v1.js?v=jr-auth-20261020'
 import { hydrateIcons, icon } from './icons.js?v=admin-restore-20260904'
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-})
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 const PRIORITY_SCORE = 35

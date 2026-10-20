@@ -1,23 +1,9 @@
-import * as JR_CONFIG from './config.js?v=admin-switch-v7-20260904'
+import { supabase } from './jr-auth-client-v1.js?v=jr-auth-20261020'
 
 const MARKER_ID = 'jr-admin-mode-entry-v7'
 
-function getCreateClient() {
-  const api = window.supabase
-  if (!api || typeof api.createClient !== 'function') return null
-  return api.createClient.bind(api)
-}
-
 async function installAdminEntry() {
   if (document.getElementById(MARKER_ID)) return
-  const createClient = getCreateClient()
-  const url = JR_CONFIG.SUPABASE_URL
-  const key = JR_CONFIG.SUPABASE_PUBLISHABLE_KEY || JR_CONFIG.SUPABASE_ANON_KEY || JR_CONFIG.ANON_KEY
-  if (!createClient || !url || !key) return
-
-  const supabase = createClient(url, key, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-  })
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.user?.id) return
 

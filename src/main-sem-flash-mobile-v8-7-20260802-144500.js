@@ -33,9 +33,8 @@
 // JR_GESTAO_MOBILE_CALENDARIO_EQUIPES_V37
 // JR_GESTAO_CALENDARIO_DATA_SERVICO_FIXO_V38
 // JR_GESTAO_CARREGAMENTO_E_CALENDARIO_CORRIGIDOS_V39
-const createClient = window.supabase?.createClient
-if (typeof createClient !== 'function') throw new Error('Cliente local do Supabase não carregou.')
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, INTERNAL_LOGIN_DOMAIN, APP_TIME_ZONE, ADMIN_API_BASE_URL } from './config-cachefix-20260731-140035.js'
+import { supabase } from './jr-auth-client-v1.js?v=jr-auth-20261020'
+import { INTERNAL_LOGIN_DOMAIN, APP_TIME_ZONE, ADMIN_API_BASE_URL } from './config-cachefix-20260731-140035.js'
 import { hydrateIcons, icon } from './icons.js?v=20260731'
 import { initializeUiControls, setUiControlValue, refreshCustomSelect, closeAllUiControls } from './ui-controls.js?v=mobile-calendar-v40-20260811'
 // JR_GESTAO_DATA_ORDEM_PLANILHAS_V10
@@ -58,7 +57,6 @@ const DAY_ROLLOVER_CHECK_MS = 30000
 const SEARCH_MIN_LENGTH = 3
 const SEARCH_DEBOUNCE_MS = 380
 const GLOBAL_SEARCH_LIMIT = 80
-const memoryAuthStorage = new Map()
 const moduleRenderCacheV31 = new Map()
 let authFlowVersionV32 = 0
 let logoutInProgressV32 = false
@@ -1152,86 +1150,7 @@ function hideLoadingScreenV34(force = false) {
 }
 
 
-function keepConnectedEnabled() {
-  try { return window.localStorage.getItem(KEEP_CONNECTED_KEY) !== 'false' } catch (_error) { return true }
-}
-
-function selectedAuthStorage() {
-  try { return keepConnectedEnabled() ? window.localStorage : window.sessionStorage } catch (_error) { return null }
-}
-
-const safeAuthStorage = {
-  getItem(key) {
-    try {
-      const store = selectedAuthStorage()
-      const value = store?.getItem(key)
-      return value === null || value === undefined ? memoryAuthStorage.get(key) ?? null : value
-    } catch (_error) {
-      return memoryAuthStorage.get(key) ?? null
-    }
-  },
-  setItem(key, value) {
-    memoryAuthStorage.set(key, value)
-    try {
-      const target = selectedAuthStorage()
-      const other = keepConnectedEnabled() ? window.sessionStorage : window.localStorage
-      target?.setItem(key, value)
-      other?.removeItem(key)
-    } catch (_error) {}
-  },
-  removeItem(key) {
-    memoryAuthStorage.delete(key)
-    try { window.localStorage.removeItem(key) } catch (_error) {}
-    try { window.sessionStorage.removeItem(key) } catch (_error) {}
-  },
-}
-
-
-const waitNetworkV6 = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-async function jrFetchWithRetryV6(input, init = {}) {
-  const requestMethod = String(init.method || (input instanceof Request ? input.method : 'GET') || 'GET').toUpperCase()
-  const attempts = requestMethod === 'GET' || requestMethod === 'HEAD' ? 2 : 1
-  let lastError
-
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const controller = new AbortController()
-    const externalSignal = init.signal || (input instanceof Request ? input.signal : null)
-    const abortFromOutside = () => controller.abort(externalSignal?.reason)
-    if (externalSignal) {
-      if (externalSignal.aborted) abortFromOutside()
-      else externalSignal.addEventListener('abort', abortFromOutside, { once: true })
-    }
-    const timeoutMs = requestMethod === 'GET' || requestMethod === 'HEAD' ? 16000 : 24000
-    const timeout = window.setTimeout(() => controller.abort(new DOMException('Tempo de conexão esgotado.', 'TimeoutError')), timeoutMs)
-
-    try {
-      const response = await fetch(input, { ...init, signal: controller.signal })
-      if (attempt + 1 < attempts && (response.status === 429 || response.status >= 500)) {
-        await waitNetworkV6(700 + Math.round(Math.random() * 500))
-        continue
-      }
-      return response
-    } catch (error) {
-      lastError = error
-      if (attempt + 1 >= attempts || externalSignal?.aborted) throw error
-      await waitNetworkV6(700 + Math.round(Math.random() * 500))
-    } finally {
-      window.clearTimeout(timeout)
-      externalSignal?.removeEventListener?.('abort', abortFromOutside)
-    }
-  }
-
-  throw lastError || new Error('Falha de conexão.')
-}
-const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  global: { fetch: jrFetchWithRetryV6 },
-  auth: {
-    storage: safeAuthStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: false,
-  },
-})
+// Autenticação centralizada em jr-auth-client-v1.js.
 const $ = (selector) => document.querySelector(selector)
 const $$ = (selector) => [...document.querySelectorAll(selector)]
 
@@ -3463,7 +3382,7 @@ async function bootstrap() {
   const flowVersion = ++authFlowVersionV32
 
   supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_OUT' || !session) {
+    if (event === 'SIGNED_OUT') {
       authFlowVersionV32 += 1
       stopRealtime()
       showLogin()

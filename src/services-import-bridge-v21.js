@@ -1,8 +1,5 @@
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './config.js?v=2'
+import { supabase } from './jr-auth-client-v1.js?v=jr-auth-20261020'
 
-const createClient = window.supabase?.createClient
-if (typeof createClient !== 'function') throw new Error('Supabase indisponível para registros importados.')
-const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 const months = new Map()
 const loading = new Map()
 const CACHE_TTL = 5 * 60 * 1000
