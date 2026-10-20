@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 816 948" role="img" aria-label="JR Gestão — monograma prateado">
 <defs>
-<path id="marca" d="M 395 36 L 380 45 L 165 252 L 166 415 L 179 405 L 291 302 L 292 303 L 292 652 L 290 653 L 184 545 L 184 543 L 227 500 L 231 493 L 164 425 L 154 431 L 58 523 L 38 543 L 38 545 L 324 842 L 389 907 L 401 914 L 401 57 L 398 37 Z M 440 35 L 438 37 L 436 49 L 436 913 L 447 906 L 548 805 L 549 566 L 570 586 L 697 723 L 710 713 L 776 649 L 697 567 L 697 565 L 772 492 L 772 356 L 520 103 L 459 46 Z M 546 301 L 567 319 L 636 389 L 635 501 L 563 434 L 545 420 Z" fill-rule="evenodd"/>
+<path id="marca" d="M 391 43 L 380 48 L 165 252 L 166 415 L 179 405 L 291 302 L 292 303 L 292 652 L 290 653 L 184 545 L 184 543 L 227 500 L 231 493 L 164 425 L 154 431 L 58 523 L 38 543 L 38 545 L 324 842 L 389 907 L 401 914 L 401 58 L 391 43 Z M 441 43 L 436 49 L 436 913 L 447 906 L 548 805 L 549 566 L 570 586 L 697 723 L 710 713 L 776 649 L 697 567 L 697 565 L 772 492 L 772 356 L 520 103 L 459 46 Z M 546 301 L 567 319 L 636 389 L 635 501 L 563 434 L 545 420 Z" fill-rule="evenodd"/>
 <linearGradient id="metal" x1="0" y1="0" x2=".77" y2="1"><stop offset="0" stop-color="#f7f9fb"/><stop offset=".13" stop-color="#a8b5be"/><stop offset=".30" stop-color="#707b84"/><stop offset=".43" stop-color="#d8dee2"/><stop offset=".55" stop-color="#fafcfd"/><stop offset=".69" stop-color="#c0c9d0"/><stop offset=".85" stop-color="#616e79"/><stop offset="1" stop-color="#e3e9ed"/></linearGradient>
 <linearGradient id="flash" x1="0" y1="0" x2="1" y2=".86"><stop offset="0" stop-color="white" stop-opacity=".49"/><stop offset=".28" stop-color="white" stop-opacity="0"/><stop offset=".55" stop-color="white" stop-opacity=".22"/><stop offset=".71" stop-color="white" stop-opacity=".02"/><stop offset="1" stop-color="white" stop-opacity=".39"/></linearGradient>
 <pattern id="brushed" patternUnits="userSpaceOnUse" width="2.6" height="2.6" patternTransform="rotate(-35)"><path d="M0 0H2.6" fill="none" stroke="#fff" stroke-opacity=".10" stroke-width=".4"/><path d="M0 1.3H2.6" fill="none" stroke="#17202a" stroke-opacity=".07" stroke-width=".3"/></pattern>
 <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="2" dy="4" stdDeviation="2" flood-color="#000" flood-opacity=".54"/></filter>
 </defs>
 <use href="#marca" fill="#141a1f" stroke="#080c0e" stroke-width="7" stroke-linejoin="round" filter="url(#shadow)"/>
-<use href="#marca" fill="url(#metal)" stroke="#e7ecef" stroke-width="2.6" stroke-linejoin="bevel"/>
+<use href="#marca" fill="url(#metal)" stroke="#e7ecef" stroke-width="2.6" stroke-linejoin="round"/>
 <use href="#marca" fill="url(#flash)" opacity=".70"/><use href="#marca" fill="url(#brushed)" opacity=".50"/>
 </svg>

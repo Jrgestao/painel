@@ -1,0 +1,150 @@
+/* JR Gestão — ajustes direcionados, 20/10/2026.
+   Apenas apresentação. Não altera formulários, autenticação nem dados. */
+
+/* Vídeo real enviado pelo usuário, reduzido para fundo de baixa opacidade.
+   Fundo de fallback permanece no CSS anterior. */
+#login-view.login-page {
+  isolation: isolate !important;
+  position: relative !important;
+}
+#login-view .jr-login-background-video {
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+  opacity: .45 !important;
+  filter: grayscale(1) saturate(.25) brightness(.72) contrast(1.22) blur(15px) !important;
+  transform: scale(1.08);
+}
+#login-view .jr-login-background-overlay {
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+  background: linear-gradient(180deg,rgba(7,11,13,.50),rgba(7,11,13,.76));
+}
+#login-view .login-shell, #login-view .login-footer {
+  position: relative !important;
+  z-index: 2 !important;
+}
+#login-view.login-page::before,#login-view.login-page::after {
+  display: none !important;
+  content: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  #login-view .jr-login-background-video { display: none !important; }
+}
+
+/* Logo da tela de carregamento, centralização ótica + movimento suave. */
+#jr-safe-loading-v86 .jr-safe-loading-card-v86,
+.jr-loading-screen .jr-loading-card-v7 {
+  justify-items: center !important;
+  text-align: center !important;
+  margin-inline: auto !important;
+}
+#jr-safe-loading-v86 .jr-safe-loading-logo-v86 {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 118px !important;
+  height: 125px !important;
+  margin-inline: auto !important;
+  overflow: visible !important;
+}
+#jr-safe-loading-v86 .jr-safe-loading-logo-v86 img {
+  width: 98px !important;
+  height: 113px !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+  transform-origin: 50% 50% !important;
+  animation: jr-loading-flutuar-v1 3.8s ease-in-out infinite !important;
+  will-change: transform !important;
+  filter: drop-shadow(0 3px 9px rgba(180,195,205,.10)) !important;
+}
+.jr-loading-logo-v7 {
+  max-width: 100% !important;
+  object-fit: contain !important;
+  transform-origin: center !important;
+  animation: jr-loading-flutuar-v1 3.8s ease-in-out infinite !important;
+}
+@keyframes jr-loading-flutuar-v1 {
+  0%,100% { transform: translate3d(-4px,2px,0) scale(1); opacity: .92; }
+  50% { transform: translate3d(-4px,-5px,0) scale(1.035); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #jr-safe-loading-v86 .jr-safe-loading-logo-v86 img,.jr-loading-logo-v7 {
+    animation: none !important;
+    transform: translateX(-4px) !important;
+  }
+}
+
+/* Painel desktop: menu mais estreito e compacto, conteúdo mais próximo. */
+@media (min-width: 861px) {
+  #app-view.app-shell {
+    grid-template-columns: 188px minmax(0, 1fr) !important;
+  }
+  #app-view #sidebar {
+    padding: 12px 8px 18px !important;
+    justify-content: flex-start !important;
+  }
+  #app-view #sidebar .sidebar-nav {
+    gap: 3px !important;
+    margin-top: 10px !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
+  }
+  #app-view #sidebar .nav-item {
+    min-height: 41px !important;
+    gap: 9px !important;
+    padding: 0 10px !important;
+    font-size: 12.5px !important;
+    line-height: 1.2 !important;
+    border-radius: 9px !important;
+  }
+  #app-view #sidebar .nav-item svg {
+    width: 17px !important;
+    height: 17px !important;
+  }
+  #app-view .main-content {
+    padding-inline: clamp(10px,1.25vw,18px) !important;
+  }
+}
+
+/* Resumo mensal: reduz margens, títulos e espaçamento sem tocar nos números. */
+#app-view .monthly-summary-block {
+  padding: 15px 16px !important;
+  margin: 12px 0 14px !important;
+}
+#app-view .monthly-summary-toolbar {
+  padding-bottom: 12px !important;
+  gap: 12px !important;
+}
+#app-view .monthly-summary-toolbar h2 {
+  font-size: 17px !important;
+  margin-top: 5px !important;
+  line-height: 1.25 !important;
+}
+#app-view .monthly-summary-toolbar p {
+  font-size: 11px !important;
+  margin-top: 5px !important;
+  line-height: 1.4 !important;
+}
+#app-view .monthly-summary-toolbar .eyebrow {
+  font-size: 10px !important;
+  letter-spacing: .14em !important;
+}
+#app-view .monthly-summary-block .top-summary {
+  margin-top: 12px !important;
+  gap: 12px !important;
+}
+@media (max-width: 860px) {
+  #app-view .monthly-summary-block { padding: 14px !important; }
+  #app-view .monthly-summary-toolbar { flex-direction: column !important; align-items: stretch !important; }
+}
