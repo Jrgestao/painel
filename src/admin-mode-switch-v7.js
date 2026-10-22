@@ -1,4 +1,4 @@
-import { supabase } from './jr-auth-client-v1.js?v=jr-auth-20261020'
+import { supabase } from './jr-auth-client-v1.js?v=jr-auth-20261022-refresh-v3'
 
 const MARKER_ID = 'jr-admin-mode-entry-v7'
 
