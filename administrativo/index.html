@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=20261020-link-oficial-v2" />
+  <link rel="stylesheet" href="./styles.css?v=20261022-calendario-prazos-v1" />
 </head>
 <body>
   <div id="admin-loading" class="admin-loading" role="status" aria-live="polite">
@@ -75,9 +75,13 @@
                 <button id="today-button" class="today-button" type="button"><span data-icon="calendar"></span>Hoje</button>
               </div>
             </div>
+            <div class="calendar-mode-switch" role="group" aria-label="Visualização do calendário">
+              <button type="button" data-calendar-mode="publications" class="active" aria-pressed="true">Publicações</button>
+              <button type="button" data-calendar-mode="deadlines" aria-pressed="false">Prazos finais</button>
+            </div>
             <div class="weekdays" aria-hidden="true"><span>DOM</span><span>SEG</span><span>TER</span><span>QUA</span><span>QUI</span><span>SEX</span><span>SÁB</span></div>
             <div id="calendar-grid" class="calendar-grid" role="grid" aria-label="Calendário mensal"></div>
-            <div class="calendar-legend"><span><i class="legend-dot priority"></i>Prioridade</span><span><i class="legend-dot opportunities"></i>Publicações</span><small>Contagem baseada na data oficial de publicação</small></div>
+            <div class="calendar-legend"><span><i class="legend-dot priority"></i>Prioridade</span><span><i class="legend-dot opportunities"></i><span id="calendar-context-legend">Publicações</span></span><small id="calendar-context-note">Contagem baseada na data oficial de publicação</small></div>
           </article>
 
           <aside class="radar-panel surface">
@@ -154,6 +158,6 @@
 
   <div id="toast" class="toast" aria-live="polite"></div>
   <script src="../src/vendor/supabase-js-2.57.4-local-20260801-221649.js?v=20260801-221649"></script>
-  <script type="module" src="./app.js?v=jr-auth-20261020"></script>
+  <script type="module" src="./app.js?v=20261022-calendario-prazos-v1"></script>
 </body>
 </html>
