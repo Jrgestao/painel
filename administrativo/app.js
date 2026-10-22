@@ -11,6 +11,7 @@ const state = {
   month: '',
   selectedDate: '',
   calendar: {},
+  calendarMode: 'publications',
   results: [],
   radar: 'combined',
   scope: 'state',
@@ -50,6 +51,7 @@ async function bootstrap() {
 
   const today = todayInCampoGrande()
   const params = new URLSearchParams(window.location.search)
+  state.calendarMode = params.get('visao') === 'prazos' ? 'deadlines' : 'publications'
   const requestedDate = validDate(params.get('data')) ? params.get('data') : today
   state.selectedDate = requestedDate
   state.month = requestedDate.slice(0, 7)
@@ -95,6 +97,14 @@ function bindEvents() {
       item.setAttribute('aria-selected', String(active))
     })
     renderRadar()
+  }))
+  document.querySelectorAll('[data-calendar-mode]').forEach((button) => button.addEventListener('click', async () => {
+    const mode = button.dataset.calendarMode
+    if (!['publications', 'deadlines'].includes(mode) || state.calendarMode === mode) return
+    state.calendarMode = mode
+    syncScopeUi()
+    updateUrl({ tool: true })
+    await Promise.all([loadCalendar(), loadDay()])
   }))
   document.querySelectorAll('[data-scope]').forEach((button) => button.addEventListener('click', async () => {
     const scope = button.dataset.scope
@@ -206,12 +216,14 @@ function renderCalendar() {
     const counts = state.calendar[iso] || { total: 0, prioritarias: 0, campoGrande: 0 }
     const visibleCount = state.scope === 'campo' ? Number(counts.campoGrande || 0) : Number(counts.total || 0)
     const outside = date.getUTCMonth() + 1 !== month
-    const label = `${formatDate(iso, { weekday: 'long', day: 'numeric', month: 'long' })}${visibleCount ? `, ${visibleCount} licitações` : ', nenhuma licitação'}`
+    const typeName = state.calendarMode === 'deadlines' ? 'prazo final' : 'publicação'
+    const countName = visibleCount === 1 ? typeName : (state.calendarMode === 'deadlines' ? 'prazos finais' : 'publicações')
+    const label = `${formatDate(iso, { weekday: 'long', day: 'numeric', month: 'long' })}, ${visibleCount} ${countName}`
     cells.push(`
       <button type="button" role="gridcell" class="calendar-day${outside ? ' outside' : ''}${iso === today ? ' today' : ''}${iso === state.selectedDate ? ' selected' : ''}" data-calendar-date="${iso}" aria-label="${escapeHtml(label)}" aria-selected="${iso === state.selectedDate}">
         <span class="day-number"><span>${date.getUTCDate()}</span><i>HOJE</i></span>
         <span class="day-count">
-          ${visibleCount ? `<strong>${visibleCount} ${visibleCount === 1 ? 'licitação' : 'licitações'}</strong><span>publicadas</span>` : '<span>—</span>'}
+          ${visibleCount ? `<strong>${visibleCount} ${visibleCount === 1 ? (state.calendarMode === 'deadlines' ? 'prazo' : 'licitação') : (state.calendarMode === 'deadlines' ? 'prazos' : 'licitações')}</strong><span>${state.calendarMode === 'deadlines' ? 'vencendo' : 'publicadas'}</span>` : '<span>—</span>'}
           ${counts.prioritarias ? `<span class="priority-count">★ ${counts.prioritarias} prioritária${counts.prioritarias === 1 ? '' : 's'}</span>` : ''}
         </span>
       </button>`)
@@ -226,13 +238,7 @@ async function loadDay() {
   try {
     const payload = await api(`/api/admin/licitacoes/dia?date=${encodeURIComponent(state.selectedDate)}`)
     state.results = Array.isArray(payload.results) ? payload.results : []
-    const scoped = scopeResults()
-    el('day-title').textContent = state.scope === 'campo'
-      ? `Licitações de Campo Grande em ${formatDate(state.selectedDate)}`
-      : `Licitações de ${formatDate(state.selectedDate)}`
-    el('day-summary').textContent = state.scope === 'campo'
-      ? `${scoped.length} ${scoped.length === 1 ? 'publicação oficial de Campo Grande localizada' : 'publicações oficiais de Campo Grande localizadas'}.`
-      : `${payload.total || 0} ${payload.total === 1 ? 'publicação oficial localizada' : 'publicações oficiais localizadas'} em Mato Grosso do Sul.`
+    updateDayHeading()
     populateFilterOptions()
     renderRadar()
     renderResults()
@@ -242,7 +248,7 @@ async function loadDay() {
     const message = readableError(error)
     el('day-error').textContent = message
     el('day-error').classList.remove('hidden')
-    el('day-title').textContent = `Licitações de ${formatDate(state.selectedDate)}`
+    updateDayHeading()
     el('day-summary').textContent = 'Não foi possível consultar esta data.'
   } finally {
     el('day-loading').classList.add('hidden')
@@ -327,6 +333,7 @@ function renderTenderCard(item) {
   const shortSummary = smartTenderSummary(item)
   const officialUrl = safeUrl(item.url_oficial)
   const tenderNumber = item.processo || item.numero_compra || 'Não informado'
+  const timeline = tenderDateLabels(item)
   const tags = (item.categorias || []).map((category) => `<span class="category-chip">${escapeHtml(category)}</span>`).join('')
   return `
     <article class="tender-card${isPriority(item) ? ' priority' : ''}">
@@ -345,8 +352,9 @@ function renderTenderCard(item) {
           <span><strong>Modalidade:</strong>${escapeHtml(item.modalidade || 'Não informada')}</span>
           <span><strong>Processo:</strong>${escapeHtml(tenderNumber)}</span>
           <span><strong>Publicação:</strong>${formatDate(item.data_publicacao)}</span>
-          <span><strong>Abertura:</strong>${formatDateTime(item.data_abertura)}</span>
-          <span><strong>Prazo:</strong>${escapeHtml(item.prazo_texto || formatDateTime(item.data_encerramento))}</span>
+          <span><strong>${escapeHtml(timeline.start)}:</strong>${formatDateTime(item.data_abertura)}</span>
+          <span><strong>${escapeHtml(timeline.end)}:</strong>${item.data_encerramento ? formatDateTime(item.data_encerramento) : 'Não confirmado'}</span>
+          ${item.prazo_texto ? `<span><strong>Prazo informado no aviso:</strong>${escapeHtml(item.prazo_texto)}</span>` : ''}
         </div>
         ${tags ? `<div class="categories">${tags}</div>` : ''}
       </div>
@@ -384,6 +392,7 @@ async function openDetail(id) {
 
 function renderDetail(payload) {
   const item = payload.tender
+  const timeline = tenderDateLabels(item)
   const status = statusForTender(item)
   const sources = payload.sources || []
   const documents = payload.documents || []
@@ -396,8 +405,9 @@ function renderDetail(payload) {
     ['Modalidade', item.modalidade],
     ['Valor estimado', formatMoney(item.valor_estimado)],
     ['Publicação', formatDate(item.data_publicacao)],
-    ['Prazo', item.prazo_texto || formatDateTime(item.data_encerramento)],
-    ['Data e horário da sessão', formatDateTime(item.data_abertura)],
+    [timeline.start, formatDateTime(item.data_abertura)],
+    [timeline.end, item.data_encerramento ? formatDateTime(item.data_encerramento) : 'Não confirmado'],
+    ['Prazo informado no aviso', item.prazo_texto],
     ['Local de execução', item.local_execucao],
   ]
   const resources = sources.map((source) => resourceItem({
@@ -568,6 +578,16 @@ function campoFilterLabel() {
   return state.campoFilter === 'MÁQUINAS' ? 'Máquinas e equipamentos' : state.campoFilter
 }
 
+function updateDayHeading() {
+  if (!state.selectedDate) return
+  const count = scopeResults().length
+  const isCampo = state.scope === 'campo'
+  const isDeadline = state.calendarMode === 'deadlines'
+  const noun = isDeadline ? 'prazo final' : 'publicação'
+  el('day-title').textContent = `${isDeadline ? 'Prazos finais' : 'Licitações publicadas'}${isCampo ? ' em Campo Grande' : ''} — ${formatDate(state.selectedDate)}`
+  el('day-summary').textContent = `${count} ${count === 1 ? noun : (isDeadline ? 'prazos finais' : 'publicações')} ${isCampo ? 'de Campo Grande' : 'em Mato Grosso do Sul'} nesta data.`
+}
+
 function syncScopeUi() {
   const campo = state.scope === 'campo'
   document.querySelectorAll('[data-scope]').forEach((button) => button.classList.toggle('active', button.dataset.scope === state.scope))
@@ -579,15 +599,16 @@ function syncScopeUi() {
   el('campo-radar-copy').classList.toggle('hidden', !campo)
   el('campo-quick-filters').classList.toggle('hidden', !campo)
   syncCampoFilters()
-  if (state.selectedDate) {
-    const scoped = scopeResults()
-    el('day-title').textContent = campo
-      ? `Licitações de Campo Grande em ${formatDate(state.selectedDate)}`
-      : `Licitações de ${formatDate(state.selectedDate)}`
-    el('day-summary').textContent = campo
-      ? `${scoped.length} ${scoped.length === 1 ? 'publicação oficial de Campo Grande localizada' : 'publicações oficiais de Campo Grande localizadas'}.`
-      : `${state.results.length} ${state.results.length === 1 ? 'publicação oficial localizada' : 'publicações oficiais localizadas'} em Mato Grosso do Sul.`
-  }
+  document.querySelectorAll('[data-calendar-mode]').forEach((button) => {
+    const active = button.dataset.calendarMode === state.calendarMode
+    button.classList.toggle('active', active)
+    button.setAttribute('aria-pressed', String(active))
+  })
+  el('calendar-context-legend').textContent = state.calendarMode === 'deadlines' ? 'Prazos finais' : 'Publicações'
+  el('calendar-context-note').textContent = state.calendarMode === 'deadlines'
+    ? 'Encerramento registrado das propostas (horário de Campo Grande)'
+    : 'Contagem baseada na data oficial de publicação'
+  updateDayHeading()
 }
 
 function syncCampoFilters() {
@@ -660,15 +681,20 @@ function conciseObject(value) {
   return `${shortened}…`
 }
 
+function tenderDateLabels(item) {
+  if (item.fonte_principal === 'PNCP') return { start: 'Início das propostas', end: 'Fim das propostas' }
+  if (item.raw_data?.coletor === 'jr-diarios-novos-v1') return { start: 'Sessão informada no diário', end: 'Encerramento registrado' }
+  return { start: 'Data informada pela fonte', end: 'Encerramento registrado' }
+}
+
 function statusForTender(item) {
   const official = normalize(item.situacao)
   if (/cancel|anulad|revogad|desert|fracassad/.test(official)) return { label: 'Cancelada', kind: 'cancelled' }
   if (/suspens|suspensa/.test(official)) return { label: 'Suspensa', kind: 'suspended' }
   if (/encerr|concluid|homologad|adjudicad|finalizad/.test(official)) return { label: 'Encerrada', kind: 'closed' }
-  const deadline = new Date(item.data_encerramento || '')
-  if (!Number.isNaN(deadline.getTime()) && deadline.getTime() < Date.now()) return { label: 'Encerrada', kind: 'closed' }
-  const opening = new Date(item.data_abertura || '')
-  if (Number.isNaN(deadline.getTime()) && !Number.isNaN(opening.getTime()) && opening.getTime() < Date.now()) return { label: 'Encerrada', kind: 'closed' }
+  const deadline = item.data_encerramento ? new Date(item.data_encerramento) : null
+  if (!deadline || Number.isNaN(deadline.getTime())) return { label: 'Prazo não confirmado', kind: 'unknown' }
+  if (deadline.getTime() < Date.now()) return { label: 'Encerrada', kind: 'closed' }
   return { label: 'Em prazo', kind: 'open' }
 }
 
@@ -695,36 +721,77 @@ async function api(path, options = {}) {
   throw new Error('Consulta de licitações desconhecida.')
 }
 
+function dateInCampoGrande(value) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: DATE_ZONE, year: 'numeric', month: '2-digit', day: '2-digit'
+  }).formatToParts(date)
+  const fields = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+  return `${fields.year}-${fields.month}-${fields.day}`
+}
+
+function widerDateRange(date, daysAfter = 2) {
+  const atUtc = Date.parse(`${date}T00:00:00Z`)
+  return {
+    start: new Date(atUtc - 86400000).toISOString(),
+    end: new Date(atUtc + daysAfter * 86400000).toISOString(),
+  }
+}
+
 async function queryCalendar(month) {
   if (!/^\d{4}-\d{2}$/.test(month || '')) throw new Error('Mês inválido.')
   const [year, monthNumber] = month.split('-').map(Number)
   const start = `${month}-01`
-  const nextDate = new Date(Date.UTC(year, monthNumber, 1))
-  const end = nextDate.toISOString().slice(0, 10)
-  const rows = await fetchPaged(() => supabase.from('licitacoes')
-    .select('id,data_publicacao,is_campo_grande,compatibilidade')
-    .gte('data_publicacao', start)
-    .lt('data_publicacao', end)
-    .order('data_publicacao', { ascending: true }), 20000)
+  const end = new Date(Date.UTC(year, monthNumber, 1)).toISOString().slice(0, 10)
+  const deadlines = state.calendarMode === 'deadlines'
+  const daysInMonth = Math.round((Date.parse(end) - Date.parse(start)) / 86400000)
+  const bounds = widerDateRange(start, daysInMonth + 2)
+  const rows = deadlines
+    ? await fetchPaged(() => supabase.from('licitacoes')
+      .select('id,data_encerramento,is_campo_grande,compatibilidade')
+      .gte('data_encerramento', bounds.start)
+      .lt('data_encerramento', bounds.end)
+      .order('data_encerramento', { ascending: true }), 20000)
+    : await fetchPaged(() => supabase.from('licitacoes')
+      .select('id,data_publicacao,is_campo_grande,compatibilidade')
+      .gte('data_publicacao', start)
+      .lt('data_publicacao', end)
+      .order('data_publicacao', { ascending: true }), 20000)
   const days = {}
   rows.forEach((row) => {
-    const day = days[row.data_publicacao] || { total: 0, prioritarias: 0, campoGrande: 0 }
+    const iso = deadlines ? dateInCampoGrande(row.data_encerramento) : row.data_publicacao
+    if (!iso || (deadlines && !iso.startsWith(month))) return
+    const day = days[iso] || { total: 0, prioritarias: 0, campoGrande: 0 }
     day.total += 1
     if (row.is_campo_grande) day.campoGrande += 1
     if (row.is_campo_grande && Number(row.compatibilidade || 0) >= PRIORITY_SCORE) day.prioritarias += 1
-    days[row.data_publicacao] = day
+    days[iso] = day
   })
   return { month, days }
 }
 
 async function queryDay(date, userId) {
   if (!validDate(date)) throw new Error('Data inválida.')
+  const deadlines = state.calendarMode === 'deadlines'
+  const bounds = widerDateRange(date, 2)
   const [rows, favoriteRows] = await Promise.all([
-    fetchPaged(() => supabase.from('licitacoes').select('*').eq('data_publicacao', date).order('compatibilidade', { ascending: false }).order('data_abertura', { ascending: true, nullsFirst: false }), 2000),
+    deadlines
+      ? fetchPaged(() => supabase.from('licitacoes').select('*')
+        .gte('data_encerramento', bounds.start)
+        .lt('data_encerramento', bounds.end)
+        .order('data_encerramento', { ascending: true }), 20000)
+      : fetchPaged(() => supabase.from('licitacoes').select('*')
+        .eq('data_publicacao', date)
+        .order('compatibilidade', { ascending: false })
+        .order('data_abertura', { ascending: true, nullsFirst: false }), 2000),
     checked(supabase.from('licitacao_favoritos').select('licitacao_id').eq('user_id', userId)),
   ])
   const favorites = new Set((favoriteRows || []).map((item) => item.licitacao_id))
-  const results = rows.map((item) => ({ ...item, favoritada: favorites.has(item.id) }))
+  const filtered = deadlines ? rows.filter((item) => dateInCampoGrande(item.data_encerramento) === date) : rows
+  const results = filtered.map((item) => ({ ...item, favoritada: favorites.has(item.id) }))
+  if (deadlines) results.sort((a, b) => Number(b.compatibilidade || 0) - Number(a.compatibilidade || 0) || new Date(a.data_encerramento) - new Date(b.data_encerramento))
   return { date, total: results.length, results }
 }
 
@@ -796,6 +863,8 @@ function updateUrl({ tool, replace = false }) {
   if (tool) {
     url.searchParams.set('ferramenta', state.scope === 'campo' ? 'campo-grande' : 'licitacoes')
     url.searchParams.set('data', state.selectedDate)
+    if (state.calendarMode === 'deadlines') url.searchParams.set('visao', 'prazos')
+    else url.searchParams.delete('visao')
   }
   history[replace ? 'replaceState' : 'pushState']({}, '', url)
 }
