@@ -390,3 +390,11 @@ select:focus, input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 /* Links oficiais como ancoras nativas: nao dependem de pop-up JavaScript. */
 .tender-actions a.action-button { text-decoration: none; justify-content: center; }
 .tender-actions a.action-button:focus-visible { outline: 2px solid #087a66; outline-offset: 3px; }
+
+/* Alternador entre publicações e prazos finais */
+.calendar-mode-switch { display: flex; align-items: center; gap: 5px; padding: 12px 24px; border-bottom: 1px solid var(--line); background: #f8fbfa; }
+.calendar-mode-switch button { min-height: 36px; padding: 0 14px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--muted); font-size: .76rem; font-weight: 800; cursor: pointer; }
+.calendar-mode-switch button.active { background: var(--navy); color: white; box-shadow: 0 3px 12px rgba(13,43,62,.12); }
+.calendar-mode-switch button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.status-badge.unknown { color: #795c25; background: #fff3d3; }
+@media (max-width: 520px) { .calendar-mode-switch { padding: 10px 13px; } .calendar-mode-switch button { flex: 1; } }
