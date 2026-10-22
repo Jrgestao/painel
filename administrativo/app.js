@@ -1,4 +1,4 @@
-import { supabase } from '../src/jr-auth-client-v1.js?v=jr-auth-20261020'
+import { supabase, getFreshSession } from '../src/jr-auth-client-v1.js?v=jr-auth-20261022-refresh-v3'
 import { hydrateIcons, icon } from './icons.js?v=admin-restore-20260904'
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
@@ -28,8 +28,7 @@ bootstrap().catch((error) => showFatal(error))
 async function bootstrap() {
   hydrateIcons()
   setLoadingMessage('Validando seu acesso ao modo administrativo…')
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-  if (sessionError) throw sessionError
+  const session = await getFreshSession()
   if (!session?.user) {
     window.location.replace('../')
     return
@@ -691,7 +690,7 @@ function countActiveFilters() {
 }
 
 async function api(path, options = {}) {
-  const { data: { session } } = await supabase.auth.getSession()
+  const session = await getFreshSession()
   if (!session?.access_token) throw new Error('Sua sessão expirou. Entre novamente no JR Gestão.')
   const requestUrl = new URL(path, window.location.origin)
   const route = requestUrl.pathname

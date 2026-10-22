@@ -1,6 +1,6 @@
 // JR_GESTAO_RESOLVER_CRITICOS_GITHUB_V1=20260918
 // Modulo isolado: nao altera dashboard, logo, cores ou funcoes existentes.
-import { supabase as sb } from './jr-auth-client-v1.js?v=jr-auth-20261020'
+import { supabase as sb } from './jr-auth-client-v1.js?v=jr-auth-20261022-refresh-v3'
 import { icon } from './icons.js?v=9'
 
 

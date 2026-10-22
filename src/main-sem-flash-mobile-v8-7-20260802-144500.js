@@ -33,7 +33,7 @@
 // JR_GESTAO_MOBILE_CALENDARIO_EQUIPES_V37
 // JR_GESTAO_CALENDARIO_DATA_SERVICO_FIXO_V38
 // JR_GESTAO_CARREGAMENTO_E_CALENDARIO_CORRIGIDOS_V39
-import { supabase } from './jr-auth-client-v1.js?v=jr-auth-20261020'
+import { supabase, getFreshSession } from './jr-auth-client-v1.js?v=jr-auth-20261022-refresh-v3'
 import { INTERNAL_LOGIN_DOMAIN, APP_TIME_ZONE, ADMIN_API_BASE_URL } from './config-cachefix-20260731-140035.js'
 import { hydrateIcons, icon } from './icons.js?v=20260731'
 import { initializeUiControls, setUiControlValue, refreshCustomSelect, closeAllUiControls } from './ui-controls.js?v=mobile-calendar-v40-20260811'
@@ -6367,8 +6367,8 @@ async function archiveAccess() {
 }
 
 async function adminApiRequest(path, options = {}) {
-  const { data } = await supabase.auth.getSession()
-  const token = data.session?.access_token
+  const session = await getFreshSession()
+  const token = session?.access_token
   if (!token) throw new Error('Sua sessão expirou. Entre novamente.')
 
   const normalizedPath = String(path || '').startsWith('/')
@@ -6380,7 +6380,7 @@ async function adminApiRequest(path, options = {}) {
   const timeout = window.setTimeout(() => controller.abort(), timeoutMs)
 
   try {
-    const response = await fetch(url, {
+    let response = await fetch(url, {
       method: options.method || 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -6391,6 +6391,22 @@ async function adminApiRequest(path, options = {}) {
       signal: controller.signal,
     })
 
+    // Somente GET pode ser repetido. Escritas não são reenviadas.
+    if (response.status === 401 && String(options.method || 'GET').toUpperCase() === 'GET') {
+      let errorText = ''
+      try { errorText = (await response.clone().text()).slice(0, 2048) } catch {}
+      if (/jwt\s*(?:has\s*)?expired|expired\s+jwt|token\s+(?:has\s+)?expired/i.test(errorText)) {
+        const fresh = await getFreshSession(true)
+        if (fresh?.access_token && fresh.access_token !== token) {
+          response = await fetch(url, {
+            method: 'GET',
+            headers: {Authorization: `Bearer ${fresh.access_token}`, 'Content-Type': 'application/json'},
+            cache: 'no-store',
+            signal: controller.signal,
+          })
+        }
+      }
+    }
     let payload = {}
     try {
       payload = await response.json()
