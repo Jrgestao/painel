@@ -12,6 +12,8 @@ const state = {
   selectedDate: '',
   calendar: {},
   calendarMode: 'publications',
+  calendarRequestId: 0,
+  dayRequestId: 0,
   results: [],
   radar: 'combined',
   scope: 'state',
@@ -186,17 +188,23 @@ async function selectDate(date) {
 }
 
 async function loadCalendar() {
+  const requestId = ++state.calendarRequestId
+  const requestedMonth = state.month
+  const requestedMode = state.calendarMode
+  const isCurrent = () => requestId === state.calendarRequestId && state.month === requestedMonth && state.calendarMode === requestedMode
   el('calendar-grid').setAttribute('aria-busy', 'true')
   try {
-    const payload = await api(`/api/admin/licitacoes/calendario?month=${encodeURIComponent(state.month)}`)
+    const payload = await api(`/api/admin/licitacoes/calendario?month=${encodeURIComponent(requestedMonth)}&mode=${encodeURIComponent(requestedMode)}`)
+    if (!isCurrent()) return
     state.calendar = payload.days || {}
     renderCalendar()
   } catch (error) {
+    if (!isCurrent()) return
     state.calendar = {}
     renderCalendar()
     showToast(readableError(error))
   } finally {
-    el('calendar-grid').removeAttribute('aria-busy')
+    if (isCurrent()) el('calendar-grid').removeAttribute('aria-busy')
   }
 }
 
@@ -232,17 +240,23 @@ function renderCalendar() {
 }
 
 async function loadDay() {
+  const requestId = ++state.dayRequestId
+  const requestedDate = state.selectedDate
+  const requestedMode = state.calendarMode
+  const isCurrent = () => requestId === state.dayRequestId && state.selectedDate === requestedDate && state.calendarMode === requestedMode
   el('day-loading').classList.remove('hidden')
   el('day-error').classList.add('hidden')
   el('results-container').innerHTML = ''
   try {
-    const payload = await api(`/api/admin/licitacoes/dia?date=${encodeURIComponent(state.selectedDate)}`)
+    const payload = await api(`/api/admin/licitacoes/dia?date=${encodeURIComponent(requestedDate)}&mode=${encodeURIComponent(requestedMode)}`)
+    if (!isCurrent()) return
     state.results = Array.isArray(payload.results) ? payload.results : []
     updateDayHeading()
     populateFilterOptions()
     renderRadar()
     renderResults()
   } catch (error) {
+    if (!isCurrent()) return
     state.results = []
     renderRadar()
     const message = readableError(error)
@@ -251,7 +265,7 @@ async function loadDay() {
     updateDayHeading()
     el('day-summary').textContent = 'Não foi possível consultar esta data.'
   } finally {
-    el('day-loading').classList.add('hidden')
+    if (isCurrent()) el('day-loading').classList.add('hidden')
   }
 }
 
@@ -710,8 +724,8 @@ async function api(path, options = {}) {
   if (!session?.access_token) throw new Error('Sua sessão expirou. Entre novamente no JR Gestão.')
   const requestUrl = new URL(path, window.location.origin)
   const route = requestUrl.pathname
-  if (route.endsWith('/licitacoes/calendario')) return queryCalendar(requestUrl.searchParams.get('month'))
-  if (route.endsWith('/licitacoes/dia')) return queryDay(requestUrl.searchParams.get('date'), session.user.id)
+  if (route.endsWith('/licitacoes/calendario')) return queryCalendar(requestUrl.searchParams.get('month'), requestUrl.searchParams.get('mode'))
+  if (route.endsWith('/licitacoes/dia')) return queryDay(requestUrl.searchParams.get('date'), session.user.id, requestUrl.searchParams.get('mode'))
   if (route.endsWith('/licitacoes/fontes-status')) return querySourceStatus()
 
   const favoriteMatch = route.match(/\/licitacoes\/([0-9a-f-]+)\/favorito$/i)
@@ -740,12 +754,12 @@ function widerDateRange(date, daysAfter = 2) {
   }
 }
 
-async function queryCalendar(month) {
+async function queryCalendar(month, mode = 'publications') {
   if (!/^\d{4}-\d{2}$/.test(month || '')) throw new Error('Mês inválido.')
   const [year, monthNumber] = month.split('-').map(Number)
   const start = `${month}-01`
   const end = new Date(Date.UTC(year, monthNumber, 1)).toISOString().slice(0, 10)
-  const deadlines = state.calendarMode === 'deadlines'
+  const deadlines = mode === 'deadlines'
   const daysInMonth = Math.round((Date.parse(end) - Date.parse(start)) / 86400000)
   const bounds = widerDateRange(start, daysInMonth + 2)
   const rows = deadlines
@@ -772,9 +786,9 @@ async function queryCalendar(month) {
   return { month, days }
 }
 
-async function queryDay(date, userId) {
+async function queryDay(date, userId, mode = 'publications') {
   if (!validDate(date)) throw new Error('Data inválida.')
-  const deadlines = state.calendarMode === 'deadlines'
+  const deadlines = mode === 'deadlines'
   const bounds = widerDateRange(date, 2)
   const [rows, favoriteRows] = await Promise.all([
     deadlines
